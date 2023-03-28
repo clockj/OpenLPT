@@ -1,3 +1,0 @@
-"C:\Program Files\CMake\bin\cmake.exe" -E rm -f CMakeFiles\OpenLPT.dir/objects.a
-D:\MinGW\mingw64\bin\ar.exe cr CMakeFiles\OpenLPT.dir/objects.a @CMakeFiles\OpenLPT.dir\objects1.rsp
-D:\MinGW\mingw64\bin\g++.exe  -fopenmp -g   -o0 -Wall -g -ggdb -Wl,--whole-archive CMakeFiles\OpenLPT.dir/objects.a -Wl,--no-whole-archive -o OpenLPT.exe -Wl,--out-implib,libOpenLPT.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\OpenLPT.dir\linklibs.rsp
