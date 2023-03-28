@@ -1,10 +1,10 @@
 #ignore
-*/x64/
-*/out/
-*/build/
-*/.metadata/
-*/.settings/
-*/.vscode/
+*/x64/*
+*/out/*
+/build/*
+*/.metadata/*
+*/.settings/*
+/.vscode/*
 */.vs/
 *.o
 
