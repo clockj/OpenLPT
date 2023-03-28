@@ -11,10 +11,10 @@
 #include <ctime>
 
 #include "myMATH.hpp"
-// #include "Matrix.h"
+#include "Matrix.h"
+#include "myIO.hpp"
 // #include "Camera.h"
 // #include "ImageIO.h"
-// #include "myMATH.h"
 // #include "ObjectFinder.h"
 // #include "StereoMatch.h"
 // #include "OTF.h"
@@ -37,73 +37,27 @@
 //     return pt_list_3d;
 // }
 
-void WriteMatchList (std::string file_name, std::vector<std::vector<int>>& tracer_match_list)
-{
-    std::cout << "Start writing match list!" << std::endl;
-
-    std::ofstream outfile(file_name, std::ios::out);
-
-    outfile << "MatchList" << "\n";
-    outfile << "Number of matches is: " << tracer_match_list.size() << "\n";
-
-    for (int i = 0; i < tracer_match_list.size(); i ++)
-    {
-        for (int j = 0; j < tracer_match_list[i].size(); j ++)
-        {
-            outfile << tracer_match_list[i][j] << "\t";
-        }
-        outfile << "\n";
-    }
-
-    std::cout << "Finish writing match list!" << std::endl;
-}
-
-void WriteTriError (std::string file_name, std::vector<double>& error_list)
-{
-    std::cout << "Start writing tri-error list!" << std::endl;
-
-    std::ofstream outfile(file_name, std::ios::out);
-
-    outfile << "MatchList" << "\n";
-    outfile << "Number of matches is: " << error_list.size() << "\n";
-
-    for (int i = 0; i < error_list.size(); i ++)
-    {
-        outfile << error_list[i] << "\n";
-    }
-
-    std::cout << "Finish writing tri-error list!" << std::endl;
-}
-
 
 int main()
 {
     std::cout << "Simple test!" << std::endl;
 
-    std::vector<double> nums = {-0.9,0,0.5,0.5,0.1,800,0.32,900,900,9990,1231};
-    std::vector<int> sorted_index(nums.size());
+    std::string file_zsj = "Result/zsj.csv";
+    std::string file_cyj = "Result/cyj.csv";
 
-    myMATH::MergeSort<double>(sorted_index, nums);
-    // myMATH::BubbleSort<double>(sorted_index, nums);
-    for (int i = 0; i < nums.size(); i ++)
-    {
-        std::cout << nums[sorted_index[i]] << " ";
-    }
-    std::cout << std::endl;
+    // std::vector<std::vector<double>> zsj;
+    // std::vector<std::vector<double>> cyj;
+    // myIO::LoadMatrix<double> (file_zsj, zsj);
+    // myIO::LoadMatrix<double> (file_cyj, cyj);
+    Matrix<double> zsj(file_zsj);
+    Matrix<double> cyj(file_cyj);
 
-    std::cout << "Max=" << myMATH::Max<double>(nums) << std::endl;
-    std::cout << "Min=" << myMATH::Min<double>(nums) << std::endl;
-    std::cout << "Medium=" << myMATH::Median<double>(nums) << std::endl;
+    Matrix<double> res = zsj * cyj;
+    zsj *= cyj;
 
-    std::vector<bool> judge(nums.size());
-    myMATH::IsOutlier(judge, nums);
-    for (int i = 0; i < nums.size(); i ++)
-    {
-        std::cout << judge[i] << " ";
-    }
-    std::cout << std::endl;
-
-    std::cout << error_type << std::endl;
+    zsj.WriteMatrix(std::string("Result/zsj_out.csv"));
+    res.WriteMatrix(std::string("Result/cyj_out.csv"));
+    // cyj.WriteMatrix(std::string("Result/cyj_out.csv"));
 
     std::cout << "Test ended!" << std::endl;
     return 0;

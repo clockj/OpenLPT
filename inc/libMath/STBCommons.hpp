@@ -90,7 +90,8 @@ enum ErrorTypeID
 {
     error_size = 1,
     error_type,
-    error_range
+    error_range,
+    error_space
 };
 
 enum ObjectTypeID
