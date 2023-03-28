@@ -35,7 +35,7 @@ void BubbleSort (std::vector<int>& sorted_id_list, std::vector<T> const& nums)
     if (sorted_id_list.size() != nums.size())
     {
         std::cerr << "myMATH::BubbleSort: size unequal" << std::endl;
-        throw -1;
+        throw error_size;
     }
 
     int size = nums.size();
@@ -121,7 +121,7 @@ T Max(std::vector<T> const& nums, SortTypeID type_id = type_ms)
     if (size < 1)
     {
         std::cerr << "myMATH::Max: size=" << size << std::endl;
-        throw -1;
+        throw error_size;
     }
 
     std::vector<int> sorted_id_list(size);
@@ -135,7 +135,7 @@ T Max(std::vector<T> const& nums, SortTypeID type_id = type_ms)
         return nums[sorted_id_list[size-1]];
     default:
         std::cerr << "myMATH::Max: no such sorting" << std::endl;
-        throw -2;
+        throw error_type;
     }
 };
 template<class T>
@@ -153,7 +153,7 @@ T Min(std::vector<T> const& nums, SortTypeID type_id = type_ms)
         return nums[sorted_id_list[0]];
     default:
         std::cerr << "myMATH::Max: no such type" << std::endl;
-        return 0;
+        throw error_type;
     }
 };
 
@@ -186,7 +186,7 @@ void IsOutlier (std::vector<bool>& judge, std::vector<T> const& nums)
     if (judge.size() != n)
     {
         std::cerr << "myMATH::IsOutlier: size unequal" << std::endl;
-        throw -1;
+        throw error_size;
     }
 
     double median = Median<T>(nums);
@@ -219,7 +219,7 @@ std::vector<double> Linspace (double min, double max, int n)
                   << "n = " << n << ", "
                   << "less than 2!"
                   << std::endl;
-        throw -1;
+        throw error_size;
     }
 
     double delta = (max - min) / (n - 1);
@@ -286,7 +286,7 @@ double TriLinearInterp(AxisLimit& grid_limit, std::vector<double>& value, std::v
                   << y << ","
                   << z << ")"
                   << std::endl;
-        throw -3;
+        throw error_range;
     }
 
     double c_00 = c_000 * (1 - x_d) + c_100 * x_d;
