@@ -1,11 +1,11 @@
 #ignore
-*/x64/*
-*/out/*
-/build/*
-*/.metadata/*
-*/.settings/*
-/.vscode/*
-*/.vs/
+/x64/
+/out/
+/build/
+/.metadata/
+/.settings/
+/.vscode/
+/.vs/
 *.o
 
 
