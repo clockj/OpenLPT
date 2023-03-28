@@ -1,0 +1,202 @@
+[
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build",
+  "command": "D:\\MinGW\\mingw64\\bin\\g++.exe  @CMakeFiles/OpenLPT.dir/includes_CXX.rsp  -fopenmp -g   -o0 -Wall -g -ggdb -std=gnu++11 -o CMakeFiles\\OpenLPT.dir\\main.cpp.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\main.cpp\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/main.cpp"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_aux.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_aux.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_aux.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_close.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_close.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_close.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_codec.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_codec.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_codec.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_color.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_color.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_color.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_compress.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_compress.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_compress.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_dir.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_dir.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_dir.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_dirinfo.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_dirinfo.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_dirinfo.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_dirread.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_dirread.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_dirread.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_dirwrite.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_dirwrite.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_dirwrite.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_dumpmode.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_dumpmode.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_dumpmode.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_error.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_error.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_error.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_extension.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_extension.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_extension.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_fax3.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_fax3.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_fax3.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_fax3sm.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_fax3sm.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_fax3sm.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_flush.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_flush.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_flush.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_getimage.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_getimage.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_getimage.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_jbig.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_jbig.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_jbig.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_jpeg.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_jpeg.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_jpeg.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_jpeg_12.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_jpeg_12.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_jpeg_12.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_luv.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_luv.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_luv.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_lzma.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_lzma.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_lzma.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_lzw.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_lzw.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_lzw.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_next.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_next.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_next.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_ojpeg.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_ojpeg.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_ojpeg.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_open.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_open.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_open.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_packbits.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_packbits.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_packbits.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_pixarlog.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_pixarlog.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_pixarlog.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_predict.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_predict.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_predict.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_print.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_print.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_print.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_read.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_read.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_read.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_strip.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_strip.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_strip.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_swab.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_swab.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_swab.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_thunder.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_thunder.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_thunder.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_tile.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_tile.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_tile.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_version.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_version.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_version.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_warning.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_warning.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_warning.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_write.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_write.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_write.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_zip.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_zip.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_zip.c"
+},
+{
+  "directory": "D:/JHU Codes/OpenLPT/OpenLPT/build/inc/libtiff",
+  "command": "D:\\MinGW\\mingw64\\bin\\gcc.exe  @CMakeFiles/tiff.dir/includes_C.rsp -g     -o0 -Wall -g -ggdb -o CMakeFiles\\tiff.dir\\tif_unix.c.obj -c \"D:\\JHU Codes\\OpenLPT\\OpenLPT\\inc\\libtiff\\tif_unix.c\"",
+  "file": "D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_unix.c"
+}
+]

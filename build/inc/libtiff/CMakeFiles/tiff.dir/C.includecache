@@ -1,0 +1,330 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/t4.h
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_aux.c
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+tif_predict.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_predict.h
+math.h
+-
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_close.c
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+string.h
+-
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_codec.c
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_color.c
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+math.h
+-
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_compress.c
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_config.h
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_dir.c
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+float.h
+-
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_dir.h
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_dirinfo.c
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+stdlib.h
+-
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_dirread.c
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+float.h
+-
+stdlib.h
+-
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_dirwrite.c
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+float.h
+-
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_dumpmode.c
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_error.c
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_extension.c
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_fax3.c
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+tif_fax3.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_fax3.h
+t4.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/t4.h
+stdio.h
+-
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_fax3.h
+tiff.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiff.h
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_fax3sm.c
+tiff.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiff.h
+tif_fax3.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_fax3.h
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_flush.c
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_getimage.c
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+stdio.h
+-
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_jbig.c
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+jbig.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/jbig.h
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_jpeg.c
+stdlib.h
+-
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+setjmp.h
+-
+jpeglib.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/jpeglib.h
+jerror.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/jerror.h
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_jpeg_12.c
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+tif_jpeg.c
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_jpeg.c
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_luv.c
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+stdio.h
+-
+stdlib.h
+-
+math.h
+-
+uvcode.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/uvcode.h
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_lzma.c
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+tif_predict.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_predict.h
+lzma.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/lzma.h
+stdio.h
+-
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_lzw.c
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+tif_predict.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_predict.h
+stdio.h
+-
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_next.c
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_ojpeg.c
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+setjmp.h
+-
+jpeglib.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/jpeglib.h
+jerror.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/jerror.h
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_open.c
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_packbits.c
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+stdio.h
+-
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_pixarlog.c
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+tif_predict.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_predict.h
+zlib.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/zlib.h
+stdio.h
+-
+stdlib.h
+-
+math.h
+-
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_predict.c
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+tif_predict.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_predict.h
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_predict.h
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_print.c
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+stdio.h
+-
+ctype.h
+-
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_read.c
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+stdio.h
+-
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_strip.c
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_swab.c
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_thunder.c
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+assert.h
+-
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_tile.c
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_unix.c
+tif_config.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_config.h
+sys/types.h
+-
+errno.h
+-
+stdarg.h
+-
+stdlib.h
+-
+sys/stat.h
+-
+unistd.h
+-
+fcntl.h
+-
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+sys/mman.h
+-
+windows.h
+-
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_version.c
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_warning.c
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_write.c
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+stdio.h
+-
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_zip.c
+tiffiop.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+tif_predict.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_predict.h
+zlib.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/zlib.h
+stdio.h
+-
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiff.h
+tiffconf.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffconf.h
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffconf.h
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffio.h
+tiff.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiff.h
+tiffvers.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffvers.h
+windows.h
+-
+stdio.h
+-
+stdarg.h
+-
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffiop.h
+tif_config.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_config.h
+fcntl.h
+-
+sys/types.h
+-
+string.h
+-
+assert.h
+-
+search.h
+-
+tiffio.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffio.h
+tif_dir.h
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tif_dir.h
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/tiffvers.h
+
+D:/JHU Codes/OpenLPT/OpenLPT/inc/libtiff/uvcode.h
+
