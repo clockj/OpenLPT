@@ -11,13 +11,17 @@
 #define MATRIX_H
 
 #include <stdlib.h>
-#include <iostream>
 #include <vector>
 #include <iomanip>
 #include <math.h>
 #include <memory.h>
 
-#include "myMATH.hpp"
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <fstream>
+
+#include "myMATH.h"
 
 template <class T>
 class Matrix

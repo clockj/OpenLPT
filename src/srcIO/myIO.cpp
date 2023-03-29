@@ -1,12 +1,4 @@
-#ifndef MYIO_H
-#define MYIO_H
-
-#include <iostream>
-#include <string>
-#include <sstream>
-#include <fstream>
-
-#include "Matrix.h"
+#include "myIO.h"
 
 namespace myIO
 {
@@ -79,6 +71,3 @@ void LoadMatrix (std::string file_name, std::vector<std::vector<T>>& mtx)
 };
 
 }
-
-
-#endif

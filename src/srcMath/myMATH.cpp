@@ -1,21 +1,4 @@
-//
-//  MATH.h
-//  
-//  header file of class Matrix 
-//  
-//  Created  by Shijie Zhong on 07/02/2022
-//
-
-
-#ifndef MYMATH_H
-#define MYMATH_H
-
-#include <cstdlib>
-#include <vector>
-#include <iostream>
-#include <cmath>
-
-#include "STBCommons.hpp"
+#include "myMATH.h"
 
 namespace myMATH
 {
@@ -115,7 +98,7 @@ void MergeSort (std::vector<int>& sorted_id_list, std::vector<T> const& nums)
 
 // Max or Min 
 template<class T>
-T Max(std::vector<T> const& nums, SortTypeID type_id = type_ms)
+T Max(std::vector<T> const& nums, SortTypeID type_id)
 {
     int size = nums.size();
     if (size < 1)
@@ -139,7 +122,7 @@ T Max(std::vector<T> const& nums, SortTypeID type_id = type_ms)
     }
 };
 template<class T>
-T Min(std::vector<T> const& nums, SortTypeID type_id = type_ms)
+T Min(std::vector<T> const& nums, SortTypeID type_id)
 {
     int size = nums.size();
     std::vector<int> sorted_id_list(size);
@@ -304,5 +287,3 @@ double TriLinearInterp(AxisLimit& grid_limit, std::vector<double>& value, std::v
 
 
 } 
-
-#endif

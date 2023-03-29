@@ -1,5 +1,5 @@
-#ifndef STBCOMMONS
-#define STBCOMMONS
+#ifndef STBCOMMONS_H
+#define STBCOMMONS_H
 
 #include <iostream>
 #include <string>
@@ -99,21 +99,6 @@ enum ObjectTypeID
     type_tracer,
     type_bubble,
     type_filament
-};
-ObjectTypeID GetObjectTypeID (std::string object_type_name)
-{
-    if      (object_type_name == "Tracer")   {return ObjectTypeID::type_tracer;}
-    else if (object_type_name == "Bubble")   {return ObjectTypeID::type_bubble;}
-    else if (object_type_name == "Filament") {return ObjectTypeID::type_filament;}
-    else 
-    {
-        std::cerr << "There is no object type called: "
-                    << object_type_name << "! "
-                    << "The existing object types are: "
-                    << "Tracer\n Bubble\n Filament."
-                    << std::endl;
-        throw -2;
-    }
 };
 
 enum SortTypeID

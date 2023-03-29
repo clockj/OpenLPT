@@ -21,7 +21,6 @@
 
 class Camera
 {
-protected:
     // Model parameters; names should be more or less the same
     //  as from calibTsai.m! 
     double  _n_off_h = 0; // pixel center coordinate (Yf) 
@@ -60,7 +59,7 @@ public:
     // input: pt_pix: point location in pixel unit on image 
     //        (no use of z coordinate of pt_pix)
     // output: Matrix (camera coordinate) (Xu,Yu,0)
-    Matrix<double> ImgPixelToMM (Matrix<double> pt_img_pix);
+    Matrix<double> ImgPixelToMM (Matrix<double> const& pt_img_pix);
 
     // Project Image in camera coordinate [mm] to pixel: 
     //  (Xu,Yu,0) -> (Xd,Yd,0) -> (Xf,Yf,0)
@@ -72,21 +71,21 @@ public:
     // | 
     // |
     // \/ y direction (downwards)
-    Matrix<double> ImgMMToPixel (Matrix<double> pt_img_mm);
+    Matrix<double> ImgMMToPixel (Matrix<double> const& pt_img_mm);
 
     // Project image coordinate [mm] to world coordinate [mm]: 
     //  (Xu,Yu,0) -> (x,y,z) -> (xw,yw,zw)
     // input: pt_cam: point location in world coordinate 
     //        (no use of z coordinate of pt_cam)
     // output: Matrix (camera coordinate) (xw,yw,zw)
-    Matrix<double> ImgMMToWorld (Matrix<double> pt_img_mm);
+    Matrix<double> ImgMMToWorld (Matrix<double> const& pt_img_mm);
 
     // Project world coordinate [mm] to image coordinate [mm]: 
     //  (xw,yw,zw) -> (x,y,z) -> (Xu,Yu,0)
     // input: pt_world: point location in world coordinate 
     //        (no use of z coordinate of pt_cam)
     // output: Matrix (camera coordinate) (xw,yw,zw)
-    Matrix<double> WorldToImgMM (Matrix<double> pt_world);
+    Matrix<double> WorldToImgMM (Matrix<double> const& pt_world);
 
 
 

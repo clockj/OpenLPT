@@ -1,7 +1,3 @@
-#include <iostream>
-#include <string>
-#include <sstream>
-#include <fstream>
 #include <typeinfo>
 
 #include <vector>
@@ -10,10 +6,11 @@
 #include <omp.h>
 #include <ctime>
 
-#include "myMATH.hpp"
+#include "myMATH.h"
+#include "Matrix_bool.h"
 #include "Matrix.h"
-#include "myIO.hpp"
-// #include "Camera.h"
+#include "myIO.h"
+#include "Camera.h"
 // #include "ImageIO.h"
 // #include "ObjectFinder.h"
 // #include "StereoMatch.h"
@@ -42,22 +39,21 @@ int main()
 {
     std::cout << "Simple test!" << std::endl;
 
-    std::string file_zsj = "Result/zsj.csv";
-    std::string file_cyj = "Result/cyj.csv";
-
-    // std::vector<std::vector<double>> zsj;
-    // std::vector<std::vector<double>> cyj;
-    // myIO::LoadMatrix<double> (file_zsj, zsj);
-    // myIO::LoadMatrix<double> (file_cyj, cyj);
-    Matrix<double> zsj(file_zsj);
-    Matrix<double> cyj(file_cyj);
-
-    Matrix<double> res = zsj * cyj;
-    zsj *= cyj;
-
-    zsj.WriteMatrix(std::string("Result/zsj_out.csv"));
-    res.WriteMatrix(std::string("Result/cyj_out.csv"));
-    // cyj.WriteMatrix(std::string("Result/cyj_out.csv"));
+    int n_cam = 4;
+    // int n_cam = 3;
+    std::vector<Camera> cam_list;
+    std::string path_main = "./Data/";
+    for (int i = 0; i < n_cam; i ++)
+    {
+        Camera cam(
+            path_main 
+            + "cam" + std::to_string(i+1) 
+            + "Params.txt"
+        );
+        cam_list.push_back(cam);
+    }
+    Matrix<double> pt_mm = cam_list[0].WorldToImgMM(Matrix<double> (3,1,1,1,1));
+    pt_mm.Print();
 
     std::cout << "Test ended!" << std::endl;
     return 0;
