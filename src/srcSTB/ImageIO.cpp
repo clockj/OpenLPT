@@ -117,7 +117,7 @@ Matrix<int> ImageIO::LoadImg (int img_id)
 }
 
 
-void ImageIO::SaveImage (std::string save_path, Matrix<int> intensity_mtx)
+void ImageIO::SaveImage (std::string save_path, Matrix<int>& intensity_mtx)
 {
     // if (_img_id < 0)
     // {

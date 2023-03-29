@@ -1,7 +1,6 @@
 #include "Camera.h"
 
-Camera::Camera () 
-    : _r_mtx(3), _r_mtx_inv(3), _t_vec(3,1), _t_vec_inv(3,1) {};
+Camera::Camera () {};
 
 Camera::Camera (const Camera& c)
     : _n_off_h(c._n_off_h), _n_off_w(c._n_off_w), _n_pix_w(c._n_pix_w), 
@@ -88,7 +87,7 @@ void Camera::LoadParametersFromFile (std::string file_name)
 // Projection
 //
 
-Matrix<double> Camera::ImgPixelToMM (Matrix<double> pt_img_pix)
+Matrix<double> Camera::ImgPixelToMM (Matrix<double> const& pt_img_pix)
 {
     // Position centered (p);
     //  shift origin to the center of the image
@@ -96,28 +95,11 @@ Matrix<double> Camera::ImgPixelToMM (Matrix<double> pt_img_pix)
 
     // account for left-handed coordinate system 
     Matrix<double> pt_img_mm (pt_img_pix); //TODO: index
-    pt_img_mm(0,0) =   pt_img_mm(0,0) - _n_pix_w/2.0 - _n_off_w;
-    pt_img_mm(1,0) = - pt_img_mm(1,0) + _n_pix_h/2.0 - _n_off_h;
-    
-    // scale into physical units 
-    pt_img_mm = pt_img_mm.PiecewiseMultiply(
-        Matrix<double>(
-            3,1,
-            _w_pix, _h_pix, 0.0
-        )
-    );
-    pt_img_mm = pt_img_mm.PiecewiseMultiply(
-        Matrix<double>(
-            3,1,
-            _kx, 1.0, 0.0
-        )
-    );
+    pt_img_mm(0,0) = _kx*_w_pix * (  pt_img_mm(0,0) - _n_pix_w/2 - _n_off_w);
+    pt_img_mm(1,0) = _h_pix     * (- pt_img_mm(1,0) + _n_pix_h/2 - _n_off_h);
+    pt_img_mm(2,0) = 0;
 
-    if (_kr == 0)
-    {
-        return pt_img_mm;
-    }
-    else 
+    if (_kr > SMALLNUMBER) 
     {
         // Tsai's model 
         // (the original code is wrong) 
@@ -128,16 +110,17 @@ Matrix<double> Camera::ImgPixelToMM (Matrix<double> pt_img_pix)
         x = x * (1 + _kr * r_square); // Xu=Xd+Dx, Dx=Xd(1+k_r*r^2), r=sqrt(Xd^2+Yd^2)
         y = y * (1 + _kr * r_square); // Yu=Yd+Dy, Dy=Yd(1+k_r*r^2), r=sqrt(Xd^2+Yd^2)
         
-        Matrix<double> new_pt_img_mm(
-            3,1,
-            x, y, 0
-        );
-        return new_pt_img_mm;
+        pt_img_mm(0,0) = x;
+        pt_img_mm(1,0) = y;
+        return pt_img_mm;
+    }
+    else
+    {
+        return pt_img_mm;
     }
 }
 
-
-Matrix<double> Camera::ImgMMToPixel (Matrix<double> pt_img_mm)
+Matrix<double> Camera::ImgMMToPixel (Matrix<double> const& pt_img_mm)
 {
     // Tsai's model 
     // Xu=Xd+Dx, Dx=Xd(1+k_r*r^2), r=sqrt(Xd^2+Yd^2)
@@ -163,20 +146,21 @@ Matrix<double> Camera::ImgMMToPixel (Matrix<double> pt_img_mm)
 
     double x_d = x_u;
     double y_d = y_u;
-    // for solve x_d
-    double x_d_1_num = 0.0;
-    double x_d_1_den = 0.0;
-    double x_d_2_num = 0.0;
-    double x_d_2_den = 0.0;
-    // for solve y_d
-    double y_d_1_num = 0.0;
-    double y_d_1_den = 0.0;
-    double y_d_2_num = 0.0;
-    double y_d_2_den = 0.0;
 
     // remove potential cylindrical distortion
     if (_kr > SMALLNUMBER)
     {
+        // for solve x_d
+        double x_d_1_num = 0.0;
+        double x_d_1_den = 0.0;
+        double x_d_2_num = 0.0;
+        double x_d_2_den = 0.0;
+        // for solve y_d
+        double y_d_1_num = 0.0;
+        double y_d_1_den = 0.0;
+        double y_d_2_num = 0.0;
+        double y_d_2_den = 0.0;
+
         if (std::fabs(x_u) < SMALLNUMBER || std::fabs(y_u) < SMALLNUMBER)
         {
             // x_u is very small 
@@ -242,21 +226,11 @@ Matrix<double> Camera::ImgMMToPixel (Matrix<double> pt_img_mm)
         }
     }
     
-
+    
     // remove Sx: uncertainty along x direction
-    Matrix<double> pt_img_pixel(
-        3,1,
-        x_d / _kx, y_d, 0.0
-    );
-
-
     // scale into pixel units
-    pt_img_pixel = pt_img_pixel.PiecewiseMultiply(
-        Matrix<double>(
-            3,1,
-            1.0 / _w_pix, 1.0 / _h_pix, 0
-        )
-    );
+    double xf = x_d/_kx / _w_pix;
+    double yf = y_d     / _h_pix;
 
     // shift origin
     // origin is on the top left corner
@@ -266,27 +240,29 @@ Matrix<double> Camera::ImgMMToPixel (Matrix<double> pt_img_mm)
     // \/ y direction (downwards)
     return Matrix<double> ( 
         3,1,
-        pt_img_pixel(0,0) + _n_pix_w/2.0 + _n_off_w, 
-        -1.0 * (pt_img_pixel(1,0) - _n_pix_h/2.0) - _n_off_h, 
+        xf + _n_pix_w/2.0 + _n_off_w, 
+        -1.0 * (yf - _n_pix_h/2.0) - _n_off_h, 
         0
     );
 }
 
-Matrix<double> Camera::ImgMMToWorld (Matrix<double> pt_img_mm)
+Matrix<double> Camera::ImgMMToWorld (Matrix<double> const& pt_img_mm)
 {
     //Xu = f * x / z, Yu = f * y / z; (x, y, z): pt_cam (scaled), (Xu, Yu, 0): pt_img_mm (unscaled)
-    Matrix<double> pt_cam(pt_img_mm * _t_vec(2,0) / _f_eff);
+    Matrix<double> pt_cam(pt_img_mm);
+    pt_cam *= _t_vec(2,0) / _f_eff;
     pt_cam(2,0) = _t_vec(2,0);
+
     // R^-1 * (pt_cam - T): pt_cam in world coordinate
     pt_cam -= _t_vec; 
     return _r_mtx_inv * pt_cam;
 }
 
-Matrix<double> Camera::WorldToImgMM (Matrix<double> pt_world)
+Matrix<double> Camera::WorldToImgMM (Matrix<double> const& pt_world)
 {
     // TODO: add comments 
-    Matrix<double> pt_cam(_r_mtx * pt_world + _t_vec);
-    Matrix<double> pt_img_mm = pt_cam * (_f_eff / pt_cam(2,0));
+    Matrix<double> pt_img_mm = _r_mtx * pt_world + _t_vec;
+    pt_img_mm *= _f_eff / pt_img_mm(2,0);
     pt_img_mm(2,0) = 0.0;
     return pt_img_mm;
 }

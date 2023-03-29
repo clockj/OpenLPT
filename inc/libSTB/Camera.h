@@ -93,18 +93,18 @@ public:
     // Get the parameters of the camera images 
     //
 
-    double GetNoffh () {return _n_off_h;};
-    double GetNoffw () {return _n_off_w;};
-    int    GetNpixw () {return _n_pix_w;};
-    int    GetNpixh () {return _n_pix_h;};
-    double GetWpix  () {return _w_pix;};
-    double GetHpix  () {return _h_pix;};
-    double GetKr    () {return _kr;};
-    double GetKx    () {return _kx;};
+    double GetNoffh () const {return _n_off_h;};
+    double GetNoffw () const {return _n_off_w;};
+    int    GetNpixw () const {return _n_pix_w;};
+    int    GetNpixh () const {return _n_pix_h;};
+    double GetWpix  () const {return _w_pix;};
+    double GetHpix  () const {return _h_pix;};
+    double GetKr    () const {return _kr;};
+    double GetKx    () const {return _kx;};
 
     // Return camera projective center (in world coordinates)
     // output: Matrix (xw;yw;zw)
-    Matrix<double> GetCenterInWorld () {return _t_vec_inv;};
+    Matrix<double> GetCenterInWorld () const {return _t_vec_inv;};
 };
 
 # endif

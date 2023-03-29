@@ -28,9 +28,9 @@ set(HEADER_FILES
     ${CMAKE_HOME_DIRECTORY}/inc/libMath/STBCommons.h
     ${CMAKE_HOME_DIRECTORY}/inc/libMath/Matrix.h
     ${CMAKE_HOME_DIRECTORY}/inc/libMath/Matrix_bool.h
-    ${CMAKE_HOME_DIRECTORY}/inc/libMath/Camera.h
-    # ${CMAKE_HOME_DIRECTORY}/inc/libMath/ObjectInfo.h
-    # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/ImageIO.h
+    ${CMAKE_HOME_DIRECTORY}/inc/libSTB/Camera.h
+    ${CMAKE_HOME_DIRECTORY}/inc/libSTB/ObjectInfo.h
+    ${CMAKE_HOME_DIRECTORY}/inc/libSTB/ImageIO.h
     # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/ObjectFinder.h
     # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/StereoMatch.h
     # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/OTF.h
@@ -43,9 +43,9 @@ set(SOURCE_FILES main.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcMath/myMATH.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcMath/Matrix.hpp
     ${CMAKE_HOME_DIRECTORY}/src/srcMath/Matrix_bool.hpp
-    ${CMAKE_HOME_DIRECTORY}/src/srcMath/Camera.cpp
-    # ${CMAKE_HOME_DIRECTORY}/src/srcMath/ObjectInfo.cpp
-#     ${CMAKE_HOME_DIRECTORY}/src/srcSTB/ImageIO.cpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcSTB/Camera.cpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcSTB/ObjectInfo.cpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcSTB/ImageIO.cpp
 #     ${CMAKE_HOME_DIRECTORY}/src/srcSTB/ObjectFinder.hpp
 #     ${CMAKE_HOME_DIRECTORY}/src/srcSTB/StereoMatch.hpp
 #     ${CMAKE_HOME_DIRECTORY}/src/srcSTB/OTF.cpp

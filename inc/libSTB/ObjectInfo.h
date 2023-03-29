@@ -22,12 +22,21 @@ protected:
     double _tri_error = 0.0;
 
 public:
-    ObjectInfo ()  {_match_pos_info.reserve(10);};
+    ObjectInfo ()  
+    {
+        _match_pos_info.reserve(10);
+    };
     ObjectInfo (const ObjectInfo& object);
     virtual ~ObjectInfo () {};
 
-    void SetCenterPos (Matrix<double> pt_center) {_pt_center = pt_center;};
-    Matrix<double> GetCenterPos () {return _pt_center;};
+    void SetCenterPos (Matrix<double>& pt_center) 
+    {
+        _pt_center = pt_center;
+    };
+    Matrix<double> GetCenterPos () const
+    {
+        return _pt_center;
+    };
 
     void SetMatchPosInfo (std::vector<Matrix<double>>& match_pos_info) 
     {
@@ -51,15 +60,15 @@ public:
     {
         _match_pos_info.clear();
     };
-    void AddMatchPosInfo (const Matrix<double>& pt)
+    void AddMatchPosInfo (Matrix<double>& pt)
     {
         _match_pos_info.push_back(pt);
     };
-    std::vector<Matrix<double>> GetMatchPosInfo ()
+    std::vector<Matrix<double>> GetMatchPosInfo () const
     {
         return _match_pos_info;
     };
-    Matrix<double> GetMatchPosInfo (int cam_id)
+    Matrix<double> GetMatchPosInfo (int cam_id) const
     {
         int n_cam = _match_pos_info.size();
         if (cam_id >= n_cam)
@@ -75,8 +84,14 @@ public:
         return _match_pos_info[cam_id];
     };
 
-    void SetError (double error) {_tri_error = error;};
-    double GetError () {return _tri_error;};
+    void SetError (double error) 
+    {
+        _tri_error = error;
+    };
+    double GetError () 
+    {
+        return _tri_error;
+    };
 
 };
 
@@ -89,13 +104,22 @@ private:
 public:
     TracerInfo () {};
     TracerInfo (const TracerInfo& tracer) : ObjectInfo(tracer) {};
-    TracerInfo (Matrix<double> pt_center) {_pt_center = pt_center;};
+    TracerInfo (Matrix<double> pt_center) 
+    {
+        _pt_center = pt_center;
+    };
     ~ TracerInfo () {};
 
-    void AddMatchInfo (TracerInfo& tracer_info)
-        {AddMatchPosInfo(tracer_info.GetCenterPos());};
+    void AddMatchInfo (TracerInfo const& tracer_info)
+    {
+        Matrix<double> pt_center = tracer_info.GetCenterPos();
+        AddMatchPosInfo(pt_center);
+    };
 
-    int GetRadiusPixel () {return r_pixel;};
+    int GetRadiusPixel () const
+    {
+        return r_pixel;
+    };
 };
 
 #endif

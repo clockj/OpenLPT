@@ -11,7 +11,8 @@
 #include "Matrix.h"
 #include "myIO.h"
 #include "Camera.h"
-// #include "ImageIO.h"
+#include "ObjectInfo.h"
+#include "ImageIO.h"
 // #include "ObjectFinder.h"
 // #include "StereoMatch.h"
 // #include "OTF.h"
@@ -52,8 +53,20 @@ int main()
         );
         cam_list.push_back(cam);
     }
-    Matrix<double> pt_mm = cam_list[0].WorldToImgMM(Matrix<double> (3,1,1,1,1));
-    pt_mm.Print();
+    
+    std::vector<ImageIO> img_list;
+    for (int i = 0; i < n_cam; i ++)
+    {
+        ImageIO img;
+        img.LoadImgPath(
+            path_main, 
+            "cam" + std::to_string(i+1) + "ImageNames.txt"
+        );
+        img_list.push_back(img);
+    }
+
+    Matrix<int> intensity = img_list[0].LoadImg(0);
+    img_list[0].SaveImage("Result/zsj.tif", intensity);
 
     std::cout << "Test ended!" << std::endl;
     return 0;
