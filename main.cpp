@@ -13,7 +13,7 @@
 #include "Camera.h"
 #include "ObjectInfo.h"
 #include "ImageIO.h"
-// #include "ObjectFinder.h"
+#include "ObjectFinder.h"
 // #include "StereoMatch.h"
 // #include "OTF.h"
 // #include "Shake.h"
@@ -66,7 +66,12 @@ int main()
     }
 
     Matrix<int> intensity = img_list[0].LoadImg(0);
-    img_list[0].SaveImage("Result/zsj.tif", intensity);
+    int depth = (2 << (img_list[0].GetBitPerSample()-1)) - 1;
+    int threshold = 10;
+
+    ObjectFinder<TracerInfo> tracer_finder;
+    std::vector<TracerInfo> tracer_list = tracer_finder.FindObject(intensity, depth, threshold);
+    myIO::WriteTracerPos(std::string("Result/zsj.csv"), tracer_list);
 
     std::cout << "Test ended!" << std::endl;
     return 0;

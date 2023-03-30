@@ -21,6 +21,7 @@
 #include <tiffio.h>
 
 #include "Matrix.h"
+#include "STBCommons.h"
 
 
 class ImageIO

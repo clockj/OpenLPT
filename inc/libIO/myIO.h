@@ -7,12 +7,15 @@
 #include <fstream>
 
 #include "Matrix.h"
+#include "ObjectInfo.h"
 
 namespace myIO
 {
 
 template<class T>
 void WriteMatrix (std::string file_name, std::vector<std::vector<T>> const& mtx);
+
+void WriteTracerPos (std::string file_name, std::vector<TracerInfo> const& object_list);
 
 // .csv file 
 // not recommended for large matrix

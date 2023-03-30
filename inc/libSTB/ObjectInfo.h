@@ -99,7 +99,7 @@ public:
 class TracerInfo : public ObjectInfo
 {
 private:
-    int r_pixel = 2;
+    int _r_pixel = 2;
 
 public:
     TracerInfo () {};
@@ -118,7 +118,11 @@ public:
 
     int GetRadiusPixel () const
     {
-        return r_pixel;
+        return _r_pixel;
+    };
+    void SetRadiusPixel (int r_pixel)
+    {
+        _r_pixel = r_pixel;
     };
 };
 

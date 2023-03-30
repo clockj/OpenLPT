@@ -46,7 +46,7 @@ Matrix<int> ImageIO::LoadImg (int img_id)
                   << " is larger than total number of image: " 
                   << _img_path.size()
                   << std::endl;
-        throw;
+        throw error_size;
     }
     _img_id = img_id;
     std::string file = _img_path[img_id];
@@ -54,7 +54,8 @@ Matrix<int> ImageIO::LoadImg (int img_id)
     TIFF* image;
     if ((image = TIFFOpen(file.c_str(), "r")) == NULL) 
     {
-        throw std::invalid_argument("Could not open image!");
+        std::cerr << "ImageIO::LoadImg: Could not open image!" << std::endl;
+        throw error_io;
     }
 
 
@@ -75,11 +76,15 @@ Matrix<int> ImageIO::LoadImg (int img_id)
     //  stripMax & stripSize!
     if (TIFFGetField(image, TIFFTAG_IMAGEWIDTH, &_n_col) == 0) 
     {
-        throw std::invalid_argument("Tiff image does not define its width");
+        std::cerr << "ImageIO::LoadImg: Tiff image does not define its width" 
+                  << std::endl;
+        throw error_io;
     }
     if (TIFFGetField(image, TIFFTAG_IMAGELENGTH, &_n_row) == 0) 
     {
-        throw std::invalid_argument("Tiff image does not define its length");
+        std::cerr << "ImageIO::LoadImg: Tiff image does not define its length"
+                  << std::endl;
+        throw error_io;
     }
     // std::cout << "StripMax: "  << strip_max  << ", n_row: " << _n_row << std::endl; 
     // std::cout << "StripSize: " << strip_size << ", n_col: " << _n_col << std::endl;
@@ -95,7 +100,7 @@ Matrix<int> ImageIO::LoadImg (int img_id)
         if (result == -1) 
         {
             std::cerr << "Read error for tiff image" << std::endl;
-            throw;
+            throw error_io;
         }
         image_offset += result;
     }
@@ -164,7 +169,7 @@ void ImageIO::SaveImage (std::string save_path, Matrix<int>& intensity_mtx)
         {
             std::cerr << "Write error for tiff image" << std::endl;
             std::cerr << "current strip_count: " << strip_count << std::endl;
-            throw;
+            throw error_io;
         }
         image_offset += result;
     }

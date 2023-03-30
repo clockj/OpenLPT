@@ -41,6 +41,34 @@ void WriteMatrix (std::string file_name, std::vector<std::vector<T>> const& mtx)
     std::cout << "Finish writing!" << std::endl;
 };
 
+void WriteTracerPos (std::string file_name, std::vector<TracerInfo> const& object_list)
+{
+    std::cout << "Start writing!" << std::endl;
+
+    std::ofstream outfile(file_name, std::ios::out);
+
+    int n = object_list.size();
+    Matrix<double> pos(3,1);
+
+    if (n==0)
+    {
+        std::cout << "myIO::WriteObjectPos: n=0" << std::endl;
+    }
+    else 
+    {
+        for (int i = 0; i < n; i ++)
+        {
+            pos = object_list[i].GetCenterPos();
+            outfile << pos(0,0) << ","
+                    << pos(1,0) << "," 
+                    << pos(2,0) << "\n";
+        }
+    }
+
+    outfile.close();
+    std::cout << "Finish writing!" << std::endl;
+}
+
 // .csv file 
 // not recommended for large matrix
 template<class T>

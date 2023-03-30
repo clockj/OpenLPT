@@ -6,9 +6,10 @@
 
 // Judge whether a given point is local maximum intensity or not
 //  input: point on image in camera coordinate in pixel unit
+//         i in [1,dim_x-2], j in [1,dim_y-2] ([0,dim-1])
 //  output: bool 
 template<class T>
-bool ObjectFinder<T>::IsLocalMax (Matrix<int>& mtx, int i, int j)
+bool ObjectFinder<T>::IsLocalMax (Matrix<int> const& mtx, int i, int j)
 {
     int val = mtx(i, j);
     if (
@@ -22,9 +23,9 @@ bool ObjectFinder<T>::IsLocalMax (Matrix<int>& mtx, int i, int j)
 
 template<class T>
 std::vector<TracerInfo> ObjectFinder<T>::FindTracer
-(Matrix<int>& img, int max_intensity, int min_intensity)
+(Matrix<int> const& img, int max_intensity, int min_intensity)
 {
-    std::vector<TracerInfo> particle_list;
+    std::vector<TracerInfo> tracer_list;
 
     // skip first and last rows and columns   
     for (int iter_x = 1; iter_x < img.GetDimX()-1; iter_x ++)
@@ -39,7 +40,7 @@ std::vector<TracerInfo> ObjectFinder<T>::FindTracer
                           << img(iter_x, iter_y) << ". " 
                           << "It is out of range with " 
                           << max_intensity << std::endl;
-                throw;
+                throw error_range;
             }
 
             if (img(iter_x, iter_y) >= min_intensity && IsLocalMax(img, iter_x, iter_y))
@@ -64,22 +65,22 @@ std::vector<TracerInfo> ObjectFinder<T>::FindTracer
                 if (max_intensity == 255)
                 {
                     if (img(iter_x, iter_y-1) == 0) {ln_z1 = std::log(0.0001);}
-                    else {ln_z1 = myMATH::log8bit[img(iter_x, iter_y-1)];}
+                    else {ln_z1 = log8bit[img(iter_x, iter_y-1)];}
 
                     if (img(iter_x, iter_y) == 0)   {ln_z2 = std::log(0.0001);}
-                    else {ln_z2 = myMATH::log8bit[img(iter_x, iter_y)];}
+                    else {ln_z2 = log8bit[img(iter_x, iter_y)];}
 
                     if (img(iter_x, iter_y+1) == 0) {ln_z3 = std::log(0.0001);}
-                    else {ln_z3 = myMATH::log8bit[img(iter_x, iter_y+1)];}
+                    else {ln_z3 = log8bit[img(iter_x, iter_y+1)];}
                 }
                 else if (max_intensity == 65535)
                 {
                     if (img(iter_x, iter_y-1) == 0) {ln_z1 = std::log(0.0001);}
-                    else {ln_z1 = myMATH::log16bit[img(iter_x, iter_y-1)];}
-                    if (img(iter_x, iter_y) == 0)   {ln_z2 = std::log(0.0001);}
-                    else {ln_z2 = myMATH::log16bit[img(iter_x, iter_y)];}
+                    else {ln_z1 = log16bit[img(iter_x, iter_y-1)];}
+                    if (img(iter_x, iter_y) == 0) {ln_z2 = std::log(0.0001);}
+                    else {ln_z2 = log16bit[img(iter_x, iter_y)];}
                     if (img(iter_x, iter_y+1) == 0) {ln_z3 = std::log(0.0001);}
-                    else {ln_z3 = myMATH::log16bit[img(iter_x, iter_y+1)];}
+                    else {ln_z3 = log16bit[img(iter_x, iter_y+1)];}
                 }
                 else 
                 {
@@ -110,17 +111,17 @@ std::vector<TracerInfo> ObjectFinder<T>::FindTracer
                 if (max_intensity == 255)
                 {
                     if (img(iter_x-1, iter_y) == 0) {ln_z1 = std::log(0.0001);}
-                    else {ln_z1 = myMATH::log8bit[img(iter_x-1, iter_y)];}
+                    else {ln_z1 = log8bit[img(iter_x-1, iter_y)];}
                     if (img(iter_x+1, iter_y) == 0) {ln_z3 = std::log(0.0001);}
-                    else {ln_z3 = myMATH::log8bit[img(iter_x+1, iter_y)];}
+                    else {ln_z3 = log8bit[img(iter_x+1, iter_y)];}
                 }
                 else if (max_intensity == 65535)
                 {
                     if (img(iter_x-1, iter_y) == 0) {ln_z1 = std::log(0.0001);}
-                    else {ln_z1 = myMATH::log16bit[img(iter_x-1, iter_y)];}
+                    else {ln_z1 = log16bit[img(iter_x-1, iter_y)];}
 
                     if (img(iter_x+1, iter_y) == 0) {ln_z3 = std::log(0.0001);}
-                    else {ln_z3 = myMATH::log16bit[img(iter_x+1, iter_y)];}
+                    else {ln_z3 = log16bit[img(iter_x+1, iter_y)];}
                 }
                 else 
                 {
@@ -144,7 +145,7 @@ std::vector<TracerInfo> ObjectFinder<T>::FindTracer
                 }
 
 
-                particle_list.push_back(
+                tracer_list.push_back(
                     TracerInfo(
                         Matrix<double>(
                             3,1, 
@@ -157,11 +158,11 @@ std::vector<TracerInfo> ObjectFinder<T>::FindTracer
         }
     }
 
-    return particle_list;
+    return tracer_list;
 }
 
 template<class T>
-std::vector<T> ObjectFinder<T>::FindObject(Matrix<int>& img, int max_intensity, int min_intensity)
+std::vector<T> ObjectFinder<T>::FindObject(Matrix<int> const& img, int max_intensity, int min_intensity)
 {
 
     if (typeid(T) == typeid(TracerInfo))
@@ -174,7 +175,7 @@ std::vector<T> ObjectFinder<T>::FindObject(Matrix<int>& img, int max_intensity, 
         std::cerr << "ObjectFinder: " 
                   << "class " << typeid(T).name()
                   << "is not included in ObjectFinder!" << std::endl;
-        throw;
+        throw error_type;
     }
 }
 
