@@ -76,5 +76,6 @@ void Triangulation(std::vector<Camera>& cam_list, std::vector<Matrix<double>>& p
     error /= cam_list.size();
 };
 
+
 }
 #endif

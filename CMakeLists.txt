@@ -23,8 +23,8 @@ set(CMAKE_C_FLAGS_RELEASE   "${CMAKE_C_FLAGS_RELEASE}   -o3 -Wall         ")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -o3 -Wall         ")
 
 set(HEADER_FILES
-    ${CMAKE_HOME_DIRECTORY}/inc/libIO/myIO.h
     ${CMAKE_HOME_DIRECTORY}/inc/libMath/myMATH.h
+    ${CMAKE_HOME_DIRECTORY}/inc/libIO/myIO.h
     ${CMAKE_HOME_DIRECTORY}/inc/libMath/STBCommons.h
     ${CMAKE_HOME_DIRECTORY}/inc/libMath/Matrix.h
     ${CMAKE_HOME_DIRECTORY}/inc/libMath/Matrix_bool.h
@@ -32,7 +32,7 @@ set(HEADER_FILES
     ${CMAKE_HOME_DIRECTORY}/inc/libSTB/ObjectInfo.h
     ${CMAKE_HOME_DIRECTORY}/inc/libSTB/ImageIO.h
     ${CMAKE_HOME_DIRECTORY}/inc/libSTB/ObjectFinder.h
-    # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/StereoMatch.h
+    ${CMAKE_HOME_DIRECTORY}/inc/libSTB/StereoMatch.h
     # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/OTF.h
     # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/Shake.h
     # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/IPR.h
@@ -47,7 +47,7 @@ set(SOURCE_FILES main.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcSTB/ObjectInfo.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcSTB/ImageIO.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcSTB/ObjectFinder.hpp
-#     ${CMAKE_HOME_DIRECTORY}/src/srcSTB/StereoMatch.hpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcSTB/StereoMatch.hpp
 #     ${CMAKE_HOME_DIRECTORY}/src/srcSTB/OTF.cpp
 #     ${CMAKE_HOME_DIRECTORY}/src/srcSTB/Shake.hpp
 #     ${CMAKE_HOME_DIRECTORY}/src/srcSTB/IPR.hpp

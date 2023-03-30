@@ -22,6 +22,7 @@
 #include <fstream>
 
 #include "myMATH.h"
+#include "STBCommons.h"
 
 template <class T>
 class Matrix
@@ -36,6 +37,8 @@ public:
     Matrix (int dim_x, int dim_y);
     Matrix (int dim_x, int dim_y, T val);
     Matrix (const Matrix<T>& mtx);
+    Matrix (const Matrix<T>& vec_1, const Matrix<T>& vec_2); // generate a unit vector: v = (v_1-v_2)/|v_1-v_2|
+                                                             // not applicable for int 
     Matrix (std::vector<std::vector<T>> const& mtx); // must make sure each row has the same number of columns
     Matrix (T m11, T m12,
             T m21, T m22);

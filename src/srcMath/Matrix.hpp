@@ -54,6 +54,39 @@ Matrix<T>::Matrix (const Matrix<T>& mtx)
     }
 }
 
+template<class T>
+Matrix<T>::Matrix (const Matrix<T>& vec_1, const Matrix<T>& vec_2)
+    : Matrix(vec_1._dim_x, vec_1._dim_y, 0)
+{
+    if (vec_2._dim_x != _dim_x || vec_2._dim_y != _dim_y)
+    {
+        std::cerr << "Matrix::Matrix: the sizes of vec_1 and vec_2 are different" 
+                  << std::endl;
+        throw error_size;
+    }
+
+    T mag = 0;
+    T value = 0;
+    for (int i = 0; i < _dim_x; i ++)
+    {
+        for (int j = 0; j < _dim_y; j ++)
+        {
+            value = vec_1._mtx[i][j] - vec_2._mtx[i][j];
+
+            _mtx[i][j] = value;
+            mag += value * value;
+        }
+    }
+    mag = T (std::sqrt(mag));
+    for (int i = 0; i < _dim_x; i ++)
+    {
+        for (int j = 0; j < _dim_y; j ++)
+        {
+            _mtx[i][j] /= value;
+        }
+    }
+}
+
 template<class T> 
 Matrix<T>::Matrix (T m11, T m12,
                    T m21, T m22)

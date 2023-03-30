@@ -190,16 +190,78 @@ int StereoMatch<T>::ComputeYpixel (Camera& cam, Matrix<double>& pt, Matrix<doubl
 }
 
 
+template<class T>
+void StereoMatch<T>::Triangulation(int n_cam_tri, std::vector<Matrix<double>>& pt_2d_list, Matrix<double>& pt_world, double& error)
+{
+    Matrix<double> mtx(3, 3, 0);
+    Matrix<double> pt_3d(3, 1, 0);
+
+    std::vector<Matrix<double>> line_of_sight_list;
+
+    for (int i = 0; i < n_cam_tri; i++)
+    {
+        Matrix<double> line_of_sight(
+            _cam_list[i].GetCenterInWorld(),
+            _cam_list[i].ImgMMToWorld(pt_2d_list[i])
+        );
+        line_of_sight_list.push_back(line_of_sight);
+
+        double nx = line_of_sight[0];
+        double ny = line_of_sight[1];
+        double nz = line_of_sight[2];
+
+        Matrix<double> tmp(
+            1 - nx * nx, -nx * ny, -nx * nz,
+            -nx * ny, 1 - ny * ny, -ny * nz,
+            -nz * nx, -nz * ny, 1 - nz * nz
+        );
+
+        pt_3d += tmp * _cam_list[i].GetCenterInWorld();
+        mtx += tmp;
+    }
+
+    pt_world = mtx.Inverse() * pt_3d;
+
+    // calculate errors 
+    error = 0;
+    Matrix<double> diff_vec(3,1);
+    for (int i = 0; i < n_cam_tri; i++)
+    {
+        diff_vec = pt_world - _cam_list[i].GetCenterInWorld();
+        double h = std::pow(diff_vec.Mag(),2) 
+                 - std::pow(diff_vec.Dot(line_of_sight_list[i]),2);
+            
+        if (h < 0 && h >= - MAGSMALLNUMBER)
+        {
+            h = std::fabs(h);
+        }
+        else if (h < - MAGSMALLNUMBER)
+        {
+            std::cout << "StereoMatch error: "
+                << "the distance in triangulation is: "
+                << "h = "
+                << h
+                << std::endl;
+            throw;
+        }
+
+        h = std::sqrt(h);
+        error += h;
+    }
+    error /= n_cam_tri;
+};
+
+
 //
 // Major functions
 //
 
 template<class T>
 StereoMatch<T>::StereoMatch(
-    std::vector<Camera> cam_list,
+    std::vector<Camera> const& cam_list,
     double tor_2d,
     double tor_3d
-) : _cam_list(cam_list), _tor_2d(tor_2d), _tor_3d(tor_3d)
+) : _cam_list(cam_list), _n_cam(cam_list.size()), _tor_2d(tor_2d), _tor_3d(tor_3d)
 {}
 
 
@@ -218,12 +280,13 @@ void StereoMatch<T>::SetObjectListMMFromPixel (std::vector<std::vector<T>>& obje
     t_start = clock();
 
     _object_list_mm = object_list_pixel;
+    Matrix<double> pt_mm(3,1);
+
     for (int cam_id = 0; cam_id < _object_list_mm.size(); cam_id ++)
     {
         for (int object_id = 0; object_id < _object_list_mm[cam_id].size(); object_id ++)
         {
-            Matrix<double> pt_mm 
-                = _object_list_mm[cam_id][object_id].GetCenterPos();
+            pt_mm = _object_list_mm[cam_id][object_id].GetCenterPos();
             pt_mm = _cam_list[cam_id].ImgPixelToMM(pt_mm);
             _object_list_mm[cam_id][object_id].SetCenterPos(pt_mm);
         }
@@ -255,8 +318,7 @@ void StereoMatch<T>::MakeObjectIDMap(std::vector<std::vector<T>>& object_list_pi
 
     t_start = clock();
 
-    int n_cam = _cam_list.size(); 
-    for (int i = 0; i < n_cam; i++)
+    for (int i = 0; i < _n_cam; i++)
     {
         // note that:
         // _n_pix_w: number of pixel along X direction (col)
@@ -774,7 +836,6 @@ void StereoMatch<T>::FindTracerMatch (
     std::deque<double>& error_list
 )
 {
-    int n_cam = _cam_list.size();
     int n_row = _cam_list[cam_cur_id].GetNpixh();
     int n_col = _cam_list[cam_cur_id].GetNpixw();
 
@@ -897,7 +958,7 @@ void StereoMatch<T>::FindTracerMatch (
                     Matrix<double> pt_world;
                     double error;
 
-                    advanceMATH::Triangulation(
+                    Triangulation(
                         camera_to_triangulate,
                         pt_2d_list,
                         pt_world,
@@ -929,7 +990,7 @@ void StereoMatch<T>::FindTracerMatch (
                         // if the current camera is the last one, then finalize the match.
                         else
                         {
-                            if (_check_cam_id < n_cam)
+                            if (_check_cam_id < _n_cam)
                             {
                                 int cam_next_id = cam_cur_id + 1;
 
@@ -947,7 +1008,7 @@ void StereoMatch<T>::FindTracerMatch (
                             {
                                 // // Print info 
                                 // std::cout << "Newly found match list: ";
-                                // for (int id = 0; id < n_cam; id ++)
+                                // for (int id = 0; id < _n_cam; id ++)
                                 // {
                                 //     std::cout << tracer_id_match[id] 
                                 //               << " ";
@@ -979,7 +1040,6 @@ void StereoMatch<T>::FindTracerMatchOrig (
     std::deque<double>& error_list
 )
 {
-    int n_cam = _cam_list.size();  //TODO: add to the member variable
     int n_row = _cam_list[cam_cur_id].GetNpixh();
     int n_col = _cam_list[cam_cur_id].GetNpixw();
 
@@ -991,19 +1051,27 @@ void StereoMatch<T>::FindTracerMatchOrig (
     {       
         // project from cam_i onto cam_cur
         // find out tracer position in camera coordinate [mm]
-        Matrix<double> pt_mm = _object_list_mm[i][tracer_id_match[i]].GetCenterPos();
         // find out tracer image position in world coordinate
-        Matrix<double> pt_world = _cam_list[i].ImgMMToWorld(pt_mm);
+        Matrix<double> pt_world(
+            _cam_list[i].ImgMMToWorld(
+                _object_list_mm[i][tracer_id_match[i]].GetCenterPos()
+            )
+        );
 
         // position of cam_i center on cam_cur
-        Matrix<double> pt_center_i_on_cur = _cam_list[cam_cur_id].WorldToImgMM(_cam_list[i].GetCenterInWorld());
-        pt_list.push_back(pt_center_i_on_cur);
+        // Matrix<double> pt_center_i_on_cur = _cam_list[cam_cur_id].WorldToImgMM(_cam_list[i].GetCenterInWorld());
+        pt_list.push_back(
+            _cam_list[cam_cur_id].WorldToImgMM(_cam_list[i].GetCenterInWorld())
+        );
         // position of tracer center on cam_i projected on cam_cur
-        Matrix<double> pt_tracer_i_on_cur = _cam_list[cam_cur_id].WorldToImgMM(pt_world);
+        // Matrix<double> pt_tracer_i_on_cur = _cam_list[cam_cur_id].WorldToImgMM(pt_world);
 
         // unit vector in projected line of sight direction 
-        Matrix<double> line_of_sight(pt_tracer_i_on_cur - pt_center_i_on_cur);
-        line_of_sight /= line_of_sight.Mag();
+        Matrix<double> line_of_sight(
+            _cam_list[cam_cur_id].WorldToImgMM(_cam_list[i].GetCenterInWorld()), 
+            _cam_list[cam_cur_id].WorldToImgMM(pt_world)
+        );
+
         line_of_sight_list.push_back(line_of_sight);
     }
     
@@ -1102,7 +1170,7 @@ void StereoMatch<T>::FindTracerMatchOrig (
                         Matrix<double> pt_world(3,1);
                         double error=0.0;
 
-                        // advanceMATH::Triangulation(
+                        // Triangulation(
                         //     camera_to_triangulate,
                         //     pt_2d_list,
                         //     pt_world,
@@ -1138,7 +1206,7 @@ void StereoMatch<T>::FindTracerMatchOrig (
                                 //           << "wrong!\n";
                                 // throw;
 
-                                if (_check_cam_id < n_cam)
+                                if (_check_cam_id < _n_cam)
                                 {
                                     int cam_next_id = cam_cur_id + 1;
 
@@ -1233,7 +1301,7 @@ void StereoMatch<T>::FindTracerMatchOrig (
                     Matrix<double> pt_world(3,1);
                     double error = 0.0;
 
-                    advanceMATH::Triangulation(
+                    Triangulation(
                         camera_to_triangulate,
                         pt_2d_list,
                         pt_world,
@@ -1295,7 +1363,7 @@ void StereoMatch<T>::FindTracerMatchOrig (
                         // if the current camera is the last one, then finalize the match.
                         else
                         {
-                            if (_check_cam_id < n_cam)
+                            if (_check_cam_id < _n_cam)
                             {
                                 int cam_next_id = cam_cur_id + 1;
 
@@ -1313,7 +1381,7 @@ void StereoMatch<T>::FindTracerMatchOrig (
                             {
                                 // // Print info 
                                 // std::cout << "Newly found match list: ";
-                                // for (int id = 0; id < n_cam; id ++)
+                                // for (int id = 0; id < _n_cam; id ++)
                                 // {
                                 //     std::cout << tracer_id_match[id] 
                                 //               << " ";
@@ -1345,7 +1413,6 @@ void StereoMatch<T>::CheckTracerMatch (
     std::deque<double>& error_list
 )
 {
-    int n_cam = _cam_list.size();
     int n_row = _cam_list[cam_cur_id].GetNpixh();
     int n_col = _cam_list[cam_cur_id].GetNpixw();
 
@@ -1466,7 +1533,7 @@ void StereoMatch<T>::CheckTracerMatch (
                 Matrix<double> pt_world_new(3,1);
                 double error;
         
-                advanceMATH::Triangulation(
+                Triangulation(
                     camera_to_triangulate,
                     pt_2d_list,
                     pt_world_new,
@@ -1511,7 +1578,7 @@ void StereoMatch<T>::CheckTracerMatch (
                     tracer_id_match.push_back(tracer_id);
 
                     // if there is still other cameras to check
-                    if (cam_cur_id >= 1 && cam_cur_id < n_cam-1) 
+                    if (cam_cur_id >= 1 && cam_cur_id < _n_cam-1) 
                     {
                         int cam_next_id = cam_cur_id + 1;
 
@@ -1530,7 +1597,7 @@ void StereoMatch<T>::CheckTracerMatch (
                     {
                         // // Print info 
                         // std::cout << "Newly found match list: ";
-                        // for (int id = 0; id < n_cam; id ++)
+                        // for (int id = 0; id < _n_cam; id ++)
                         // {
                         //     std::cout << tracer_id_match[id] 
                         //               << " ";
@@ -1557,17 +1624,15 @@ void StereoMatch<T>::DeleteGohstTracerMatch (std::vector<std::vector<TracerInfo>
 {
     std::cout << "Start deleting gohst match!" << std::endl;
 
-    int n_cam = _cam_list.size();
-
     std::vector<std::vector<int>> object_id_match_map; // indicate whether the 2D point is used
-    // object_id_match_map.reserve(2 + n_cam);
+    // object_id_match_map.reserve(2 + _n_cam);
 
     int temp = 0;
     while (temp < 5)
     {
         try 
         {
-            object_id_match_map.reserve(2 + n_cam);
+            object_id_match_map.reserve(2 + _n_cam);
 
             break;
         }
@@ -1583,7 +1648,7 @@ void StereoMatch<T>::DeleteGohstTracerMatch (std::vector<std::vector<TracerInfo>
     }
 
     // initialization
-    for (int cam_id = 0; cam_id < n_cam; cam_id ++)
+    for (int cam_id = 0; cam_id < _n_cam; cam_id ++)
     {
         std::vector<int> object_id_match_map_one;
 
@@ -1612,12 +1677,13 @@ void StereoMatch<T>::DeleteGohstTracerMatch (std::vector<std::vector<TracerInfo>
         object_id_match_map.push_back(object_id_match_map_one);
     }
 
-
-    std::vector<int> ranked_index = myMATH::BubbleSort(_error_list);
-    for (int i = 0; i < int(_error_list.size()); i ++)
+    int n = _error_list.size();
+    std::vector<int> ranked_index(n);
+    myMATH::MergeSort<double>(ranked_index, _error_list);
+    for (int i = 0; i < n; i ++)
     {
         int sum = 0; // check whether all 2d pts in a match is available.
-        for (int cam_id = 0; cam_id < n_cam; cam_id ++)
+        for (int cam_id = 0; cam_id < _n_cam; cam_id ++)
         {
             sum += object_id_match_map[cam_id][_object_id_match_list[ranked_index[i]][cam_id]];
         }
@@ -1630,7 +1696,7 @@ void StereoMatch<T>::DeleteGohstTracerMatch (std::vector<std::vector<TracerInfo>
             {
                 try 
                 {
-                    pt_2d_list.reserve(n_cam + 2);
+                    pt_2d_list.reserve(_n_cam + 2);
 
                     break;
                 }
@@ -1648,14 +1714,14 @@ void StereoMatch<T>::DeleteGohstTracerMatch (std::vector<std::vector<TracerInfo>
             double error;
             Matrix<double> pt_world(3,1); // 3D pos
             TracerInfo tracer;
-            for (int cam_id = 0; cam_id < n_cam; cam_id ++)
+            for (int cam_id = 0; cam_id < _n_cam; cam_id ++)
             {
                 int tracer_id = _object_id_match_list[ranked_index[i]][cam_id];
                 object_id_match_map[cam_id][tracer_id] = 1; // indicate the 2D pt is used
                 pt_2d_list.push_back(_object_list_mm[cam_id][tracer_id].GetCenterPos());
                 tracer.AddMatchInfo(object_list_pixel[cam_id][tracer_id]);
             }
-            advanceMATH::Triangulation(_cam_list, pt_2d_list, pt_world, error);
+            Triangulation(_cam_list, pt_2d_list, pt_world, error);
             tracer.SetError(error);
             tracer.SetCenterPos(pt_world);
 
@@ -1677,20 +1743,19 @@ void StereoMatch<T>::DeleteGohstTracerMatchNew (std::vector<std::vector<TracerIn
 {
     std::cout << "Start deleting gohst match!" << std::endl;
 
-    int n_cam = _cam_list.size();
     int n_match = _object_id_match_list.size();
 
     std::vector<double> object_id_match_rank;
     std::vector<std::vector<int>> object_id_match_num;
     std::vector<std::vector<int>> object_id_match_map; // indicate whether the 2D point is used
-    // object_id_match_map.reserve(2 + n_cam);
+    // object_id_match_map.reserve(2 + _n_cam);
 
     int temp = 0;
     while (temp < 5)
     {
         try 
         {
-            object_id_match_map.reserve(2 + n_cam);
+            object_id_match_map.reserve(2 + _n_cam);
 
             break;
         }
@@ -1708,7 +1773,7 @@ void StereoMatch<T>::DeleteGohstTracerMatchNew (std::vector<std::vector<TracerIn
     std::cout << "1" << std::endl;
 
     // initialization
-    for (int cam_id = 0; cam_id < n_cam; cam_id ++)
+    for (int cam_id = 0; cam_id < _n_cam; cam_id ++)
     {
         std::vector<int> object_id_match_map_one;
 
@@ -1744,13 +1809,13 @@ void StereoMatch<T>::DeleteGohstTracerMatchNew (std::vector<std::vector<TracerIn
     // calculate number of each id used (might be parallel)
     for (int i = 0; i < n_match; i ++)
     {
-        if (_object_id_match_list[i].size() != n_cam)
+        if (_object_id_match_list[i].size() != _n_cam)
         {
             std::cout << "wrong: " << _object_id_match_list[i].size() << std::endl;
             // throw;
             continue;
         }
-        for (int j = 0; j < n_cam; j ++)
+        for (int j = 0; j < _n_cam; j ++)
         {
             int id = _object_id_match_list[i][j];
             // object_id_match_num[j][id] += 1;
@@ -1774,7 +1839,7 @@ void StereoMatch<T>::DeleteGohstTracerMatchNew (std::vector<std::vector<TracerIn
             {
                 double value = 5.175e2 * _error_list[i];
                 // double value = 5.175e2 / _error_list[i];
-                for (int j = 0; j < n_cam; j ++)
+                for (int j = 0; j < _n_cam; j ++)
                 {
                     int id = _object_id_match_list[i][j];
                     value += double(object_id_match_num[j][id]);
@@ -1788,7 +1853,8 @@ void StereoMatch<T>::DeleteGohstTracerMatchNew (std::vector<std::vector<TracerIn
 
     std::cout << "4" << std::endl;
 
-    std::vector<int> ranked_index = myMATH::BubbleSort(object_id_match_rank);
+    std::vector<int> ranked_index (n_match);
+    myMATH::MergeSort<double>(ranked_index, object_id_match_rank);
 
     std::cout << "5" << std::endl;
 
@@ -1796,7 +1862,7 @@ void StereoMatch<T>::DeleteGohstTracerMatchNew (std::vector<std::vector<TracerIn
     // for (int i = n_match-1; i >-1; i --)
     {
         int sum = 0; // check whether all 2d pts in a match is available.
-        for (int cam_id = 0; cam_id < n_cam; cam_id ++)
+        for (int cam_id = 0; cam_id < _n_cam; cam_id ++)
         {
             sum += object_id_match_map[cam_id][_object_id_match_list[ranked_index[i]][cam_id]];
         }
@@ -1809,7 +1875,7 @@ void StereoMatch<T>::DeleteGohstTracerMatchNew (std::vector<std::vector<TracerIn
             {
                 try 
                 {
-                    pt_2d_list.reserve(n_cam + 2);
+                    pt_2d_list.reserve(_n_cam + 2);
 
                     break;
                 }
@@ -1827,14 +1893,14 @@ void StereoMatch<T>::DeleteGohstTracerMatchNew (std::vector<std::vector<TracerIn
             double error;
             Matrix<double> pt_world(3,1); // 3D pos
             TracerInfo tracer;
-            for (int cam_id = 0; cam_id < n_cam; cam_id ++)
+            for (int cam_id = 0; cam_id < _n_cam; cam_id ++)
             {
                 int tracer_id = _object_id_match_list[ranked_index[i]][cam_id];
                 object_id_match_map[cam_id][tracer_id] = 1; // indicate the 2D pt is used
                 pt_2d_list.push_back(_object_list_mm[cam_id][tracer_id].GetCenterPos());
                 tracer.AddMatchInfo(object_list_pixel[cam_id][tracer_id]);
             }
-            advanceMATH::Triangulation(_cam_list, pt_2d_list, pt_world, error);
+            Triangulation(_cam_list, pt_2d_list, pt_world, error);
             tracer.SetError(error);
             tracer.SetCenterPos(pt_world);
 
@@ -1928,7 +1994,6 @@ void StereoMatch<T>::DeleteGohstTracerMatchOrig (std::vector<std::vector<TracerI
 {
     std::cout << "Start deleting gohst match!" << std::endl;
 
-    int n_cam = _cam_list.size();
     int n_match = _object_id_match_list.size();
 
     //------------------------------------//
@@ -1936,7 +2001,7 @@ void StereoMatch<T>::DeleteGohstTracerMatchOrig (std::vector<std::vector<TracerI
     std::vector<int> object_id_match_rank;
     object_id_match_rank.reserve(n_match);
     object_id_match_rank.resize(n_match, 0);
-    for (int i = 0; i < n_cam; i ++)
+    for (int i = 0; i < _n_cam; i ++)
     {
         int n_2D_object = object_list_pixel[i].size();
 
@@ -1988,7 +2053,7 @@ void StereoMatch<T>::DeleteGohstTracerMatchOrig (std::vector<std::vector<TracerI
 
     // map 2D particle id to match id with smallest error
     std::vector<std::vector<int>> object_id_match_map;
-    for (int i = 0; i < n_cam; i ++)
+    for (int i = 0; i < _n_cam; i ++)
     {
         int n_2D_object = object_list_pixel[i].size();
 
@@ -2012,7 +2077,7 @@ void StereoMatch<T>::DeleteGohstTracerMatchOrig (std::vector<std::vector<TracerI
         double sum_error = 0.0;
 
         int is_rank_small = 0;
-        for (int j = 0; j < n_cam; j ++)
+        for (int j = 0; j < _n_cam; j ++)
         {
             int match_id_2D = _object_id_match_list[object_id][j];
             int map_id = object_id_match_map[j][match_id_2D];
@@ -2046,7 +2111,7 @@ void StereoMatch<T>::DeleteGohstTracerMatchOrig (std::vector<std::vector<TracerI
             // then replace all the old match with the new one
             // 2) no repeating
 
-            for (int j = 0; j < n_cam; j ++)
+            for (int j = 0; j < _n_cam; j ++)
             {
                 int match_id_2D = _object_id_match_list[object_id][j];
                 int map_id = object_id_match_map[j][match_id_2D];
@@ -2054,7 +2119,7 @@ void StereoMatch<T>::DeleteGohstTracerMatchOrig (std::vector<std::vector<TracerI
                 if (map_id != -1)
                 {
                     is_select[map_id] = false;
-                    for (int k = 0; k < n_cam; k ++)
+                    for (int k = 0; k < _n_cam; k ++)
                     {
                         int origin_match_id_2D = _object_id_match_list[map_id][k];
 
@@ -2075,12 +2140,12 @@ void StereoMatch<T>::DeleteGohstTracerMatchOrig (std::vector<std::vector<TracerI
         if (is_select[i])
         {
             std::vector<Matrix<double>> pt_2d_list;
-            pt_2d_list.reserve(n_cam);
+            pt_2d_list.reserve(_n_cam);
             
             double error;
             Matrix<double> pt_world(3,1); // 3D pos
             TracerInfo tracer;
-            for (int cam_id = 0; cam_id < n_cam; cam_id ++)
+            for (int cam_id = 0; cam_id < _n_cam; cam_id ++)
             {
                 int tracer_id = _object_id_match_list[i][cam_id];
 
@@ -2088,7 +2153,7 @@ void StereoMatch<T>::DeleteGohstTracerMatchOrig (std::vector<std::vector<TracerI
                 
                 tracer.AddMatchInfo(object_list_pixel[cam_id][tracer_id]);
             }
-            advanceMATH::Triangulation(_cam_list, pt_2d_list, pt_world, error);
+            Triangulation(_cam_list, pt_2d_list, pt_world, error);
             tracer.SetError(error);
             tracer.SetCenterPos(pt_world);
 
@@ -2111,7 +2176,6 @@ void StereoMatch<T>::DeleteGohstTracerMatchOrig (std::vector<std::vector<TracerI
 template<class T>
 void StereoMatch<T>::FillObjectInfo (std::vector<std::vector<T>>& object_list_pixel)
 {
-    int n_cam = _cam_list.size();
     for (int i = 0; i < _object_id_match_list.size(); i ++)
     {
         T object;
@@ -2119,13 +2183,13 @@ void StereoMatch<T>::FillObjectInfo (std::vector<std::vector<T>>& object_list_pi
         double error;
         Matrix<double> pt_world(3,1);
 
-        for (int cam_id = 0; cam_id < n_cam; cam_id ++)
+        for (int cam_id = 0; cam_id < _n_cam; cam_id ++)
         {
             int object_id = _object_id_match_list[i][cam_id];
             pt_2d_list.push_back(_object_list_mm[cam_id][object_id].GetCenterPos());
             object.AddMatchInfo(object_list_pixel[cam_id][object_id]);
         }
-        advanceMATH::Triangulation(_cam_list, pt_2d_list, pt_world, error);
+        Triangulation(_cam_list, pt_2d_list, pt_world, error);
         object.SetError(error);
         object.SetCenterPos(pt_world);
 
@@ -2142,25 +2206,24 @@ void StereoMatch<T>::TracerMatch (std::vector<std::vector<TracerInfo>>& object_l
 {
     std::cout << "Tracer match start!" << std::endl;
 
-    int n_cam = _cam_list.size();
-    if (n_cam < 2)
+    if (_n_cam < 2)
     {
         std::cerr << "StereoMatch error: "
                   << "Need at least 2 cameras for matching" 
                   << std::endl;
-        throw;
+        throw error_size;
     }
-    if (int(object_list_pixel.size()) != n_cam)
+    if (int(object_list_pixel.size()) != _n_cam)
     {
         std::cerr << "The size of tracer list is: " 
                   << object_list_pixel.size() 
                   << ", is different from the size of camera list: "
-                  << n_cam << "."
+                  << _n_cam << "."
                   << std::endl;
-        throw;
+        throw error_size;
     }
 
-    SetObjectListMMFromPixel(object_list_pixel);
+    SetObjectListMMFromPixel (object_list_pixel);
     MakeObjectIDMap (object_list_pixel);
 
     // for 1st camera, draw a line of sight through each particle on its image plane.
@@ -2171,12 +2234,7 @@ void StereoMatch<T>::TracerMatch (std::vector<std::vector<TracerInfo>>& object_l
     // repeat similarly for subsequent cams
 
     int num_object = object_list_pixel[0].size();
- 
-    //_object_id_match_list.reserve(num_object*20);
-    //_error_list.reserve(num_object*20);
-    //_object_info_match_list.reserve(num_object*10);
 
-    
     if (_n_thread != 0)
     {
         omp_set_num_threads(_n_thread);
@@ -2189,7 +2247,7 @@ void StereoMatch<T>::TracerMatch (std::vector<std::vector<TracerInfo>>& object_l
             std::deque<std::vector<int>> tracer_id_match_list; // match list for the particle i in the first camera
 
             std::vector<int> tracer_id_match; 
-            tracer_id_match.reserve(n_cam);
+            tracer_id_match.reserve(_n_cam);
             tracer_id_match.push_back(tracer_id);
 
             std::deque<double> error_list;
@@ -2218,7 +2276,7 @@ void StereoMatch<T>::TracerMatch (std::vector<std::vector<TracerInfo>>& object_l
                 }
                 for (int i = 0; i < tracer_id_match_list.size(); i ++) 
                 {      
-                    if (tracer_id_match_list[i].size() != n_cam)
+                    if (tracer_id_match_list[i].size() != _n_cam)
                     {
                         continue;
                     }

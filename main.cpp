@@ -14,7 +14,7 @@
 #include "ObjectInfo.h"
 #include "ImageIO.h"
 #include "ObjectFinder.h"
-// #include "StereoMatch.h"
+#include "StereoMatch.h"
 // #include "OTF.h"
 // #include "Shake.h"
 // #include "IPR.h"
@@ -71,7 +71,7 @@ int main()
 
     ObjectFinder<TracerInfo> tracer_finder;
     std::vector<TracerInfo> tracer_list = tracer_finder.FindObject(intensity, depth, threshold);
-    myIO::WriteTracerPos(std::string("Result/zsj.csv"), tracer_list);
+    // myIO::WriteTracerPos(std::string("Result/zsj.csv"), tracer_list);
 
     std::cout << "Test ended!" << std::endl;
     return 0;
