@@ -40,7 +40,7 @@ void ImageIO::LoadImgPath (std::string folder_path, std::string file_img_path)
 
 Matrix<int> ImageIO::LoadImg (int img_id)
 {
-    if (img_id >= _img_path.size())
+    if (img_id >= int(_img_path.size()))
     {
         std::cerr << "Image id: " << img_id 
                   << " is larger than total number of image: " 
