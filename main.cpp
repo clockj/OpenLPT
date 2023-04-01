@@ -65,13 +65,26 @@ int main()
         img_list.push_back(img);
     }
 
-    Matrix<int> intensity = img_list[0].LoadImg(0);
-    int depth = (2 << (img_list[0].GetBitPerSample()-1)) - 1;
+    Matrix<int> intensity(1024, 1024);
+    ObjectFinder<TracerInfo> tf;
+    int depth = 255;
     int threshold = 10;
 
-    ObjectFinder<TracerInfo> tracer_finder;
-    std::vector<TracerInfo> tracer_list = tracer_finder.FindObject(intensity, depth, threshold);
-    // myIO::WriteTracerPos(std::string("Result/zsj.csv"), tracer_list);
+    // Find tracer list @ t=0
+    std::vector<std::vector<TracerInfo>> tracer_list_pixel;
+    for (int i = 0; i < n_cam; i ++)
+    {
+        intensity = img_list[i].LoadImg(0);
+        std::vector<TracerInfo> tracer_found 
+            = tf.FindObject(intensity, depth, threshold);
+        std::cout << "Number of found tracer: " << tracer_found.size() << std::endl;
+        tracer_list_pixel.push_back(tracer_found);
+    }
+    intensity = img_list[0].LoadImg(0);
+    intensity.WriteMatrix("Result/intensity.csv");
+
+    img_list[0].SaveImage("Result/intensity.tif", intensity);
+
 
     std::cout << "Test ended!" << std::endl;
     return 0;

@@ -58,18 +58,13 @@ Matrix<int> ImageIO::LoadImg (int img_id)
         throw error_io;
     }
 
-
     TIFFGetField(image, TIFFTAG_BITSPERSAMPLE, &_bit_per_sample);
-    TIFFGetField(image, TIFFTAG_SAMPLESPERPIXEL, &_sample_per_pixel);
-    // std::cout << "Bit_per_sample: "   << _bit_per_sample   << std::endl;
-    // std::cout << "Sample_per_pixel: " << _sample_per_pixel << std::endl;
-    
-    // Find image size:
-    //  _strip_size, _strip_max 
-    tsize_t strip_size = TIFFStripSize(image);
-    int strip_max = TIFFNumberOfStrips(image); 
-    _strip_size = strip_size;
-    _strip_max  = strip_max;
+    if (_bit_per_sample != 8)
+    {
+        std::cerr << "ImageIO::LoadImg: Could not open image with pixel bit = " 
+                  << _bit_per_sample << std::endl;
+        throw error_range;
+    }
 
     // Find the number of rows and number of columns
     //  _n_col & _n_row are different from 
@@ -86,37 +81,24 @@ Matrix<int> ImageIO::LoadImg (int img_id)
                   << std::endl;
         throw error_io;
     }
-    // std::cout << "StripMax: "  << strip_max  << ", n_row: " << _n_row << std::endl; 
-    // std::cout << "StripSize: " << strip_size << ", n_col: " << _n_col << std::endl;
 
-    unsigned long buffer_size = strip_max * strip_size;
-    unsigned long image_offset = 0;
-    unsigned char* buffer;
-    buffer = new unsigned char [buffer_size];
-    
-    for (int strip_count = 0; strip_count < strip_max; strip_count ++) 
-    {
-        long result = TIFFReadEncodedStrip(image, strip_count, buffer+image_offset, strip_size);
-        if (result == -1) 
-        {
-            std::cerr << "Read error for tiff image" << std::endl;
-            throw error_io;
-        }
-        image_offset += result;
-    }
+    // int n_frame = TIFFNumberOfDirectories(image);
+    // TIFFSetDirectory(image, 0);
+
+    uint32* buffer = (uint32*) _TIFFmalloc(_n_row*_n_col * sizeof (uint32));
+    TIFFReadRGBAImage(image, _n_col, _n_row, buffer, 0);
 
     Matrix<int> intensity_mtx(_n_row, _n_col, -1);
     for (int iter_x = 0; iter_x < _n_row; iter_x ++)
     {
         for (int iter_y = 0; iter_y < _n_col; iter_y ++)
         {
-            intensity_mtx(iter_x, iter_y) 
-            = static_cast<int>(buffer[_n_col * iter_x + iter_y]);
+            intensity_mtx(_n_row-1-iter_x, iter_y) = (int) TIFFGetG(buffer[iter_x*_n_col + iter_y]);
         }
     }
 
+    _TIFFfree(buffer);
     TIFFClose(image);
-    delete [] buffer;
 
     return intensity_mtx;
 }
@@ -124,57 +106,37 @@ Matrix<int> ImageIO::LoadImg (int img_id)
 
 void ImageIO::SaveImage (std::string save_path, Matrix<int>& intensity_mtx)
 {
-    // if (_img_id < 0)
-    // {
-    //     std::cerr << "No image loaded yet!" 
-    //               << "The image size is unknow."
-    //               << std::endl;
-    //     throw;
-    // }
+    if (_img_id < 0)
+    {
+        std::cerr << "No image loaded yet!" 
+                  << "The image size is unknow."
+                  << std::endl;
+        throw error_io;
+    }
 
-    int buffer_size = _strip_max * _strip_size;
-    unsigned char* buffer;
-    buffer = new unsigned char [buffer_size];
 
+    uint8* buffer = (uint8*) _TIFFmalloc(_n_row*_n_col * sizeof (uint8));
     for (int iter_x = 0; iter_x < _n_row; iter_x ++)
     {
         for (int iter_y = 0; iter_y < _n_col; iter_y ++)
         {
-            buffer[_n_col * iter_x + iter_y]
-            = static_cast<unsigned char> (intensity_mtx(iter_x, iter_y));
+            buffer[_n_col*iter_x + iter_y] = static_cast<uint8> (intensity_mtx(iter_x, iter_y));
         }
     }
 
     TIFF* image = TIFFOpen(save_path.c_str(), "w");
 
     TIFFSetField(image, TIFFTAG_BITSPERSAMPLE, _bit_per_sample);
-    TIFFSetField(image, TIFFTAG_SAMPLESPERPIXEL, _sample_per_pixel);
     TIFFSetField(image, TIFFTAG_IMAGELENGTH, _n_row);
     TIFFSetField(image, TIFFTAG_IMAGEWIDTH, _n_col);
-    TIFFSetField(image, TIFFTAG_ROWSPERSTRIP, _n_row/_strip_max);
-    TIFFSetField(image, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISBLACK); // or PHOTOMETRIC_MINISWHITE
+    TIFFSetField(image, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISBLACK);
 
-    // tsize_t strip_size = TIFFStripSize(image);
-    // int strip_max = TIFFNumberOfStrips(image);
-    // std::cout << "(strip_size, strip_max) = " 
-    //           << "(" << strip_size << ", " 
-    //           << strip_max << ")" 
-    //           << std::endl;
-
-    unsigned long image_offset = 0;
-    for (int strip_count = 0; strip_count < _strip_max; strip_count ++) 
+    for (int iter_x = 0; iter_x < _n_row; iter_x ++)
     {
-        long result = TIFFWriteEncodedStrip(image, strip_count, buffer+image_offset, _strip_size);
-        if (result == -1) 
-        {
-            std::cerr << "Write error for tiff image" << std::endl;
-            std::cerr << "current strip_count: " << strip_count << std::endl;
-            throw error_io;
-        }
-        image_offset += result;
+        TIFFWriteScanline(image, &buffer[_n_row*iter_x], iter_x, 0);
     }
 
+    _TIFFfree(buffer);
     TIFFClose(image);
 
-    delete[] buffer;
 }
