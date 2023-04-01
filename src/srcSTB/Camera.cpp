@@ -94,7 +94,11 @@ Matrix<double> Camera::ImgPixelToMM (Matrix<double> const& pt_img_pix)
     //  centered -= Position(Npixw/2, Npixh/2, 0);
 
     // account for left-handed coordinate system 
-    Matrix<double> pt_img_mm (pt_img_pix); //TODO: index
+    Matrix<double> pt_img_mm (pt_img_pix); 
+    // Tsai's model: xf,yf start from 1
+    // But here, xf,yf start from 0
+    pt_img_mm(0,0) += 1;
+    pt_img_mm(1,0) += 1;
     pt_img_mm(0,0) = _kx*_w_pix * (  pt_img_mm(0,0) - _n_pix_w/2 - _n_off_w);
     pt_img_mm(1,0) = _h_pix     * (- pt_img_mm(1,0) + _n_pix_h/2 - _n_off_h);
     pt_img_mm(2,0) = 0;
@@ -238,11 +242,15 @@ Matrix<double> Camera::ImgMMToPixel (Matrix<double> const& pt_img_mm)
     // | 
     // |
     // \/ y direction (downwards)
+    // Tsai's model: xf,yf start from 1
+    xf = xf + _n_pix_w/2.0 + _n_off_w;
+    yf = -1.0 * (yf - _n_pix_h/2.0) - _n_off_h;
+    // But here, xf,yf start from 0
+    xf -= 1;
+    yf -= 1;
     return Matrix<double> ( 
         3,1,
-        xf + _n_pix_w/2.0 + _n_off_w, 
-        -1.0 * (yf - _n_pix_h/2.0) - _n_off_h, 
-        0
+        xf, yf, 0
     );
 }
 

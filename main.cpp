@@ -80,11 +80,8 @@ int main()
         std::cout << "Number of found tracer: " << tracer_found.size() << std::endl;
         tracer_list_pixel.push_back(tracer_found);
     }
-    intensity = img_list[0].LoadImg(0);
-    intensity.WriteMatrix("Result/intensity.csv");
-
-    img_list[0].SaveImage("Result/intensity.tif", intensity);
-
+    // myIO::WriteTracerPos("Result/cam_1_tracer_2D.csv", tracer_list_pixel[0]);
+    myIO::WriteTracerPos("Result/cam_2_tracer_2D.csv", tracer_list_pixel[1]);
 
     std::cout << "Test ended!" << std::endl;
     return 0;
