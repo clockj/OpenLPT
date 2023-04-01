@@ -5,6 +5,8 @@
 - 2: type error
 - 3: out of range
 - 4: no enough space
+- 5: io problem
+- 6: divided by 0
 
 # New version
 - For Tsai's projection model: Xf,Yf start from 1

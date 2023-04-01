@@ -77,12 +77,20 @@ Matrix<T>::Matrix (const Matrix<T>& vec_1, const Matrix<T>& vec_2)
             mag += value * value;
         }
     }
+
+    if (mag < MAGSMALLNUMBER)
+    {
+        std::cerr << "Matrix::Matrix: vec_1 and vec_2 are too close"
+                  << std::endl;
+        throw error_div0;
+    }
+
     mag = T (std::sqrt(mag));
     for (int i = 0; i < _dim_x; i ++)
     {
         for (int j = 0; j < _dim_y; j ++)
         {
-            _mtx[i][j] /= value;
+            _mtx[i][j] /= mag;
         }
     }
 }

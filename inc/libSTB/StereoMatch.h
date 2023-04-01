@@ -54,9 +54,9 @@ protected:
     int _n_del = 0;
     int _n_before_del = 0;
     int _n_after_del = 0;
-
+public:
     /*****************************Functions*********************************/
-    Matrix<double> FindCrossPoint (Matrix<double> pt_1, Matrix<double>& line_of_sight_1, Matrix<double> pt_2, Matrix<double>& line_of_sight_2);
+    Matrix<double> FindCrossPoint (Matrix<double> const& pt_1, Matrix<double> const& line_of_sight_1, Matrix<double> const& pt_2, Matrix<double> const& line_of_sight_2);
     int ComputeXpixel (Camera& cam, Matrix<double>& pt, Matrix<double>& line_of_sight, double y_pixel);
     int ComputeYpixel (Camera& cam, Matrix<double>& pt, Matrix<double>& line_of_sight, double x_pixel);
 

@@ -12,7 +12,7 @@
 //
 //
 template<class T>
-Matrix<double> StereoMatch<T>::FindCrossPoint (Matrix<double> pt_1, Matrix<double>& line_of_sight_1, Matrix<double> pt_2, Matrix<double>& line_of_sight_2)
+Matrix<double> StereoMatch<T>::FindCrossPoint (Matrix<double> const& pt_1, Matrix<double> const& line_of_sight_1, Matrix<double> const& pt_2, Matrix<double> const& line_of_sight_2)
 {
     // pt_center_1oncur + line_of_sight_1 * lambda_1 
     //  = pt_center_2oncur + line_of_sight_2 * lambda_2
@@ -24,7 +24,7 @@ Matrix<double> StereoMatch<T>::FindCrossPoint (Matrix<double> pt_1, Matrix<doubl
     double num_0 = line_of_sight_1[0] * line_of_sight_2[1] - line_of_sight_1[1] * line_of_sight_2[0]; // c1.c4 - c2.c3
 
     // line_of_sight_1 is parallel to line_of_sight_2
-    if (num_0 == 0)
+    if (std::fabs(num_0) < MAGSMALLNUMBER)
     {
         std::cerr << "The two lines are parallel! "
                   << "No crossing point"
@@ -36,7 +36,10 @@ Matrix<double> StereoMatch<T>::FindCrossPoint (Matrix<double> pt_1, Matrix<doubl
     double num_1 = pt_2[0] * line_of_sight_2[1] - pt_2[1] * line_of_sight_2[0]; // x3.c4-x4.c3
     double num_2 = pt_1[0] * line_of_sight_2[1] - pt_1[1] * line_of_sight_2[0]; // x1.c4-x2.c3
     double lambda_1 = (num_1 - num_2) / num_0;
-    Matrix<double> pt_cross = pt_1 + line_of_sight_1 * lambda_1;
+    // Matrix<double> pt_cross = pt_1 + line_of_sight_1 * lambda_1;
+    Matrix<double> pt_cross (line_of_sight_1);
+    pt_cross *= lambda_1;
+    pt_cross += pt_1;
 
     return pt_cross;
 }
@@ -48,8 +51,12 @@ Matrix<double> StereoMatch<T>::FindCrossPoint (Matrix<double> pt_1, Matrix<doubl
 template<class T>
 int StereoMatch<T>::ComputeXpixel (Camera& cam, Matrix<double>& pt, Matrix<double>& line_of_sight, double y_pixel)
 {
-    double y_d = - y_pixel + cam.GetNpixh()/2.0 - cam.GetNoffh();
-    y_d *= cam.GetHpix();
+    // Tsai's model: xf,yf start from 1
+    // But here, xf,yf start from 0
+    // Note that y_pixel cannot be ref!
+    y_pixel += 1;
+
+    double y_d = cam.GetHpix() * (- y_pixel + cam.GetNpixh()/2.0 - cam.GetNoffh());
     double nx = line_of_sight[0];
     double ny = line_of_sight[1];
     double kr = cam.GetKr();
@@ -112,6 +119,10 @@ int StereoMatch<T>::ComputeXpixel (Camera& cam, Matrix<double>& pt, Matrix<doubl
     // col index
     x_pixel = x_d/cam.GetWpix()/cam.GetKx() + cam.GetNpixw()/2 + cam.GetNoffw();
 
+    // Tsai's model: xf,yf start from 1
+    // But here, xf,yf start from 0
+    x_pixel -= 1;
+
     return x_pixel;
 }
 
@@ -122,6 +133,10 @@ int StereoMatch<T>::ComputeXpixel (Camera& cam, Matrix<double>& pt, Matrix<doubl
 template<class T>
 int StereoMatch<T>::ComputeYpixel (Camera& cam, Matrix<double>& pt, Matrix<double>& line_of_sight, double x_pixel)
 {
+    // Tsai's model: xf,yf start from 1
+    // But here, xf,yf start from 0
+    x_pixel += 1;
+
     double x_d = x_pixel - cam.GetNpixw()/2.0 - cam.GetNoffw();
     x_d *= cam.GetWpix();
     x_d *= cam.GetKx();
@@ -186,6 +201,10 @@ int StereoMatch<T>::ComputeYpixel (Camera& cam, Matrix<double>& pt, Matrix<doubl
 
     y_pixel = - y_d/cam.GetHpix() + cam.GetNpixh()/2 - cam.GetNoffh();
 
+    // Tsai's model: xf,yf start from 1
+    // But here, xf,yf start from 0
+    y_pixel -= 1;
+
     return y_pixel;
 }
 
@@ -200,9 +219,10 @@ void StereoMatch<T>::Triangulation(int n_cam_tri, std::vector<Matrix<double>>& p
 
     for (int i = 0; i < n_cam_tri; i++)
     {
+        // vector from camera center to image pt in world coordinate
         Matrix<double> line_of_sight(
-            _cam_list[i].GetCenterInWorld(),
-            _cam_list[i].ImgMMToWorld(pt_2d_list[i])
+            _cam_list[i].ImgMMToWorld(pt_2d_list[i]),
+            _cam_list[i].GetCenterInWorld()
         );
         line_of_sight_list.push_back(line_of_sight);
 
@@ -391,7 +411,7 @@ void StereoMatch<T>::MakeObjectIDMap(std::vector<std::vector<T>>& object_list_pi
               << std::endl;
 }
 
-
+// TBC
 template<class T>
 PixelRange StereoMatch<T>::FindSearchRegion (int cam_id, std::vector<Matrix<double>>& pt_list, std::vector<Matrix<double>>& unit_list)
 {
@@ -582,8 +602,8 @@ PixelRange StereoMatch<T>::FindSearchRegion (int cam_id, int line_ref_id, std::v
     }
 
     // Find all crossing points
-    Matrix<double> pt_cur = pt_list[line_ref_id];
-    Matrix<double> unit_cur = unit_list[line_ref_id];
+    Matrix<double> pt_cur (pt_list[line_ref_id]);
+    Matrix<double> unit_cur (unit_list[line_ref_id]);
     Matrix<double> per_unit_cur (
         3,1,
         - unit_cur[1],
@@ -607,7 +627,7 @@ PixelRange StereoMatch<T>::FindSearchRegion (int cam_id, int line_ref_id, std::v
             0
         );
 
-        Matrix<double> pt_cross;
+        Matrix<double> pt_cross(3,1);
 
         pt_cross = FindCrossPoint(
             pt_cur + per_unit_cur * _tor_2d, 
@@ -898,12 +918,6 @@ void StereoMatch<T>::FindTracerMatch (
     }
     #pragma endregion project Line of sight and mark tracers near the line
 
-    std::vector<Camera> camera_to_triangulate;
-    for (int i = 0; i < cam_cur_id + 1; i ++)
-    {
-        camera_to_triangulate.push_back(_cam_list[i]);
-    }
-
     PixelRange search_region_all = FindSearchRegion(cam_cur_id, pt_list, line_of_sight_list);
     int row_start = std::min(std::max(search_region_all._row_min, 0), n_row-1);
     int row_end   = std::min(std::max(search_region_all._row_max, 1), n_row);
@@ -959,7 +973,7 @@ void StereoMatch<T>::FindTracerMatch (
                     double error;
 
                     Triangulation(
-                        camera_to_triangulate,
+                        cam_cur_id+1,
                         pt_2d_list,
                         pt_world,
                         error
@@ -1080,14 +1094,8 @@ void StereoMatch<T>::FindTracerMatchOrig (
     //                          //
     // tracer marker around the line of sight 
     // intialize a 2D map with value 0
-    if (cam_cur_id < 2)  //TODO: increase camera?
+    if (cam_cur_id < 2)  
     {
-        std::vector<Camera> camera_to_triangulate; //camera list for triangulation TODO
-        for (int i = 0; i < cam_cur_id + 1; i ++)
-        {
-            camera_to_triangulate.push_back(_cam_list[i]);
-        }
-
         #pragma region MarkProjection
         Matrix<int> object_marker(
             n_row, n_col,
@@ -1150,28 +1158,28 @@ void StereoMatch<T>::FindTracerMatchOrig (
                         #pragma region CheckTriangulation
                         // test 3d distance
                         // by triangulation                 
-                        std::vector<Matrix<double>> pt_2d_list;
-                        for (int m = 0; m < cam_cur_id+1; m ++)
-                        {
-                            if (m == cam_cur_id)
-                            {
-                                pt_2d_list.push_back(
-                                    _object_list_mm[m][tracer_id].GetCenterPos()
-                                ); 
-                            }
-                            else 
-                            {
-                                pt_2d_list.push_back(
-                                    _object_list_mm[m][tracer_id_match[m]].GetCenterPos()
-                                );
-                            } 
-                        }
+                        // std::vector<Matrix<double>> pt_2d_list;
+                        // for (int m = 0; m < cam_cur_id+1; m ++)
+                        // {
+                        //     if (m == cam_cur_id)
+                        //     {
+                        //         pt_2d_list.push_back(
+                        //             _object_list_mm[m][tracer_id].GetCenterPos()
+                        //         ); 
+                        //     }
+                        //     else 
+                        //     {
+                        //         pt_2d_list.push_back(
+                        //             _object_list_mm[m][tracer_id_match[m]].GetCenterPos()
+                        //         );
+                        //     } 
+                        // }
 
                         Matrix<double> pt_world(3,1);
                         double error=0.0;
 
                         // Triangulation(
-                        //     camera_to_triangulate,
+                        //     cam_cur_id+1,
                         //     pt_2d_list,
                         //     pt_world,
                         //     error
@@ -1241,12 +1249,6 @@ void StereoMatch<T>::FindTracerMatchOrig (
     //                                  //
     else
     {
-        std::vector<Camera> camera_to_triangulate;
-        for (int i = 0; i < cam_cur_id + 1; i ++)
-        {
-            camera_to_triangulate.push_back(_cam_list[i]);
-        }
-
         PixelRange search_region_all = FindSearchRegion(cam_cur_id, pt_list, line_of_sight_list);
 
         int row_start = std::min(std::max(search_region_all._row_min, 0), n_row-1);
@@ -1302,7 +1304,7 @@ void StereoMatch<T>::FindTracerMatchOrig (
                     double error = 0.0;
 
                     Triangulation(
-                        camera_to_triangulate,
+                        cam_cur_id+1,
                         pt_2d_list,
                         pt_world,
                         error
@@ -1425,12 +1427,6 @@ void StereoMatch<T>::CheckTracerMatch (
         throw;
     }
 
-    std::vector<Camera> camera_to_triangulate;
-    for (int i = 0; i < cam_cur_id + 1; i ++)
-    {
-        camera_to_triangulate.push_back(_cam_list[i]);
-    }
-
     // Project pt_world onto testing cam[cam_cur_id]
     double factor = 1.0;
     Matrix<double> pt_pixel_upright 
@@ -1534,7 +1530,7 @@ void StereoMatch<T>::CheckTracerMatch (
                 double error;
         
                 Triangulation(
-                    camera_to_triangulate,
+                    cam_cur_id+1,
                     pt_2d_list,
                     pt_world_new,
                     error
@@ -1721,7 +1717,7 @@ void StereoMatch<T>::DeleteGohstTracerMatch (std::vector<std::vector<TracerInfo>
                 pt_2d_list.push_back(_object_list_mm[cam_id][tracer_id].GetCenterPos());
                 tracer.AddMatchInfo(object_list_pixel[cam_id][tracer_id]);
             }
-            Triangulation(_cam_list, pt_2d_list, pt_world, error);
+            Triangulation(_n_cam, pt_2d_list, pt_world, error);
             tracer.SetError(error);
             tracer.SetCenterPos(pt_world);
 
@@ -1900,7 +1896,7 @@ void StereoMatch<T>::DeleteGohstTracerMatchNew (std::vector<std::vector<TracerIn
                 pt_2d_list.push_back(_object_list_mm[cam_id][tracer_id].GetCenterPos());
                 tracer.AddMatchInfo(object_list_pixel[cam_id][tracer_id]);
             }
-            Triangulation(_cam_list, pt_2d_list, pt_world, error);
+            Triangulation(_n_cam, pt_2d_list, pt_world, error);
             tracer.SetError(error);
             tracer.SetCenterPos(pt_world);
 
@@ -2153,7 +2149,7 @@ void StereoMatch<T>::DeleteGohstTracerMatchOrig (std::vector<std::vector<TracerI
                 
                 tracer.AddMatchInfo(object_list_pixel[cam_id][tracer_id]);
             }
-            Triangulation(_cam_list, pt_2d_list, pt_world, error);
+            Triangulation(_n_cam, pt_2d_list, pt_world, error);
             tracer.SetError(error);
             tracer.SetCenterPos(pt_world);
 
@@ -2189,7 +2185,7 @@ void StereoMatch<T>::FillObjectInfo (std::vector<std::vector<T>>& object_list_pi
             pt_2d_list.push_back(_object_list_mm[cam_id][object_id].GetCenterPos());
             object.AddMatchInfo(object_list_pixel[cam_id][object_id]);
         }
-        Triangulation(_cam_list, pt_2d_list, pt_world, error);
+        Triangulation(_n_cam, pt_2d_list, pt_world, error);
         object.SetError(error);
         object.SetCenterPos(pt_world);
 
