@@ -88,9 +88,9 @@ int main()
     t_start = clock();
     StereoMatch<TracerInfo> tracer_match(
         cam_list,
-        2e-2, //2e-2,
-        6e-2  //1e-3
-    );
+        1e-2, 
+        2.4e-2  
+    ); // original code: divide each direction into 1000 voxels
 
     // tracer_match.SetNumThread(4);
     // tracer_match.SetTolerance1D(3);

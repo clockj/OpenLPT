@@ -509,6 +509,22 @@ double Matrix<T>::Dot(Matrix<T> const& mtx)
     return res;
 }
 
+template<class T>
+double Matrix<T>::Dist(Matrix<T> const& mtx)
+{
+    double dist = 0;
+    for (int i = 0; i <_dim_x; i ++)
+    {
+        for (int j = 0; j <_dim_y; j ++)
+        {
+            dist += std::pow((double)_mtx[i][j] - mtx._mtx[i][j], 2);
+        }
+    }
+    dist = std::sqrt(dist);
+
+    return dist;
+}
+
 
 //
 // Matrix output 

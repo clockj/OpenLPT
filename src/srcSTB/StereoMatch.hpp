@@ -427,38 +427,38 @@ PixelRange StereoMatch<T>::FindSearchRegion (int cam_id, std::vector<Matrix<doub
     }
 
     // Find all crossing points
+    Matrix<double> pt_cur(3,1);
+    Matrix<double> unit_cur(3,1);
+    Matrix<double> pt_test(3,1);
+    Matrix<double> unit_test(3,1);
+    Matrix<double> per_unit_cur(3,1);
+    Matrix<double> per_unit_test(3,1);
+    Matrix<double> line_cur_plus(3,1);
+    Matrix<double> line_cur_minus(3,1);
+    Matrix<double> line_test_plus(3,1);
+    Matrix<double> line_test_minus(3,1);
+    Matrix<double> pt_cross(3,1);
+
     for (int i = 0; i < int(pt_list.size())-1; i ++)
     {
-        Matrix<double> pt_cur = pt_list[i];
-        Matrix<double> unit_cur = unit_list[i];
-        Matrix<double> per_unit_cur (
-            3,1,
-            - unit_cur[1],
-            unit_cur[0],
-            0
-        );
+        pt_cur = pt_list[i];
+        unit_cur = unit_list[i];
+        per_unit_cur(0,0) = - unit_cur[1];
+        per_unit_cur(1,0) = unit_cur[0];
+        per_unit_cur(2,0) = 0;
 
         for (int j = i+1; j < pt_list.size(); j ++)
         {
-            Matrix<double> pt_test = pt_list[j];
-            Matrix<double> unit_test = unit_list[j];
-            Matrix<double> per_unit_test (
-                3,1,
-                - unit_test[1],
-                unit_test[0],
-                0
-            );
+            pt_test = pt_list[j];
+            unit_test = unit_list[j];
+            per_unit_test(0,0) = - unit_test[1];
+            per_unit_test(1,0) = unit_test[0];
+            per_unit_test(2,0) = 0;
 
-            Matrix<double> line_cur_plus 
-                = pt_cur + per_unit_cur * _tor_2d;
-            Matrix<double> line_cur_minus 
-                = pt_cur - per_unit_cur * _tor_2d;
-            Matrix<double> line_test_plus 
-                = pt_test + per_unit_test * _tor_2d;
-            Matrix<double> line_test_minus 
-                = pt_test - per_unit_test * _tor_2d;
-
-            Matrix<double> pt_cross;
+            line_cur_plus = pt_cur + per_unit_cur * _tor_2d;
+            line_cur_minus = pt_cur - per_unit_cur * _tor_2d;
+            line_test_plus = pt_test + per_unit_test * _tor_2d;
+            line_test_minus = pt_test - per_unit_test * _tor_2d;
 
             pt_cross = FindCrossPoint(
                 line_cur_plus, 
@@ -532,18 +532,17 @@ PixelRange StereoMatch<T>::FindSearchRegionOrig (int cam_id, std::vector<Matrix<
     else if (pt_list.size() == 2) 
     {
         // cam_id = 2, 3nd cam
-        Matrix<double> unit_cur = unit_list[0];
-        Matrix<double> unit_test = unit_list[1];
-
-        Matrix<double> pt_cross = FindCrossPoint (
-            pt_list[0], 
-            unit_cur, 
-            pt_list[1], 
-            unit_test
+        Matrix<double> pt_cross (
+            FindCrossPoint (
+                pt_list[0], 
+                unit_list[0], 
+                pt_list[1], 
+                unit_list[1]
+            )
         );
 
-        double cos = std::sqrt((std::fabs(unit_list[0].Dot(unit_list[1]))+1)/2);
-        double sin = std::sqrt(1-cos*cos);
+        double cos = std::max(std::sqrt(std::fabs(unit_list[0].Dot(unit_list[1]))), MAGSMALLNUMBER);
+        double sin = std::max(std::sqrt(1-cos*cos), MAGSMALLNUMBER);
 
         double width = 1.0;
         if (cos < sin)
@@ -554,13 +553,14 @@ PixelRange StereoMatch<T>::FindSearchRegionOrig (int cam_id, std::vector<Matrix<
         {
             width = _tor_2d/sin;
         }
+        width = std::min(width, 1.2*_fov_length_mm);
 
-        Matrix<double> pt_upright = pt_cross;
+        Matrix<double> pt_upright(pt_cross);
         pt_upright(0,0) = pt_upright(0,0) + width;
         pt_upright(1,0) = pt_upright(1,0) + width;
         pt_upright = cam.ImgMMToPixel(pt_upright);
 
-        Matrix<double> pt_lowleft = pt_cross;
+        Matrix<double> pt_lowleft(pt_cross);
         pt_lowleft(0,0) = pt_lowleft(0,0) - width;
         pt_lowleft(1,0) = pt_lowleft(1,0) - width;
         pt_lowleft = cam.ImgMMToPixel(pt_lowleft);
@@ -610,6 +610,10 @@ PixelRange StereoMatch<T>::FindSearchRegion (int cam_id, int line_ref_id, std::v
         unit_cur[0],
         0
     );
+    Matrix<double> pt_test(3,1);
+    Matrix<double> unit_test(3,1);
+    Matrix<double> per_unit_test(3,1);
+    Matrix<double> pt_cross(3,1);
 
     for (int j = 0; j < pt_list.size(); j ++)
     {
@@ -618,16 +622,11 @@ PixelRange StereoMatch<T>::FindSearchRegion (int cam_id, int line_ref_id, std::v
             continue;
         }
 
-        Matrix<double> pt_test = pt_list[j];
-        Matrix<double> unit_test = unit_list[j];
-        Matrix<double> per_unit_test (
-            3,1,
-            - unit_test[1],
-            unit_test[0],
-            0
-        );
-
-        Matrix<double> pt_cross(3,1);
+        pt_test = pt_list[j];
+        unit_test = unit_list[j];
+        per_unit_test(0,0) = - unit_test[1];
+        per_unit_test(1,0) = unit_test[0];
+        per_unit_test(2,0) = 0;
 
         pt_cross = FindCrossPoint(
             pt_cur + per_unit_cur * _tor_2d, 
@@ -728,8 +727,8 @@ void StereoMatch<T>::ObjectMarkerAroundLine(int cam_id, Matrix<double>& pt, Matr
         // (Xu  = (Xc  + lambda (nx   
         //  Yu)    Yc)           ny)
         // using mathematica to compute the results     
-        int y_start = std::max(0, search_region._row_min);
-        int y_end   = std::min(n_pix_h, search_region._row_max + 1);
+        int y_start = std::max(0, std::min(search_region._row_min, n_pix_h-1));
+        int y_end   = std::min(n_pix_h, std::max(search_region._row_max, 1));
         for (int y_pixel = y_start; y_pixel < y_end; y_pixel ++)
         {
             // Get x_pixel (col id) from two lines 
@@ -758,7 +757,7 @@ void StereoMatch<T>::ObjectMarkerAroundLine(int cam_id, Matrix<double>& pt, Matr
             
             min = std::max(0, min);
             min = std::min(n_pix_w-1, min);
-            max = std::max(0, max);
+            max = std::max(1, max);
             max = std::min(n_pix_w, max);
 
             for (int col = min; col < max; col ++)
@@ -778,8 +777,8 @@ void StereoMatch<T>::ObjectMarkerAroundLine(int cam_id, Matrix<double>& pt, Matr
         // (Xu  = (Xc  + lambda (nx   
         //  Yu)    Yc)           ny)
         // using mathematica to compute the results
-        int x_start = std::max(0, search_region._col_min);
-        int x_end   = std::min(n_pix_w, search_region._col_max + 1);
+        int x_start = std::max(0, std::min(search_region._col_min, n_pix_w-1));
+        int x_end   = std::min(n_pix_w, std::max(search_region._col_max, 1));
         for (int x_pixel = x_start; x_pixel < x_end; x_pixel ++)
         {
             // Get x_pixel (col id) from two lines 
@@ -1066,11 +1065,7 @@ void StereoMatch<T>::FindTracerMatchOrig (
         // project from cam_i onto cam_cur
         // find out tracer position in camera coordinate [mm]
         // find out tracer image position in world coordinate
-        Matrix<double> pt_world(
-            _cam_list[i].ImgMMToWorld(
-                _object_list_mm[i][tracer_id_match[i]].GetCenterPos()
-            )
-        );
+        // _cam_list[i].ImgMMToWorld(_object_list_mm[i][tracer_id_match[i]].GetCenterPos())
 
         // position of cam_i center on cam_cur
         // Matrix<double> pt_center_i_on_cur = _cam_list[cam_cur_id].WorldToImgMM(_cam_list[i].GetCenterInWorld());
@@ -1083,7 +1078,11 @@ void StereoMatch<T>::FindTracerMatchOrig (
         // unit vector in projected line of sight direction 
         Matrix<double> line_of_sight(
             _cam_list[cam_cur_id].WorldToImgMM(_cam_list[i].GetCenterInWorld()), 
-            _cam_list[cam_cur_id].WorldToImgMM(pt_world)
+            _cam_list[cam_cur_id].WorldToImgMM(
+                _cam_list[i].ImgMMToWorld(
+                    _object_list_mm[i][tracer_id_match[i]].GetCenterPos()
+                )
+            )
         );
 
         line_of_sight_list.push_back(line_of_sight);
@@ -1094,13 +1093,10 @@ void StereoMatch<T>::FindTracerMatchOrig (
     //                          //
     // tracer marker around the line of sight 
     // intialize a 2D map with value 0
-    if (cam_cur_id < 2)  
+    if (cam_cur_id == 1)  
     {
         #pragma region MarkProjection
-        Matrix<int> object_marker(
-            n_row, n_col,
-            0 
-        );
+        Matrix<int> object_marker(n_row, n_col, 0);
         for (int i = 0; i < cam_cur_id; i ++)
         {
             PixelRange search_region = FindSearchRegion(cam_cur_id, i, pt_list, line_of_sight_list);
@@ -1122,6 +1118,13 @@ void StereoMatch<T>::FindTracerMatchOrig (
         int row_end   = std::min(std::max(search_region_all._row_max, 1), n_row);
         int col_start = std::min(std::max(search_region_all._col_min, 0), n_col-1);
         int col_end   = std::min(std::max(search_region_all._col_max, 1), n_col);
+
+        Matrix<double> pt_mm(3,1);
+        Matrix<double> pt_cross(
+            FindCrossPoint(pt_list[0], line_of_sight_list[0], 
+                           pt_list[1], line_of_sight_list[1])
+        );
+        double dist = 0;
 
         for (int i = row_start; i < row_end; i ++)
         {
@@ -1152,7 +1155,10 @@ void StereoMatch<T>::FindTracerMatchOrig (
                         }
 
                         #pragma region IsWithinErrorLine
-                        //pending
+                        
+                        pt_mm = _object_list_mm[k][tracer_id].GetCenterPos();
+                        dist = pt_mm.Dist(pt_cross);
+
                         #pragma endregion
 
                         #pragma region CheckTriangulation
@@ -1188,7 +1194,7 @@ void StereoMatch<T>::FindTracerMatchOrig (
 
                         // check 3D here, triangulation
                         // if (error < _tor_3d)
-                        if (1)
+                        if (dist < _tor_2d)
                         {
                             tracer_id_match.push_back(tracer_id);
 

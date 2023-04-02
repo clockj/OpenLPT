@@ -36,6 +36,7 @@ protected:
     int _tor_1d = 3;
     
     int _n_thread = 0; // num of parallel threads
+    double _fov_length_mm = 40; 
 
     /*************************PROCESS VARIABLES*****************************/
     std::vector<std::vector<T>> _object_list_mm;  // list of 2D image position in mm
@@ -54,7 +55,7 @@ protected:
     int _n_del = 0;
     int _n_before_del = 0;
     int _n_after_del = 0;
-public:
+// public:
     /*****************************Functions*********************************/
     Matrix<double> FindCrossPoint (Matrix<double> const& pt_1, Matrix<double> const& line_of_sight_1, Matrix<double> const& pt_2, Matrix<double> const& line_of_sight_2);
     int ComputeXpixel (Camera& cam, Matrix<double>& pt, Matrix<double>& line_of_sight, double y_pixel);
