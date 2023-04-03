@@ -1201,31 +1201,34 @@ void StereoMatch<T>::FindTracerMatchOrig (
 
                                     if (error_3d > _tor_3d)
                                     {
-                                        break;
-                                    }
-
-                                    if (_check_cam_id < _n_cam)
-                                    {
-                                        int cam_next_id = cam_cur_id + 1;
-
-                                        CheckTracerMatch (
-                                            cam_next_id,
-                                            tracer_id_match_list,
-                                            tracer_id_match, 
-                                            pt_world,
-                                            error_list
-                                        );
-
                                         tracer_id_match.pop_back();
                                     }
                                     else 
                                     {
-                                        tracer_id_match_list.push_back(tracer_id_match);
+                                        if (_check_cam_id < _n_cam)
+                                        {
+                                            int cam_next_id = cam_cur_id + 1;
 
-                                        error_list.push_back(error_3d);
+                                            CheckTracerMatch (
+                                                cam_next_id,
+                                                tracer_id_match_list,
+                                                tracer_id_match, 
+                                                pt_world,
+                                                error_list
+                                            );
 
-                                        tracer_id_match.pop_back();
+                                            tracer_id_match.pop_back();
+                                        }
+                                        else 
+                                        {
+                                            tracer_id_match_list.push_back(tracer_id_match);
+
+                                            error_list.push_back(error_3d);
+
+                                            tracer_id_match.pop_back();
+                                        }
                                     }
+                                    
                                 }
                             }
                             
@@ -1548,40 +1551,43 @@ void StereoMatch<T>::FindTracerMatchOrig (
 
                             if (error_3d > _tor_3d)
                             {
-                                break;
-                            }
-
-                            if (_check_cam_id < _n_cam)
-                            {
-                                int cam_next_id = cam_cur_id + 1;
-
-                                CheckTracerMatch (
-                                    cam_next_id,
-                                    tracer_id_match_list,
-                                    tracer_id_match, 
-                                    pt_world,
-                                    error_list
-                                );
-
                                 tracer_id_match.pop_back();
                             }
-                            else 
+                            else
                             {
-                                // // Print info 
-                                // std::cout << "Newly found match list: ";
-                                // for (int id = 0; id < _n_cam; id ++)
-                                // {
-                                //     std::cout << tracer_id_match[id] 
-                                //               << " ";
-                                // }
-                                // std::cout << std::endl;
+                                if (_check_cam_id < _n_cam)
+                                {
+                                    int cam_next_id = cam_cur_id + 1;
 
-                                tracer_id_match_list.push_back(tracer_id_match);
+                                    CheckTracerMatch (
+                                        cam_next_id,
+                                        tracer_id_match_list,
+                                        tracer_id_match, 
+                                        pt_world,
+                                        error_list
+                                    );
 
-                                error_list.push_back(error_3d);
+                                    tracer_id_match.pop_back();
+                                }
+                                else 
+                                {
+                                    // // Print info 
+                                    // std::cout << "Newly found match list: ";
+                                    // for (int id = 0; id < _n_cam; id ++)
+                                    // {
+                                    //     std::cout << tracer_id_match[id] 
+                                    //               << " ";
+                                    // }
+                                    // std::cout << std::endl;
 
-                                tracer_id_match.pop_back();
+                                    tracer_id_match_list.push_back(tracer_id_match);
+
+                                    error_list.push_back(error_3d);
+
+                                    tracer_id_match.pop_back();
+                                }
                             }
+                            
                         }
                     }
                 }  
@@ -1641,18 +1647,53 @@ void StereoMatch<T>::CheckTracerMatch (
         throw;
     }
 
+
+    std::vector<Matrix<double>> line_of_sight_list;
+    std::vector<Matrix<double>> pt_list;
+    // Line of sight
+    for (int i = 0; i < cam_cur_id; i ++)
+    {       
+        // project from cam_i onto cam_cur
+        // find out tracer position in camera coordinate [mm]
+        // find out tracer image position in world coordinate
+        // _cam_list[i].ImgMMToWorld(_object_list_mm[i][tracer_id_match[i]].GetCenterPos())
+
+        // position of cam_i center on cam_cur
+        // Matrix<double> pt_center_i_on_cur = _cam_list[cam_cur_id].WorldToImgMM(_cam_list[i].GetCenterInWorld());
+        pt_list.push_back(
+            _cam_list[cam_cur_id].WorldToImgMM(_cam_list[i].GetCenterInWorld())
+        );
+        // position of tracer center on cam_i projected on cam_cur
+        // Matrix<double> pt_tracer_i_on_cur = _cam_list[cam_cur_id].WorldToImgMM(pt_world);
+
+        // unit vector in projected line of sight direction 
+        Matrix<double> line_of_sight(
+            _cam_list[cam_cur_id].WorldToImgMM(_cam_list[i].GetCenterInWorld()), 
+            _cam_list[cam_cur_id].WorldToImgMM(
+                _cam_list[i].ImgMMToWorld(
+                    _object_list_mm[i][tracer_id_match[i]].GetCenterPos()
+                )
+            )
+        );
+
+        line_of_sight_list.push_back(line_of_sight);
+    }
+
+
     // Project pt_world onto testing cam[cam_cur_id]
     double factor = 1.0;
-    Matrix<double> pt_pixel_upright 
-     = _cam_list[cam_cur_id].ImgMMToPixel(
-         _cam_list[cam_cur_id].WorldToImgMM(pt_world)
-         + Matrix<double>(3,1, factor*_tor_2d, factor*_tor_2d, 0.0)
-     );
-    Matrix<double> pt_pixel_lowleft
-     = _cam_list[cam_cur_id].ImgMMToPixel(
-         _cam_list[cam_cur_id].WorldToImgMM(pt_world)
-         - Matrix<double>(3,1, factor*_tor_2d, factor*_tor_2d, 0.0)
-     );
+    Matrix<double> pt_pixel_upright (
+        _cam_list[cam_cur_id].ImgMMToPixel(
+            _cam_list[cam_cur_id].WorldToImgMM(pt_world)
+            + Matrix<double>(3,1, factor*_tor_2d, factor*_tor_2d, 0.0)
+        )
+    );
+    Matrix<double> pt_pixel_lowleft (
+        _cam_list[cam_cur_id].ImgMMToPixel(
+            _cam_list[cam_cur_id].WorldToImgMM(pt_world)
+            - Matrix<double>(3,1, factor*_tor_2d, factor*_tor_2d, 0.0)
+        )
+    );
     //Matrix<double> pt_pixel 
     //= _cam_list[cam_cur_id].ImgMMToPixel(
     //    _cam_list[cam_cur_id].WorldToImgMM(pt_world)
@@ -1661,8 +1702,7 @@ void StereoMatch<T>::CheckTracerMatch (
     int row_start = int( 
         std::min(
             std::max(
-                 int(pt_pixel_upright(1,0))
-                //int(pt_pixel(1,0)) - _tor_1d
+                int(pt_pixel_upright(1,0))
                 , 0
             ), 
             n_row - 1 
@@ -1671,8 +1711,7 @@ void StereoMatch<T>::CheckTracerMatch (
     int row_end   = int( 
         std::min(
             std::max(
-                 int(pt_pixel_lowleft(1,0)+1.0)
-                //int(pt_pixel(1,0)) + _tor_1d
+                int(pt_pixel_lowleft(1,0)+1.0)
                 , 1
             ), 
             n_row
@@ -1681,8 +1720,7 @@ void StereoMatch<T>::CheckTracerMatch (
     int col_start = int( 
         std::min(
             std::max(
-                 int(pt_pixel_lowleft(0,0))
-                //int(pt_pixel(0,0)) - _tor_1d
+                int(pt_pixel_lowleft(0,0))
                 , 0
             ), 
             n_col - 1 
@@ -1691,8 +1729,7 @@ void StereoMatch<T>::CheckTracerMatch (
     int col_end   = int( 
         std::min(
             std::max(
-                 int(pt_pixel_upright(0,0)+1.0)
-                //int(pt_pixel(0,0)) + _tor_1d
+                int(pt_pixel_upright(0,0)+1.0)
                 , 1
             ), 
             n_col
@@ -1718,72 +1755,31 @@ void StereoMatch<T>::CheckTracerMatch (
                     break;
                 }
 
-                // tracer_id_match.push_back(tracer_id);
-
-                #pragma region CheckTriangulation
-                // test 3d distance
-                // by triangulation                 
-                std::vector<Matrix<double>> pt_2d_list;
-                for (int m = 0; m < cam_cur_id+1; m ++)
-                {
-                    if (m == cam_cur_id)
-                    {
-                        pt_2d_list.push_back(
-                            _object_list_mm[m][tracer_id].GetCenterPos()
-                        );
-                    }
-                    else 
-                    {
-                        pt_2d_list.push_back(
-                            _object_list_mm[m][tracer_id_match[m]].GetCenterPos()
-                        );
-                    }             
-                }
-
-                Matrix<double> pt_world_new(3,1);
-                double error;
-        
-                Triangulation(
-                    cam_cur_id+1,
-                    pt_2d_list,
-                    pt_world_new,
-                    error
-                );
-                #pragma endregion
-
-                #pragma region check 2d distance after reprojection
-                double error_2d = 0.0;
-                Matrix<double> diff_vec(3,1);
-                for (int m = 0; m < cam_cur_id+1; m ++)
-                {
-                    if (m == cam_cur_id)
-                    {
-                        diff_vec = _cam_list[m].WorldToImgMM(pt_world) 
-                        - _object_list_mm[m][tracer_id].GetCenterPos();
-                    }
-                    else 
-                    {
-                        diff_vec = _cam_list[m].WorldToImgMM(pt_world) 
-                        - _object_list_mm[m][tracer_id_match[m]].GetCenterPos();
-                    }
+                #pragma region check whether within error line 
                     
-                    if (m == 0)
+                Matrix<double> candidate_2d (_object_list_mm[cam_cur_id][tracer_id].GetCenterPos());
+                bool in_range = true;
+                double dist = 0;
+                for (int m = 0; m < cam_cur_id; m ++)
+                {
+                    dist = candidate_2d.Dist(pt_list[m], line_of_sight_list[m]);
+                    if (dist > _tor_2d)
                     {
-                        error_2d = diff_vec.Mag();
+                        in_range = false;
+                        break;
                     }
-                    else 
-                    {
-                        if (diff_vec.Mag() > error_2d)
-                        {
-                            error_2d = diff_vec.Mag();
-                        }
-                    }
+                } 
+
+                // reproject onto the previous cam, then is within error line
+                if (in_range)
+                {
+                    in_range = CheckReProject(cam_cur_id, tracer_id_match, candidate_2d);
                 }
+
                 #pragma endregion
 
                 // check 3D here, triangulation
-                if (error_2d < _tor_2d && error < _tor_3d) 
-                // if (error_2d < _tor_2d) 
+                if (in_range) 
                 {
                     tracer_id_match.push_back(tracer_id);
 
@@ -1814,9 +1810,41 @@ void StereoMatch<T>::CheckTracerMatch (
                         // }
                         // std::cout << "\n";
 
-                        tracer_id_match_list.push_back(tracer_id_match);
+                        //test 3d distance by triangulation                 
+                        std::vector<Matrix<double>> pt_2d_list;
+                        for (int m = 0; m < cam_cur_id+1; m ++)
+                        {
+                            if (m == cam_cur_id)
+                            {
+                                pt_2d_list.push_back(
+                                    _object_list_mm[m][tracer_id].GetCenterPos()
+                                ); 
+                            }
+                            else 
+                            {
+                                pt_2d_list.push_back(
+                                    _object_list_mm[m][tracer_id_match[m]].GetCenterPos()
+                                );
+                            } 
+                        }
 
-                        error_list.push_back(error);
+                        Matrix<double> pt_world(3,1);
+                        double error_3d=0.0;
+
+                        Triangulation(
+                            cam_cur_id+1,
+                            pt_2d_list,
+                            pt_world,
+                            error_3d
+                        );
+
+                        
+                        if (error_3d <= _tor_3d)
+                        {
+                            tracer_id_match_list.push_back(tracer_id_match);
+
+                            error_list.push_back(error_3d);
+                        }   
 
                         tracer_id_match.pop_back();
                     }
@@ -1825,8 +1853,6 @@ void StereoMatch<T>::CheckTracerMatch (
         }
     }
 }
-
-
 
 
 template<class T>
