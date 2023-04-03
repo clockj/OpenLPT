@@ -29,7 +29,7 @@ public:
 
     // Find object position
     //  input: intensity matrix, maximum intensity (2^bit_per_sample-1)
-    //  output: a vector with all the particles positions
+    //  output: a vector with all the particles positions （x_pixel(col_id), y_pixel(row_id))
     std::vector<T> FindObject(Matrix<int> const& img, int max_intensity, int min_intensity);
 
 };

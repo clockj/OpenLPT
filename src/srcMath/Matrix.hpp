@@ -512,6 +512,12 @@ double Matrix<T>::Dot(Matrix<T> const& mtx)
 template<class T>
 double Matrix<T>::Dist(Matrix<T> const& mtx)
 {
+    if (_dim_x!=mtx._dim_x || _dim_y!=mtx._dim_y)
+    {
+        std::cerr << "Matrix::Dist: size not matched!" << std::endl;
+        throw error_size;
+    }
+
     double dist = 0;
     for (int i = 0; i <_dim_x; i ++)
     {
@@ -520,6 +526,45 @@ double Matrix<T>::Dist(Matrix<T> const& mtx)
             dist += std::pow((double)_mtx[i][j] - mtx._mtx[i][j], 2);
         }
     }
+    dist = std::sqrt(dist);
+
+    return dist;
+}
+
+template<class T>
+double Matrix<T>::Dist(Matrix<T> const& pt, Matrix<T> const& unit)
+{
+    if (_dim_x!=3||_dim_y!=1||pt._dim_x!=3||pt._dim_y!=1||unit._dim_x!=3||unit._dim_y!=1)
+    {
+        std::cerr << "Matrix::Dist: size not matched!" << std::endl;
+        throw error_size;
+    }
+
+    double x1 = pt._mtx[0][0] - _mtx[0][0];
+    double x2 = pt._mtx[1][0] - _mtx[1][0];
+    double x3 = pt._mtx[2][0] - _mtx[2][0];
+
+    // calculate dot 
+    double res = std::fabs(
+        x1*unit._mtx[0][0] + x2*unit._mtx[1][0] + x3*unit._mtx[2][0]
+    );
+
+    double dist = x1*x1 + x2*x2 + x3*x3 - res*res;
+
+    if (dist < 0 && dist >= - MAGSMALLNUMBER)
+    {
+        dist = std::fabs(dist);
+    }
+    else if (dist < - MAGSMALLNUMBER)
+    {
+        std::cout << " error: "
+            << "the distance in  is: "
+            << "dist = "
+            << dist
+            << std::endl;
+        throw error_range;
+    }
+
     dist = std::sqrt(dist);
 
     return dist;

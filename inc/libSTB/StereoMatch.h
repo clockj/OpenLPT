@@ -155,6 +155,11 @@ private:
         Matrix<double>& pt_world,
         std::deque<double>& error_list
     );
+    bool CheckReProject(
+        int cam_cur_id, 
+        std::vector<int> const& tracer_id_match, 
+        Matrix<double> const& pt_mm
+    );
 
     void DeleteGohstTracerMatch (std::vector<std::vector<TracerInfo>>& object_list_pixel);
     void DeleteGohstTracerMatchNew (std::vector<std::vector<TracerInfo>>& object_list_pixel);

@@ -69,6 +69,7 @@ public:
     double Mag ();
     double Dot (Matrix<T> const& mtx);
     double Dist (Matrix<T> const& mtx); // usually for vec: sqrt((x_ij-y_ij)^2)
+    double Dist (Matrix<T> const& pt, Matrix<T> const& unit); // for calculating the distance from this pt to a line
 
     // only for vector to use (return _mtx[i][0])  
     T  operator[] (int vec_i) const; 
