@@ -2005,8 +2005,6 @@ void StereoMatch<T>::DeleteGohstTracerMatchNew (std::vector<std::vector<TracerIn
         }
         temp += 1;
     }
-    
-    std::cout << "1" << std::endl;
 
     // initialization
     for (int cam_id = 0; cam_id < _n_cam; cam_id ++)
@@ -2040,8 +2038,6 @@ void StereoMatch<T>::DeleteGohstTracerMatchNew (std::vector<std::vector<TracerIn
         object_id_match_map.push_back(object_id_match_map_one);
     }
 
-    std::cout << "2" << std::endl;
-
     // calculate number of each id used (might be parallel)
     for (int i = 0; i < n_match; i ++)
     {
@@ -2054,48 +2050,33 @@ void StereoMatch<T>::DeleteGohstTracerMatchNew (std::vector<std::vector<TracerIn
         for (int j = 0; j < _n_cam; j ++)
         {
             int id = _object_id_match_list[i][j];
-            // object_id_match_num[j][id] += 1;
-            object_id_match_num.at(j).at(id) += 1;
+            object_id_match_num[j][id] += 1;
         }  
     }
-
-    std::cout << "3" << std::endl;
+    // myIO::WriteMatrix<int>("Result/object_id_match_num.csv", object_id_match_num);
 
     // calculate rank of each match pair (might be parallel)
     // if (_n_thread != 0)
     // {
     //     omp_set_num_threads(_n_thread);
     // }
-    // #pragma omp parallel
-    {
-        // #pragma omp for
-        for (int i = 0; i < n_match; i ++)
-        {
-            // #pragma critical
-            {
-                double value = 5.175e2 * _error_list[i];
-                // double value = 5.175e2 / _error_list[i];
-                for (int j = 0; j < _n_cam; j ++)
-                {
-                    int id = _object_id_match_list[i][j];
-                    value += double(object_id_match_num[j][id]);
-                }
-            
-                object_id_match_rank.push_back(value);
-            }
-            
-        }
-    }
 
-    std::cout << "4" << std::endl;
+    for (int i = 0; i < n_match; i ++)
+    {
+        // double value = 5.175e2 * _error_list[i];
+        double value = _error_list[i];
+        for (int j = 0; j < _n_cam; j ++)
+        {
+            int id = _object_id_match_list[i][j];
+            value += double(object_id_match_num[j][id]);
+        }
+        object_id_match_rank.push_back(value);
+    }
 
     std::vector<int> ranked_index (n_match);
     myMATH::MergeSort<double>(ranked_index, object_id_match_rank);
 
-    std::cout << "5" << std::endl;
-
     for (int i = 0; i < n_match; i ++)
-    // for (int i = n_match-1; i >-1; i --)
     {
         int sum = 0; // check whether all 2d pts in a match is available.
         for (int cam_id = 0; cam_id < _n_cam; cam_id ++)
@@ -2407,6 +2388,95 @@ void StereoMatch<T>::DeleteGohstTracerMatchOrig (std::vector<std::vector<TracerI
 }
 
 
+
+
+template<class T>
+void StereoMatch<T>::WriteMatchList (std::string file, std::vector<std::vector<T>> const& object_list_pixel)
+{
+    // _object_id_match_list
+    std::ofstream outfile(file, std::ios::out);
+
+    int n_match = _object_id_match_list.size();
+    outfile << "ObjectIDMatchList: (n_match,n_cam)="
+            << "(" << n_match << "," << _n_cam << ")"
+            << std::endl;
+
+    int id = 0;
+    Matrix<double> pt_pixel(3,1);
+
+    for (int i = 0; i < n_match; i ++)
+    {
+        for (int j = 0; j < _n_cam; j ++)
+        {
+            id = _object_id_match_list[i][j];
+            outfile << id << ",";
+        }
+
+        for (int j = 0; j < _n_cam-1; j ++)
+        {
+            id = _object_id_match_list[i][j];
+            pt_pixel = object_list_pixel[j][id].GetCenterPos();
+            outfile << pt_pixel(0,0) << "," << pt_pixel(1,0) << ",";
+        }
+
+        id = _object_id_match_list[i][_n_cam-1];
+        pt_pixel = object_list_pixel[_n_cam-1][id].GetCenterPos();
+        outfile << pt_pixel(0,0) << "," << pt_pixel(1,0) << "\n";
+    }
+
+    outfile.close();
+}
+
+
+template<class T>
+void StereoMatch<T>::WriteTriErrorList (std::string file)
+{
+    // _error_list
+    std::ofstream outfile(file, std::ios::out);
+
+    int n_match = _error_list.size();
+    outfile << "TriErrorList: n_match=" << n_match << std::endl;
+
+    for (int i = 0; i < n_match; i ++)
+    {
+        outfile << _error_list[i] << "\n";
+    }
+
+    outfile.close();
+}
+
+
+template<class T>
+void StereoMatch<T>::WriteObjectInfoMatchList (std::string file)
+{
+    // _object_info_match_list
+    std::ofstream outfile(file, std::ios::out);
+
+    int n_match = _object_info_match_list.size();
+    outfile << "ObjectInfoMatchList: (n_match,n_cam)="
+            << "(" << n_match << "," << _n_cam << ")"
+            << std::endl;
+
+    Matrix<double> pt_pixel(3,1);
+    Matrix<double> pt_world(3,1);
+
+    for (int i = 0; i < n_match; i ++)
+    {
+        pt_world = _object_info_match_list[i].GetCenterPos ();
+        for (int j = 0; j < _n_cam; j ++)
+        {
+            pt_pixel = _object_info_match_list[i].GetMatchPosInfo(j);
+            outfile << pt_pixel(0,0) << ","
+                    << pt_pixel(1,0) << ",";
+        }
+        outfile << pt_world(0,0) << "," 
+                << pt_world(1,0) << ","
+                << pt_world(2,0) << ",";
+        outfile << _object_info_match_list[i].GetError() << "\n";
+    }
+
+    outfile.close();
+}
 
 
 template<class T>

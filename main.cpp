@@ -19,22 +19,6 @@
 // #include "Shake.h"
 // #include "IPR.h"
 
-// For test 
-// std::vector<Matrix<double>> Load3DPoints (std::string file_name, int n_pt)
-// {
-//     std::ifstream infile(file_name, std::ios::in);
-    
-//     std::vector<Matrix<double>> pt_list_3d;
-//     for (int i = 0; i < n_pt; i ++)
-//     {
-//         Matrix<double> pt(3,1);
-//         infile >> pt[0] >> pt[1] >> pt[2];
-//         pt_list_3d.push_back(pt);
-//     }
-
-//     return pt_list_3d;
-// }
-
 
 int main()
 {
@@ -97,17 +81,9 @@ int main()
     // tracer_match.Match(tracer_list_pixel, 0);
     tracer_match.Match(tracer_list_pixel, 1);
     
-    // std::vector<std::vector<int>> tracer_match_list; 
-    // tracer_match.GetObjectIDMatchList(tracer_match_list);
-
-    std::vector<TracerInfo> tracer_list;
-    tracer_match.GetObjectInfoMatchList(tracer_list);
-
-    std::vector<std::vector<int>> match_list;
-    tracer_match.GetObjectIDMatchList(match_list);
-
-    std::vector<double> error_list;
-    tracer_match.GetTriErrorList(error_list);
+    tracer_match.WriteObjectInfoMatchList(std::string("Result/tracer_list.csv"));
+    tracer_match.WriteMatchList(std::string("Result/match_list.csv"), tracer_list_pixel);
+    tracer_match.WriteTriErrorList(std::string("Result/error_list.csv"));
     
     t_end = clock();
 

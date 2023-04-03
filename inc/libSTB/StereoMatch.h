@@ -15,11 +15,17 @@
 #include <string>
 #include <deque>
 
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <fstream>
+
 #include "ObjectInfo.h"
 #include "Camera.h"
 #include "Matrix.h"
 #include "STBCommons.h"
 #include "myMATH.h"
+#include "myIO.h"
 
 
 // template<ObjectType T>
@@ -32,7 +38,7 @@ protected:
     int _n_cam = 0;
     double _tor_2d = -1;
     double _tor_3d = -1;
-    int _check_cam_id = 3; // _check_cam_id <= n_cam
+    int _check_cam_id = 4; // _check_cam_id <= n_cam
     int _tor_1d = 3;
     
     int _n_thread = 0; // num of parallel threads
@@ -110,6 +116,10 @@ public:
     {
         error_list = std::move(_error_list);
     };
+
+    void WriteMatchList (std::string file, std::vector<std::vector<T>> const& object_list_pixel);
+    void WriteTriErrorList (std::string file);
+    void WriteObjectInfoMatchList (std::string file);
 
     int GetNumOfDelMatch  () {return _n_del;};
     int GetNumOfBeforeDel () {return _n_before_del;};
