@@ -29,7 +29,7 @@ Matrix<double> StereoMatch<T>::FindCrossPoint (Matrix<double> const& pt_1, Matri
         std::cerr << "The two lines are parallel! "
                   << "No crossing point"
                   << std::endl;
-        throw;
+        throw error_parallel;
     }
 
     // line_of_sight_1 is not parallel to line_of_sight_2
@@ -522,7 +522,7 @@ PixelRange StereoMatch<T>::FindSearchRegionOrig (int cam_id, std::vector<Matrix<
             )
         );
 
-        double cos = std::max(std::sqrt(std::fabs(unit_list[0].Dot(unit_list[1]))), MAGSMALLNUMBER);
+        double cos = std::max(std::fabs(unit_list[0].Dot(unit_list[1])), MAGSMALLNUMBER);
         double sin = std::max(std::sqrt(1-cos*cos), MAGSMALLNUMBER);
 
         double width = 1.0;
@@ -551,6 +551,94 @@ PixelRange StereoMatch<T>::FindSearchRegionOrig (int cam_id, std::vector<Matrix<
         search_region._col_min = std::floor(pt_lowleft(0,0));
         search_region._col_max = std::ceil(pt_upright(0,0))+1;
 
+    }
+    else if (pt_list.size() > 2)
+    {
+        // cam_id = 3, 4nd cam
+        int n = pt_list.size();
+
+        Matrix<double> pt_cross(3,1);
+        Matrix<double> pt_upright(3,1);
+        Matrix<double> pt_lowleft(3,1);
+        double cos = 0;
+        double sin = 0;
+        int row_min = 0;
+        int row_max = 0;
+        int col_min = 0;
+        int col_max = 0;
+        bool is_initial = false;
+        double width = 1.0;
+
+        for (int i = 0; i < n-1; i ++)
+        {
+            for (int j = i+1; j < n; j ++)
+            {
+                try
+                {
+                    pt_cross = FindCrossPoint (
+                        pt_list[i], 
+                        unit_list[i], 
+                        pt_list[j], 
+                        unit_list[j]
+                    );
+                }
+                catch(ErrorTypeID error)
+                {
+                    if (error == error_parallel)
+                    {
+                        std::cout << cam_id << std::endl;
+                        continue;
+                    }
+                }
+
+                cos = std::max(std::fabs(unit_list[i].Dot(unit_list[j])), MAGSMALLNUMBER);
+                sin = std::max(std::sqrt(1-cos*cos), MAGSMALLNUMBER);
+                if (cos < sin)
+                {
+                    width = _tor_2d/cos;
+                }
+                else 
+                {
+                    width = _tor_2d/sin;
+                }
+                // width = std::min(width, 1.2*_fov_length_mm);
+
+                pt_upright(0,0) = pt_upright(0,0) + width;
+                pt_upright(1,0) = pt_upright(1,0) + width;
+                pt_upright = cam.ImgMMToPixel(pt_upright);
+
+                pt_lowleft(0,0) = pt_lowleft(0,0) - width;
+                pt_lowleft(1,0) = pt_lowleft(1,0) - width;
+                pt_lowleft = cam.ImgMMToPixel(pt_lowleft);
+
+                row_min = std::floor(pt_upright(1,0));
+                row_max = std::ceil(pt_lowleft(1,0))+1;
+                col_min = std::floor(pt_lowleft(0,0));
+                col_max = std::ceil(pt_upright(0,0))+1;
+
+                if (is_initial)
+                {
+                    search_region.SetRange(row_min, col_min);
+                    search_region.SetRange(row_max, col_max);
+                }
+                else
+                {
+                    is_initial = true;
+                    search_region._row_min = row_min;
+                    search_region._row_max = row_max;
+                    search_region._col_min = col_min;
+                    search_region._col_max = col_max;
+                }
+            }
+        }
+    
+        if (! is_initial)
+        {
+            search_region._row_min = 0;
+            search_region._row_max = cam.GetNpixh();
+            search_region._col_min = 0;
+            search_region._col_max = cam.GetNpixw();
+        }
     }
 
     return search_region;
@@ -2316,11 +2404,15 @@ void StereoMatch<T>::DeleteGohstTracerMatchOrig (std::vector<std::vector<TracerI
                 sum_error += _error_list[map_id];
             }
         }
-        if (
+        if (is_rank_small)
+        {
+            continue;
+        }
+        else if (
             ( 
               n_equal > 0 && 
               _error_list[object_id] < sum_error / n_equal
-            ) || n_equal == 0 && is_rank_small == 0
+            ) || n_equal == 0
         )
         {
             // 1) if there is same preference number (for certain cam),

@@ -93,7 +93,8 @@ enum ErrorTypeID
     error_range,
     error_space,
     error_io,
-    error_div0
+    error_div0,
+    error_parallel
 };
 
 enum ObjectTypeID

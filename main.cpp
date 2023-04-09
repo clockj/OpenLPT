@@ -65,6 +65,8 @@ int main()
     }
     // myIO::WriteTracerPos("Result/cam_1_tracer_2D.csv", tracer_list_pixel[0]);
     // myIO::WriteTracerPos("Result/cam_2_tracer_2D.csv", tracer_list_pixel[1]);
+    // myIO::WriteTracerPos("Result/cam_3_tracer_2D.csv", tracer_list_pixel[2]);
+    // myIO::WriteTracerPos("Result/cam_4_tracer_2D.csv", tracer_list_pixel[3]);
 
     // Stereomatch
     clock_t t_start, t_end;
@@ -82,8 +84,6 @@ int main()
     tracer_match.Match(tracer_list_pixel, 1);
     
     tracer_match.WriteObjectInfoMatchList(std::string("Result/tracer_list.csv"));
-    tracer_match.WriteMatchList(std::string("Result/match_list.csv"), tracer_list_pixel);
-    tracer_match.WriteTriErrorList(std::string("Result/error_list.csv"));
     
     t_end = clock();
 
