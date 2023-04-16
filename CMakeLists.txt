@@ -33,7 +33,7 @@ set(HEADER_FILES
     ${CMAKE_HOME_DIRECTORY}/inc/libSTB/ImageIO.h
     ${CMAKE_HOME_DIRECTORY}/inc/libSTB/ObjectFinder.h
     ${CMAKE_HOME_DIRECTORY}/inc/libSTB/StereoMatch.h
-    # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/OTF.h
+    ${CMAKE_HOME_DIRECTORY}/inc/libSTB/OTF.h
     # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/Shake.h
     # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/IPR.h
 )
@@ -48,7 +48,7 @@ set(SOURCE_FILES main.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcSTB/ImageIO.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcSTB/ObjectFinder.hpp
     ${CMAKE_HOME_DIRECTORY}/src/srcSTB/StereoMatch.hpp
-#     ${CMAKE_HOME_DIRECTORY}/src/srcSTB/OTF.cpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcSTB/OTF.cpp
 #     ${CMAKE_HOME_DIRECTORY}/src/srcSTB/Shake.hpp
 #     ${CMAKE_HOME_DIRECTORY}/src/srcSTB/IPR.hpp
 )

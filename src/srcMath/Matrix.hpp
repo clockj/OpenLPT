@@ -145,7 +145,7 @@ Matrix<T>::Matrix (int dim)
 template<class T>
 Matrix<T>::Matrix (std::string file_name)
 {
-    std::cout << "Start loading!" << std::endl;
+    // std::cout << "Start loading!" << std::endl;
 
     std::string line;
     T value;
@@ -218,7 +218,7 @@ Matrix<T>::Matrix (std::string file_name)
         CreateMtx(1,1,0);
     }
 
-    std::cout << "Finish loading!" << std::endl;
+    // std::cout << "Finish loading!" << std::endl;
 }
 
 // Deconstructor 

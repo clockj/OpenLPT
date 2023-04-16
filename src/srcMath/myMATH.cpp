@@ -22,7 +22,7 @@ std::vector<double> Linspace (double min, double max, int n)
     std::vector<double> res(n);
     for (int i = 0; i < n; i ++)
     {
-        res[n] = (min + delta * i);
+        res[i] = (min + delta * i);
     }
 
     return res;

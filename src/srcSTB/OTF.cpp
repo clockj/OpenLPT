@@ -1,15 +1,34 @@
 #include "OTF.h"
 
 
-void OTF::InitParam (double a_val, double b_val, double c_val, double alpha_val)
+OTF::OTF(int n_cam, int n_x, int n_y, int n_z, AxisLimit& boundary, std::string file_head)
+        : _n_cam(n_cam), _nx(n_x), _ny(n_y), _nz(n_z),
+          _n_grid(_nx*_ny*_nz), 
+          _a(file_head+"_a.csv"),_b(file_head+"_b.csv"),_c(file_head+"_c.csv"),_alpha(file_head+"_alpha.csv"),
+          _boundary(boundary)
 {
-    int n_grid = _nx * _ny * _nz;
+    bool judge = _a.GetDimX()!=_n_cam || _a.GetDimY()!=_n_grid || 
+                    _b.GetDimX()!=_n_cam || _b.GetDimY()!=_n_grid ||
+                    _c.GetDimX()!=_n_cam || _c.GetDimY()!=_n_grid ||
+                    _alpha.GetDimX()!=_n_cam || _alpha.GetDimY()!=_n_grid;
+    if (judge)
+    {
+        std::cerr << "OTF::OTF error: a/b/c/alpha dim is inconsistent!" << std::endl;
+        std::cerr << "_n_cam,_n_grid=" << _n_cam << "," << _n_grid << std::endl;
+        std::cerr << _a.GetDimX() << "," << _a.GetDimY() << ","
+                    << _b.GetDimX() << "," << _b.GetDimY() << ","
+                    << _c.GetDimX() << "," << _c.GetDimY() << ","
+                    << _alpha.GetDimX() << "," << _alpha.GetDimY()
+                    << std::endl;
+        throw error_size;
+    }
 
-    _a = Matrix<double> (_n_cam, n_grid, a_val);
-    _b = Matrix<double> (_n_cam, n_grid, b_val);
-    _c = Matrix<double> (_n_cam, n_grid, c_val);
-    _alpha = Matrix<double> (_n_cam, n_grid, alpha_val);
+    SetGrid();
+};
 
+
+void OTF::SetGrid ()
+{
     _grid_x = myMATH::Linspace(_boundary._x_min, _boundary._x_max, _nx);
     _grid_y = myMATH::Linspace(_boundary._y_min, _boundary._y_max, _ny);
     _grid_z = myMATH::Linspace(_boundary._z_min, _boundary._z_max, _nz);
@@ -38,15 +57,15 @@ std::vector<double> OTF::GetOTFParam(int cam_index, const Matrix<double>& pt_wor
     
     int index_x = std::max(
         0, 
-        (int) std::ceil((pt_x - _boundary._x_min) / _dx) - 1
+        (int) std::floor((pt_x - _boundary._x_min) / _dx)
     );
     int index_y = std::max(
         0, 
-        (int) std::ceil((pt_y - _boundary._y_min) / _dy) - 1
+        (int) std::floor((pt_y - _boundary._y_min) / _dy)
     );
     int index_z = std::max(
         0, 
-        (int) std::ceil((pt_z - _boundary._z_min) / _dz) - 1
+        (int) std::floor((pt_z - _boundary._z_min) / _dz)
     );
 
     AxisLimit grid_limit;

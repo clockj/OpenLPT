@@ -50,6 +50,32 @@ void WriteMatrix (std::string file_name, std::vector<std::vector<T>> const& mtx)
     std::cout << "Finish writing!" << std::endl;
 };
 
+template<class T>
+void WriteMatrix (std::string file_name, std::vector<T> const& mtx)
+{
+    std::cout << "Start writing!" << std::endl;
+
+    std::ofstream outfile(file_name, std::ios::out);
+
+    int dim_x = mtx.size();
+
+    if (dim_x==0)
+    {
+        std::cout << "myIO::WriteMatrix: dim_x=0" << std::endl;
+    }
+    else 
+    {
+        for (int i = 0; i < dim_x-1; i ++)
+        {
+            outfile << mtx[i] << ",";
+        }
+        outfile << mtx[dim_x-1];
+    }
+
+    outfile.close();
+    std::cout << "Finish writing!" << std::endl;
+};
+
 void WriteTracerPos (std::string file_name, std::vector<TracerInfo> const& object_list);
 
 // .csv file 
