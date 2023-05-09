@@ -16,7 +16,7 @@
 #include "ObjectFinder.h"
 #include "StereoMatch.h"
 #include "OTF.h"
-// #include "Shake.h"
+#include "Shake.h"
 // #include "IPR.h"
 
 
@@ -90,12 +90,8 @@ int main()
     limit._x_min = -20; limit._x_max = 20;
     limit._y_min = -20; limit._y_max = 20;
     limit._z_min = -20; limit._z_max = 20;
-    // OTF otf(4, 3, limit);
-    OTF otf(4, 3, limit, "Result/param");
+    OTF otf(4, 3, limit);
 
-    Matrix<double> pt_world(3,1,0,10,10);
-    std::vector<double> param = otf.GetOTFParam(0, pt_world);
-    myIO::WriteMatrix<double> ("Result/param.csv", param);
 
     std::cout << "Test ended!" << std::endl;
     return 0;

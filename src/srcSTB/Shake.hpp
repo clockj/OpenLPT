@@ -8,27 +8,34 @@ PixelRange Shake<T>::FindSearchRegion (int cam_id, int center_row, int center_co
 {
     // int center_row = tracer.tracer_center_pixel(1,0);
     // int center_col = tracer.tracer_center_pixel(0,0);
+    int n_row = _cam[cam_id].GetNpixh();
+    int n_col = _cam[cam_id].GetNpixw();
 
     PixelRange search_range;
-    // why max(1,...) in the original code?
-    // but with min(Npixw,...)
-    // I choose to start from 0
-    search_range._row_min = std::max(
-        0,
-        center_row - half_width_pixel
-    );
-    search_range._col_min = std::max(
-        0,
-        center_col - half_width_pixel
-    );
-    search_range._row_max = std::min(
-        _cam[cam_id].GetNpixh(),
-        center_row + half_width_pixel
-    );
-    search_range._col_max = std::min(
-        _cam[cam_id].GetNpixw(),
-        center_col + half_width_pixel
-    );
+    search_range._row_min = std::min(
+        std::max(
+            0,
+            center_row - half_width_pixel
+        ), 
+    n_row-1);
+    search_range._col_min = std::min(
+        std::max(
+            0,
+            center_col - half_width_pixel
+        ),
+    n_col-1);
+    search_range._row_max = std::max(
+        std::min(
+            n_row,
+            center_row + half_width_pixel
+        ),
+    1);
+    search_range._col_max = std::max(
+        std::min(
+            n_col,
+            center_col + half_width_pixel
+        ),
+    1);
 
     return search_range;
 }
@@ -44,34 +51,30 @@ double Shake<T>::GaussianProjection (Matrix<double>& tracer_center_pixel, std::v
                 + (double(y) - tracer_center_pixel(1,0)) * std::cos(otf_param[3]);
     double value = otf_param[0] 
                    * std::exp( - (otf_param[1] * xx*xx + otf_param[2] * yy*yy) );
-    return value;
+    return std::fabs(value);
 }
 
 
 template<class T>
-double Shake<T>::CalPointResidue (Matrix<double> pos_new, std::vector<PixelRange>& search_range_list, std::vector<Matrix<double>>& aug_img_list)
+double Shake<T>::CalPointResidue (Matrix<double>& pos_new, std::vector<PixelRange>& search_range_list, std::vector<Matrix<double>>& aug_img_list)
 {
     double residue = 0;
     int n_cam = _cam.size();
 
+    Matrix<double> pos_2d_pixel(3,1,0);
     for (int cam_id = 0; cam_id < n_cam; cam_id ++)
     {
-        Matrix<double> pos_2d_pixel(
-            _cam[cam_id].ImgMMToPixel(
-                _cam[cam_id].WorldToImgMM(pos_new)
-            )
+        pos_2d_pixel =_cam[cam_id].ImgMMToPixel(
+            _cam[cam_id].WorldToImgMM(pos_new)
         );
 
         std::vector<double> otf_param = _otf.GetOTFParam(cam_id, pos_new);
 
         // Calculating the residual for updated 3D position
-        // use old range
-        // how to define residue?
         // in the original code, 
         //  residue = sum (sum residue^2) for all cam 
         // should it be 
-        //  residue = sum sqrt(sum residue^2) / n_cam ?
-        // I still use the original definition here 
+        //  residue = sum sqrt(sum residue^2) / n_cam 
         PixelRange search_range = search_range_list[cam_id];
         int i = 0; 
         for (int row_id = search_range._row_min; row_id < search_range._row_max; row_id ++)
@@ -96,28 +99,29 @@ double Shake<T>::CalPointResidue (Matrix<double> pos_new, std::vector<PixelRange
         }
     }
 
+    // residue /= n_cam;
     return residue;
 }
 
 
 // only use the initial 3 elements
 template<class T>
-std::vector<double> Shake<T>::FitQuadratic (double* array, std::vector<double>& residue)
+void Shake<T>::FitQuadratic (std::vector<double>& coeff, double* array, std::vector<double>& residue)
 {
-    std::vector<double> coeff(3,0);
+    // std::vector<double> coeff(3,0);
 
-    // a 
+    // residue = coeff[0]*x^2 + coeff[1]*x + coeff[2]
     coeff[0] = (
                 (residue[1]-residue[0]) / (array[1]-array[0]) 
                 - (residue[2]-residue[0]) / (array[2]-array[0])
                ) / (array[1]-array[2]);
-    // b 
+
     coeff[1] = (residue[1]-residue[0]) / (array[1]-array[0]) 
                 - coeff[0] * (array[1]+array[0]);
-    // c 
+
     coeff[2] = residue[2] - coeff[0]*array[2]*array[2] - coeff[1]*array[2];
 
-    return coeff;
+    // return coeff;
 }
 
 
@@ -132,40 +136,35 @@ Matrix<double> Shake<T>::UpdatePos3D (Matrix<double>& pos_old, std::vector<Pixel
     delta_list[2] = delta;
 
     double array_list[4] = {0};
+    std::vector<double> coeff(3, 0);
+    std::vector<double> residue_list(4, 0);
 
     // shaking on x,y,z direction
     for (int i = 0; i < 3; i ++)
     {
-        std::vector<double> coeff;
-        std::vector<double> residue_list;
-
         for (int j = 0; j < 3; j ++)
         {
             array_list[j] = pos_old(i,0) + delta_list[j];
             pos_new(i,0) = array_list[j];
-            residue_list.push_back(
-                CalPointResidue(
-                    pos_new,
-                    search_range_list,
-                    aug_img_list
-                )
+            residue_list[j] = CalPointResidue(
+                pos_new,
+                search_range_list,
+                aug_img_list
             );
         }
-        coeff = FitQuadratic(array_list, residue_list);
+        FitQuadratic(coeff, array_list, residue_list);
 
         array_list[3] = - coeff[1] / (2 * coeff[0]);
         if (array_list[3]>array_list[0] && array_list[3]<array_list[2])
         {
             pos_new(i,0) = array_list[3];
-            residue_list.push_back(
-                CalPointResidue(
-                    pos_new,
-                    search_range_list,
-                    aug_img_list
-                )
+            residue_list[3] = CalPointResidue(
+                pos_new,
+                search_range_list,
+                aug_img_list
             );
         }
-        pos_new(i,0) = array_list[myMATH::BubbleSort(residue_list)[0]];
+        pos_new(i,0) = array_list[myMATH::MinID<double>(residue_list)];
         // TODO: update Augemented image according to new position?
     }
 
@@ -179,18 +178,18 @@ template<class T>
 double Shake<T>::CalObjectIntensity (TracerInfo& tracer, std::vector<PixelRange>& search_range_list, std::vector<Matrix<double>>& aug_img_list, double intensity, double min_ratio_of_median)
 {
     int n_cam = _cam.size();
-    Matrix<double> pos_new = tracer.GetCenterPos();
+    Matrix<double> pos_new(tracer.GetCenterPos());
 
-    // Pixel range on the cameras around the updated particle centers、
+    // Pixel range on the cameras around the updated particle centers
+    Matrix<double> tracer_center_pixel(3,1,0);
     std::vector<PixelRange> search_range_list_new(n_cam);
     for (int cam_id = 0; cam_id < n_cam; cam_id ++)
     {
-        Matrix<double> tracer_center_pixel 
-            = _cam[cam_id].ImgMMToPixel(
-                _cam[cam_id].WorldToImgMM(
-                    pos_new
-                )
-            );
+        tracer_center_pixel = _cam[cam_id].ImgMMToPixel(
+            _cam[cam_id].WorldToImgMM(
+                pos_new
+            )
+        );
 
         search_range_list_new[cam_id] = FindSearchRegion(
             cam_id, 
@@ -216,39 +215,6 @@ double Shake<T>::CalObjectIntensity (TracerInfo& tracer, std::vector<PixelRange>
         );
     }
 
-    //     int row_min = search_range_list_new[cam_id]._row_min;
-    //     int row_max = search_range_list_new[cam_id]._row_max;
-    //     int col_min = search_range_list_new[cam_id]._col_min;
-    //     int col_max = search_range_list_new[cam_id]._col_max;
-
-    //     for (int row_id = row_min; row_id < row_max; row_id ++)
-    //     {
-    //         for (int col_id = col_min; col_id < col_max; col_id ++)
-    //         {
-    //             if ( row_id >= row_min && row_id < row_max && 
-    //                  col_id >= col_min && col_id < col_max )
-    //             {
-    //                 int i = row_id - row_min;
-    //                 int j = col_id - col_min;
-    //                 peak_intensity[cam_id] = std::max(
-    //                     peak_intensity[cam_id],
-    //                     aug_img_list[cam_id](i, j)
-    //                 );
-    //             }
-    //             else 
-    //             {
-    //                 peak_intensity[cam_id] = std::max(
-    //                     peak_intensity[cam_id],
-    //                     _res_img_list[cam_id](row_id, col_id)
-    //                 );
-    //             }
-    //         }
-    //     }
-    // }
-    // int ignore_cam_id_new = myMATH::MaxIndexBubbleSort(peak_intensity);
-    // std::vector<int> ignore_cam_id_list = myMATH::IsOutlier(peak_intensity);
-
-
     // Updating particle intensity 
     // (ignoring the camera with highest local peak intensity)
     // Calculate intensity for each camera: 
@@ -265,15 +231,20 @@ double Shake<T>::CalObjectIntensity (TracerInfo& tracer, std::vector<PixelRange>
         int col_min = search_range_list_new[cam_id]._col_min;
         int col_max = search_range_list_new[cam_id]._col_max;
 
+        int row_min_old = search_range_list[cam_id]._row_min;
+        int row_max_old = search_range_list[cam_id]._row_max;
+        int col_min_old = search_range_list[cam_id]._col_min;
+        int col_max_old = search_range_list[cam_id]._col_max;
+
         for (int row_id = row_min; row_id < row_max; row_id ++)
         {
             for (int col_id = col_min; col_id < col_max; col_id ++)
             {
-                if ( row_id >= row_min && row_id < row_max && 
-                     col_id >= col_min && col_id < col_max )
+                if ( row_id >= row_min_old && row_id < row_max_old && 
+                     col_id >= col_min_old && col_id < col_max_old )
                 {
-                    int i = row_id - row_min;
-                    int j = col_id - col_min;
+                    int i = row_id - row_min_old;
+                    int j = col_id - col_min_old;
 
                     // numerator += aug_img_list[cam_id](i, j);
                     // denominator += std::round(
@@ -290,12 +261,10 @@ double Shake<T>::CalObjectIntensity (TracerInfo& tracer, std::vector<PixelRange>
                     numerator_list[cam_id] += _res_img_list[cam_id](row_id, col_id);   
                 }
 
-                denominator_list[cam_id] += std::round(
-                    GaussianProjection(
-                        tracer.GetMatchPosInfo()[cam_id],
-                        otf_param_list[cam_id],
-                        col_id, row_id
-                    )
+                denominator_list[cam_id] += GaussianProjection(
+                    tracer.GetMatchPosInfo()[cam_id],
+                    otf_param_list[cam_id],
+                    col_id, row_id
                 );
             }
         }
@@ -316,11 +285,12 @@ double Shake<T>::CalObjectIntensity (TracerInfo& tracer, std::vector<PixelRange>
 
 
     // Find outlier 
-    std::vector<int> ignore_cam_id_list = myMATH::IsOutlier(denominator_list_new);
+    std::vector<bool> ignore_cam_id_list(cam_id_list.size(), false);
+    myMATH::IsOutlier<double> (ignore_cam_id_list, denominator_list_new);
     int n_normal = 0;
     for (int i = 0; i < cam_id_list.size(); i ++)
     {
-        if (ignore_cam_id_list[i] == 0)
+        if (! ignore_cam_id_list[i]) // if not outlier
         {
             int cam_id = cam_id_list[i];
             numerator += numerator_list[cam_id];
@@ -347,7 +317,6 @@ double Shake<T>::CalObjectIntensity (TracerInfo& tracer, std::vector<PixelRange>
         std::fabs(numerator/denominator)
     );
     
-
     return intensity_new;
 }
 
@@ -368,10 +337,11 @@ double Shake<T>::ShakingTracer (TracerInfo& tracer, double delta, double intensi
 
     // std::cout << "qhh debug 0" << std::endl;
 
+    Matrix<double> tracer_center_pixel(3,1,0);
     for (int cam_id = 0; cam_id < n_cam; cam_id ++)
     {
         // Get the actual pixel range
-        Matrix<double> tracer_center_pixel = tracer.GetMatchPosInfo()[cam_id];
+        tracer_center_pixel = tracer.GetMatchPosInfo()[cam_id];
         
         PixelRange search_range = FindSearchRegion(
             cam_id, 
@@ -411,14 +381,11 @@ double Shake<T>::ShakingTracer (TracerInfo& tracer, double delta, double intensi
             int j = 0;
             for (int col_id = search_range._col_min; col_id < search_range._col_max; col_id++)
             {
-                double value = std::round(
-                    GaussianProjection(
-                        tracer_center_pixel,
-                        otf_para,
-                        col_id, row_id
-                    )
+                double value = GaussianProjection(
+                    tracer_center_pixel,
+                    otf_para,
+                    col_id, row_id
                 );
-
 
                 // Creating a particle augmented residual image: (I_(res+p))
                 // aug_img(i, j) = std::max(
@@ -491,14 +458,16 @@ void Shake<T>::TracerResImg ()
     int n_cam = _cam.size();
 
     int n_object = _object_info.size();
+    Matrix<double> pt_world(3,1,0);
+    Matrix<double> pt_img(3,1,0);
     for (int i = 0; i < n_object; i ++)
     {
-        Matrix<double> pt_world = _object_info[i].GetCenterPos();
+        pt_world = _object_info[i].GetCenterPos();
 
         for (int cam_id = 0; cam_id < n_cam; cam_id ++)
         {
             std::vector<double> otf_para = _otf.GetOTFParam(cam_id, pt_world);
-            Matrix<double> pt_img = _object_info[i].GetMatchPosInfo(cam_id);
+            pt_img = _object_info[i].GetMatchPosInfo(cam_id);
             PixelRange search_range = FindSearchRegion(
                 cam_id, 
                 pt_img(1,0),
@@ -588,35 +557,21 @@ void Shake<T>::RemoveGhost ()
 {
     int n_object = _object_info.size();
 
-    
     // compute mean intensity for the smaller part 
     double mean_int = 0; // mean_int_temp = 0;
+
     int count = 0;
-    
-    std::vector<int> outlier = myMATH::IsOutlier(_intensity_list);
+    std::vector<bool> outlier(n_object, false);
+    myMATH::IsOutlier(outlier, _intensity_list);
     for (int i = 0; i < n_object; i ++)
     {
-        if (!outlier[i])
+        if (! outlier[i])
         {
             mean_int += _intensity_list[i];
             count ++;
         }   
     }
-
-    //mean_int = mean_int_temp;
-    //mean_int_temp /= n_object;
-
-    //for (int i = 0; i < n_object; i ++)
-    //{
-    //    if (_intensity_list[i] > 30 * mean_int_temp)
-    //    {
-    //        mean_int -= _intensity_list[i];
-    //        count ++;
-    //    }
-    //}
-
     mean_int /= count;
-
 
     // Remove ghost tracers based on intensity 
     for (int i = n_object-1; i >= 0; i --)
