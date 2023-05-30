@@ -22,7 +22,7 @@ protected:
     std::vector<Camera>& _cam;                  // Camera parameter
     OTF& _otf;                                  // Camera OTF
     std::vector<int> _max_intensity;            // default: 8 digit (255)
-    int _n_loop = 6;                            // Number of shake times
+    int _n_loop = 4;                            // Number of shake times
     double _int_low_ratio = 0.1;                // Ghost threshold
 
 
@@ -50,7 +50,7 @@ protected:
     void FitQuadratic (std::vector<double>& coeff, double* array, std::vector<double>& residue);
 
     // Shaking and refine 3D position
-    Matrix<double> UpdatePos3D (Matrix<double>& pos_old, std::vector<PixelRange>& search_range_list, std::vector<Matrix<double>>& aug_img_list, double delta);
+    Matrix<double> UpdatePos3D (Matrix<double> const& pos_old, std::vector<PixelRange>& search_range_list, std::vector<Matrix<double>>& aug_img_list, double delta);
 
     // Calculate intensity for shaken particles
     double CalObjectIntensity (TracerInfo& tracer, std::vector<PixelRange>& search_range_list, std::vector<Matrix<double>>& aug_img_list, double intensity, double min_ratio_of_median);
@@ -74,7 +74,8 @@ public:
         double shake_width, // unit: mm
         std::vector<Camera>& cam,
         OTF& otf
-    ) : _orig_img_list(orig_img_list), _object_info(object_info), _shake_width(shake_width), _cam(cam), _otf(otf) {
+    ) : _orig_img_list(orig_img_list), _object_info(object_info), _shake_width(shake_width), _cam(cam), _otf(otf), _intensity_list(object_info.size(), 1)
+    {
         // default for max_intensity
         SetMaxIntensity(255);
     };

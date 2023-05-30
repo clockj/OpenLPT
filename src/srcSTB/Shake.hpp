@@ -27,13 +27,13 @@ PixelRange Shake<T>::FindSearchRegion (int cam_id, int center_row, int center_co
     search_range._row_max = std::max(
         std::min(
             n_row,
-            center_row + half_width_pixel
+            center_row + half_width_pixel + 1
         ),
     1);
     search_range._col_max = std::max(
         std::min(
             n_col,
-            center_col + half_width_pixel
+            center_col + half_width_pixel + 1
         ),
     1);
 
@@ -126,7 +126,7 @@ void Shake<T>::FitQuadratic (std::vector<double>& coeff, double* array, std::vec
 
 
 template<class T>
-Matrix<double> Shake<T>::UpdatePos3D (Matrix<double>& pos_old, std::vector<PixelRange>& search_range_list, std::vector<Matrix<double>>& aug_img_list, double delta)
+Matrix<double> Shake<T>::UpdatePos3D (Matrix<double> const& pos_old, std::vector<PixelRange>& search_range_list, std::vector<Matrix<double>>& aug_img_list, double delta)
 {
     Matrix<double> pos_new(pos_old);
 
@@ -246,14 +246,6 @@ double Shake<T>::CalObjectIntensity (TracerInfo& tracer, std::vector<PixelRange>
                     int i = row_id - row_min_old;
                     int j = col_id - col_min_old;
 
-                    // numerator += aug_img_list[cam_id](i, j);
-                    // denominator += std::round(
-                    //     GaussianProjection(
-                    //         tracer.GetMatchPosInfo()[cam_id],
-                    //         otf_param_list[cam_id],
-                    //         col_id, row_id
-                    //     )
-                    // );
                     numerator_list[cam_id] += aug_img_list[cam_id](i, j); 
                 }
                 else 
@@ -276,7 +268,7 @@ double Shake<T>::CalObjectIntensity (TracerInfo& tracer, std::vector<PixelRange>
     std::vector<double> denominator_list_new;
     for (int cam_id = 0; cam_id < n_cam; cam_id ++)
     {
-        if (denominator_list[cam_id] > median * min_ratio_of_median)
+        if (denominator_list[cam_id] > median * min_ratio_of_median) // use a const threshold or coeff?
         {
             cam_id_list.push_back(cam_id);
             denominator_list_new.push_back(denominator_list[cam_id]);
@@ -332,7 +324,7 @@ double Shake<T>::ShakingTracer (TracerInfo& tracer, double delta, double intensi
     std::vector<Matrix<double>> aug_img_list;
     for (int i = 0; i < n_cam; i ++)
     {
-        aug_img_list.push_back(Matrix<double>(tracer.GetRadiusPixel() * 2+2, tracer.GetRadiusPixel() * 2+2));
+        aug_img_list.push_back(Matrix<double>(tracer.GetRadiusPixel()*2+2, tracer.GetRadiusPixel()*2+2));
     }
 
     // std::cout << "qhh debug 0" << std::endl;
@@ -347,7 +339,7 @@ double Shake<T>::ShakingTracer (TracerInfo& tracer, double delta, double intensi
             cam_id, 
             tracer_center_pixel(1,0), 
             tracer_center_pixel(0,0), 
-            tracer.GetRadiusPixel() * 2
+            tracer.GetRadiusPixel()
         );
         
         // std::cout << "qhh debug 0.1" << std::endl;
@@ -408,9 +400,6 @@ double Shake<T>::ShakingTracer (TracerInfo& tracer, double delta, double intensi
         // std::cout << "qhh debug 0.4" << std::endl;
 
         search_range_list[cam_id] = search_range;
-
-        // std::cout << "qhh debug 0.5" << std::endl;
-
         aug_img_list[cam_id] = aug_img;
 
     }
@@ -418,12 +407,13 @@ double Shake<T>::ShakingTracer (TracerInfo& tracer, double delta, double intensi
     // std::cout << "qhh debug 1" << std::endl;
 
     // Updating the particle position and intensity
-    Matrix<double> pos_old = tracer.GetCenterPos();
-    Matrix<double> pos_new = UpdatePos3D (
-        pos_old, 
-        search_range_list, 
-        aug_img_list, 
-        delta
+    Matrix<double> pos_new (
+        UpdatePos3D (
+            tracer.GetCenterPos(), 
+            search_range_list, 
+            aug_img_list, 
+            delta
+        )
     );
     tracer.SetCenterPos(pos_new);
 
@@ -472,7 +462,7 @@ void Shake<T>::TracerResImg ()
                 cam_id, 
                 pt_img(1,0),
                 pt_img(0,0),
-                _object_info[i].GetRadiusPixel() * 2
+                _object_info[i].GetRadiusPixel()
             );
 
             int row_min = search_range._row_min;
@@ -576,7 +566,7 @@ void Shake<T>::RemoveGhost ()
     // Remove ghost tracers based on intensity 
     for (int i = n_object-1; i >= 0; i --)
     {
-        if (_intensity_list[i] < _int_low_ratio * mean_int)
+        if (_intensity_list[i] < _int_low_ratio * mean_int) // use a const threshold or coeff?
         {
             _intensity_list.erase(_intensity_list.begin() + i);
             _remove_object_id.push_back(i);
@@ -595,11 +585,7 @@ void Shake<T>::RunShake ()
     if (typeid(T) == typeid(TracerInfo))
     {
         // For tracers
-        // Initialize intensity estimation 
-        for (int i = 0; i < n_object; i ++)
-        {
-            _intensity_list.push_back(1.0);
-        }
+
         // Initialize residue img 
         int n_cam = _cam.size();
         for (int cam_id = 0; cam_id < n_cam; cam_id ++)

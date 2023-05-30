@@ -129,8 +129,10 @@ T Max(std::vector<T> const& nums, SortTypeID type_id = type_ms)
     {
     case type_ms:  
         MergeSort<T> (sorted_id_list, nums);
+        break;
     case type_bs:
         BubbleSort<T> (sorted_id_list, nums);
+        break;
     default:
         std::cerr << "myMATH::Max: no such sorting" << std::endl;
         throw error_type;
@@ -143,7 +145,7 @@ T Min(std::vector<T> const& nums, SortTypeID type_id = type_ms)
     int size = nums.size();
     if (size < 1)
     {
-        std::cerr << "myMATH::Max: size=" << size << std::endl;
+        std::cerr << "myMATH::Min: size=" << size << std::endl;
         throw error_size;
     }
 
@@ -152,10 +154,12 @@ T Min(std::vector<T> const& nums, SortTypeID type_id = type_ms)
     {
     case type_ms:  
         MergeSort<T> (sorted_id_list, nums);
+        break;
     case type_bs:
         BubbleSort<T> (sorted_id_list, nums);
+        break;
     default:
-        std::cerr << "myMATH::Max: no such type" << std::endl;
+        std::cerr << "myMATH::Min: no such type" << std::endl;
         throw error_type;
     }
     return nums[sorted_id_list[0]];
@@ -166,7 +170,7 @@ int MinID(std::vector<T> const& nums, SortTypeID type_id = type_ms)
     int size = nums.size();
     if (size < 1)
     {
-        std::cerr << "myMATH::Max: size=" << size << std::endl;
+        std::cerr << "myMATH::MinID: size=" << size << std::endl;
         throw error_size;
     }
 
@@ -175,10 +179,12 @@ int MinID(std::vector<T> const& nums, SortTypeID type_id = type_ms)
     {
     case type_ms:  
         MergeSort<T> (sorted_id_list, nums);
+        break;
     case type_bs:
         BubbleSort<T> (sorted_id_list, nums);
+        break;
     default:
-        std::cerr << "myMATH::Max: no such type" << std::endl;
+        std::cerr << "myMATH::MinID: no such type" << std::endl;
         throw error_type;
     }
     return sorted_id_list[0];
@@ -189,7 +195,7 @@ int MaxID(std::vector<T> const& nums, SortTypeID type_id = type_ms)
     int size = nums.size();
     if (size < 1)
     {
-        std::cerr << "myMATH::Max: size=" << size << std::endl;
+        std::cerr << "myMATH::MaxID: size=" << size << std::endl;
         throw error_size;
     }
 
@@ -198,10 +204,12 @@ int MaxID(std::vector<T> const& nums, SortTypeID type_id = type_ms)
     {
     case type_ms:  
         MergeSort<T> (sorted_id_list, nums);
+        break;
     case type_bs:
         BubbleSort<T> (sorted_id_list, nums);
+        break;
     default:
-        std::cerr << "myMATH::Max: no such sorting" << std::endl;
+        std::cerr << "myMATH::MaxID: no such sorting" << std::endl;
         throw error_type;
     }
     return sorted_id_list[size-1];

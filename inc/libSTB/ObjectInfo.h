@@ -99,7 +99,7 @@ public:
 class TracerInfo : public ObjectInfo
 {
 private:
-    int _r_pixel = 2;
+    int _r_pixel = 4;
 
 public:
     TracerInfo () {};
