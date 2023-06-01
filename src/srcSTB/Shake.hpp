@@ -292,7 +292,7 @@ double Shake<T>::CalObjectIntensity (TracerInfo& tracer, std::vector<PixelRange>
     std::vector<double> denominator_list_new;
     for (int cam_id = 0; cam_id < n_cam; cam_id ++)
     {
-        if (denominator_list[cam_id] > median * min_ratio_of_median) // use a const threshold or coeff?
+        if (denominator_list[cam_id] >= median * min_ratio_of_median) // use a const threshold or coeff?
         {
             cam_id_list.push_back(cam_id);
             denominator_list_new.push_back(denominator_list[cam_id]);
