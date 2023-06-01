@@ -17,7 +17,7 @@ class Shake
 protected:
     // INPUTS //
     std::vector<T>& _object_info;               // 3D
-    std::vector<Matrix<int>>& _orig_img_list;   // Original images
+    std::vector<Matrix<double>> & _orig_img_list;   // Original images
     double _shake_width;                        // unit: mm
     std::vector<Camera>& _cam;                  // Camera parameter
     OTF& _otf;                                  // Camera OTF
@@ -69,12 +69,12 @@ protected:
 
 public:
     Shake(
-        std::vector<Matrix<int>>& orig_img_list,
+        std::vector<Matrix<double>>& orig_img_list,
         std::vector<T>& object_info, // also used as output
         double shake_width, // unit: mm
         std::vector<Camera>& cam,
         OTF& otf
-    ) : _orig_img_list(orig_img_list), _object_info(object_info), _shake_width(shake_width), _cam(cam), _otf(otf), _intensity_list(object_info.size(), 1)
+    ) : _orig_img_list(orig_img_list), _object_info(object_info), _shake_width(shake_width), _cam(cam), _otf(otf), _res_img_list(orig_img_list), _intensity_list(object_info.size(), 1)
     {
         // default for max_intensity
         SetMaxIntensity(255);
@@ -85,17 +85,13 @@ public:
     void RunShake();
 
     // For output: Matrix<int> residue img 
-    std::vector<Matrix<int>> GetResImg() 
+    void GetResImg(std::vector<Matrix<double>>& res_img_list_out) 
     {
-        std::vector<Matrix<int>> res_img_list_out;
-
         int n_cam = _cam.size();
         for (int i = 0; i < n_cam; i ++) 
         {
-            res_img_list_out.push_back(_res_img_list[i].TypeToInt());
+            res_img_list_out[i] = _res_img_list[i];
         }
-
-        return res_img_list_out;
     };
 
     void SetMaxIntensity(int max_intensity)

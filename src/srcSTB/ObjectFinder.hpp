@@ -9,9 +9,9 @@
 //         i in [1,dim_x-2], j in [1,dim_y-2] ([0,dim-1])
 //  output: bool 
 template<class T>
-bool ObjectFinder<T>::IsLocalMax (Matrix<int> const& mtx, int i, int j)
+bool ObjectFinder<T>::IsLocalMax (Matrix<double> const& mtx, int i, int j)
 {
-    int val = mtx(i, j);
+    double val = mtx(i, j);
     if (
         mtx(i-1, j) > val ||
         mtx(i, j-1) > val ||
@@ -23,7 +23,7 @@ bool ObjectFinder<T>::IsLocalMax (Matrix<int> const& mtx, int i, int j)
 
 template<class T>
 std::vector<TracerInfo> ObjectFinder<T>::FindTracer
-(Matrix<int> const& img, int max_intensity, int min_intensity)
+(Matrix<double> const& img, int max_intensity, int min_intensity)
 {
     std::vector<TracerInfo> tracer_list;
 
@@ -62,35 +62,41 @@ std::vector<TracerInfo> ObjectFinder<T>::FindTracer
                 double ln_z3 = 0.0;
 
                 // find the col value (coordinate: x)
-                if (max_intensity == 255)
-                {
-                    if (img(iter_x, iter_y-1) == 0) {ln_z1 = std::log(0.0001);}
-                    else {ln_z1 = log8bit[img(iter_x, iter_y-1)];}
+                // if (max_intensity == 255)
+                // {
+                //     if (img(iter_x, iter_y-1) == 0) {ln_z1 = std::log(0.0001);}
+                //     else {ln_z1 = log8bit[img(iter_x, iter_y-1)];}
 
-                    if (img(iter_x, iter_y) == 0)   {ln_z2 = std::log(0.0001);}
-                    else {ln_z2 = log8bit[img(iter_x, iter_y)];}
+                //     if (img(iter_x, iter_y) == 0)   {ln_z2 = std::log(0.0001);}
+                //     else {ln_z2 = log8bit[img(iter_x, iter_y)];}
 
-                    if (img(iter_x, iter_y+1) == 0) {ln_z3 = std::log(0.0001);}
-                    else {ln_z3 = log8bit[img(iter_x, iter_y+1)];}
-                }
-                else if (max_intensity == 65535)
-                {
-                    if (img(iter_x, iter_y-1) == 0) {ln_z1 = std::log(0.0001);}
-                    else {ln_z1 = log16bit[img(iter_x, iter_y-1)];}
-                    if (img(iter_x, iter_y) == 0) {ln_z2 = std::log(0.0001);}
-                    else {ln_z2 = log16bit[img(iter_x, iter_y)];}
-                    if (img(iter_x, iter_y+1) == 0) {ln_z3 = std::log(0.0001);}
-                    else {ln_z3 = log16bit[img(iter_x, iter_y+1)];}
-                }
-                else 
-                {
-                    if (img(iter_x, iter_y-1) == 0) {ln_z1 = std::log(0.0001);}
-                    else {ln_z1 = std::log(static_cast<double>(img(iter_x, iter_y-1)));}
-                    if (img(iter_x, iter_y) == 0)   {ln_z2 = std::log(0.0001);}
-                    else {ln_z2 = std::log(static_cast<double>(img(iter_x, iter_y)));}
-                    if (img(iter_x, iter_y+1) == 0) {ln_z3 = std::log(0.0001);}
-                    else {ln_z3 = std::log(static_cast<double>(img(iter_x,  iter_y+1)));}
-                }
+                //     if (img(iter_x, iter_y+1) == 0) {ln_z3 = std::log(0.0001);}
+                //     else {ln_z3 = log8bit[img(iter_x, iter_y+1)];}
+                // }
+                // else if (max_intensity == 65535)
+                // {
+                //     if (img(iter_x, iter_y-1) == 0) {ln_z1 = std::log(0.0001);}
+                //     else {ln_z1 = log16bit[img(iter_x, iter_y-1)];}
+                //     if (img(iter_x, iter_y) == 0) {ln_z2 = std::log(0.0001);}
+                //     else {ln_z2 = log16bit[img(iter_x, iter_y)];}
+                //     if (img(iter_x, iter_y+1) == 0) {ln_z3 = std::log(0.0001);}
+                //     else {ln_z3 = log16bit[img(iter_x, iter_y+1)];}
+                // }
+                // else 
+                // {
+                //     if (img(iter_x, iter_y-1) == 0) {ln_z1 = std::log(0.0001);}
+                //     else {ln_z1 = std::log(static_cast<double>(img(iter_x, iter_y-1)));}
+                //     if (img(iter_x, iter_y) == 0)   {ln_z2 = std::log(0.0001);}
+                //     else {ln_z2 = std::log(static_cast<double>(img(iter_x, iter_y)));}
+                //     if (img(iter_x, iter_y+1) == 0) {ln_z3 = std::log(0.0001);}
+                //     else {ln_z3 = std::log(static_cast<double>(img(iter_x,  iter_y+1)));}
+                // }
+                if (img(iter_x, iter_y-1) == 0) {ln_z1 = std::log(0.0001);}
+                else {ln_z1 = std::log(img(iter_x, iter_y-1));}
+                if (img(iter_x, iter_y) == 0)   {ln_z2 = std::log(0.0001);}
+                else {ln_z2 = std::log(img(iter_x, iter_y));}
+                if (img(iter_x, iter_y+1) == 0) {ln_z3 = std::log(0.0001);}
+                else {ln_z3 = std::log(img(iter_x,  iter_y+1));}
                 double xc;
                 //LONGTODO：Consider arbitrary particle size in the future.
                 xc = -0.5 * (  (ln_z1 * ((x2 * x2) - (x3 * x3))) 
@@ -108,28 +114,32 @@ std::vector<TracerInfo> ObjectFinder<T>::FindTracer
 
 
                 // find the row value (coordinate: y)
-                if (max_intensity == 255)
-                {
-                    if (img(iter_x-1, iter_y) == 0) {ln_z1 = std::log(0.0001);}
-                    else {ln_z1 = log8bit[img(iter_x-1, iter_y)];}
-                    if (img(iter_x+1, iter_y) == 0) {ln_z3 = std::log(0.0001);}
-                    else {ln_z3 = log8bit[img(iter_x+1, iter_y)];}
-                }
-                else if (max_intensity == 65535)
-                {
-                    if (img(iter_x-1, iter_y) == 0) {ln_z1 = std::log(0.0001);}
-                    else {ln_z1 = log16bit[img(iter_x-1, iter_y)];}
+                // if (max_intensity == 255)
+                // {
+                //     if (img(iter_x-1, iter_y) == 0) {ln_z1 = std::log(0.0001);}
+                //     else {ln_z1 = log8bit[img(iter_x-1, iter_y)];}
+                //     if (img(iter_x+1, iter_y) == 0) {ln_z3 = std::log(0.0001);}
+                //     else {ln_z3 = log8bit[img(iter_x+1, iter_y)];}
+                // }
+                // else if (max_intensity == 65535)
+                // {
+                //     if (img(iter_x-1, iter_y) == 0) {ln_z1 = std::log(0.0001);}
+                //     else {ln_z1 = log16bit[img(iter_x-1, iter_y)];}
 
-                    if (img(iter_x+1, iter_y) == 0) {ln_z3 = std::log(0.0001);}
-                    else {ln_z3 = log16bit[img(iter_x+1, iter_y)];}
-                }
-                else 
-                {
-                    if (img(iter_x-1, iter_y) == 0) {ln_z1 = std::log(0.0001);}
-                    else {ln_z1 = std::log(static_cast<double>(img(iter_x-1, iter_y)));}
-                    if (img(iter_x+1, iter_y) == 0) {ln_z3 = std::log(0.0001);}
-                    else {ln_z3 = std::log(static_cast<double>(img(iter_x+1,  iter_y)));}
-                }
+                //     if (img(iter_x+1, iter_y) == 0) {ln_z3 = std::log(0.0001);}
+                //     else {ln_z3 = log16bit[img(iter_x+1, iter_y)];}
+                // }
+                // else 
+                // {
+                //     if (img(iter_x-1, iter_y) == 0) {ln_z1 = std::log(0.0001);}
+                //     else {ln_z1 = std::log(static_cast<double>(img(iter_x-1, iter_y)));}
+                //     if (img(iter_x+1, iter_y) == 0) {ln_z3 = std::log(0.0001);}
+                //     else {ln_z3 = std::log(static_cast<double>(img(iter_x+1,  iter_y)));}
+                // }
+                if (img(iter_x-1, iter_y) == 0) {ln_z1 = std::log(0.0001);}
+                else {ln_z1 = std::log(img(iter_x-1, iter_y));}
+                if (img(iter_x+1, iter_y) == 0) {ln_z3 = std::log(0.0001);}
+                else {ln_z3 = std::log(img(iter_x+1,  iter_y));}
                 double yc; 
                 yc = -0.5 * (  (ln_z1 * ((y2 * y2) - (y3 * y3))) 
                              - (ln_z2 * ((y1 * y1) - (y3 * y3))) 
@@ -162,7 +172,7 @@ std::vector<TracerInfo> ObjectFinder<T>::FindTracer
 }
 
 template<class T>
-std::vector<T> ObjectFinder<T>::FindObject(Matrix<int> const& img, int max_intensity, int min_intensity)
+std::vector<T> ObjectFinder<T>::FindObject(Matrix<double> const& img, int max_intensity, int min_intensity)
 {
 
     if (typeid(T) == typeid(TracerInfo))

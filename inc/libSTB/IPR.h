@@ -14,27 +14,27 @@ class IPR
 {
 protected:
 	// INPUT
-	std::vector<Matrix<int>>& _orig_img_list;
+	std::vector<Matrix<double>>& _orig_img_list;
 	std::vector<int>& _max_intensity_list;
 	std::vector<int>& _min_intensity_list;
 	std::vector<Camera>& _cam_list;
 	OTF& _otf;
 
-	int _n_loop_ipr = 2;
-	int _n_loop_shake = 6;
-	double _tol_2d = 2e-2; // 3e-2 [mm]
-	double _tol_3d = 5e-1; // 8e-2 [mm]
-	double _shake_width = 1e-1; // [mm]
+	int _n_loop_ipr = 4;
+	int _n_loop_shake = 4;
+	double _tol_2d = 1e-2;      // [mm]
+	double _tol_3d = 2.4e-2;    // [mm]
+	double _shake_width = 1e-2; // [mm]
 
 	// OUTPUT
 	std::vector<T> _object_info;
 
 public:
-	IPR (std::vector<Matrix<int>>& orig_img_list, std::vector<int>& max_intensity_list, std::vector<int>& min_intensity_list, std::vector<Camera>& cam_list, OTF& otf);
+	IPR (std::vector<Matrix<double>>& orig_img_list, std::vector<int>& max_intensity_list, std::vector<int>& min_intensity_list, std::vector<Camera>& cam_list, OTF& otf);
 
 	~IPR () {};
 
-	std::vector<T> RunIPR();
+	void RunIPR(std::vector<T>& object_info);
 
 	void SetTol2D (double tol_2d) { _tol_2d = tol_2d; };
 	void SetTol3D (double tol_3d) { _tol_3d = tol_3d; };

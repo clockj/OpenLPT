@@ -17,7 +17,7 @@
 #include "StereoMatch.h"
 #include "OTF.h"
 #include "Shake.h"
-// #include "IPR.h"
+#include "IPR.h"
 
 
 int main()
@@ -48,46 +48,19 @@ int main()
         img_list.push_back(img);
     }
 
-    Matrix<int> intensity(1024, 1024);
-    std::vector<Matrix<int>> intensity_list;
-    ObjectFinder<TracerInfo> tf;
-    int depth = 255;
-    int threshold = 10;
-
-    // Find tracer list @ t=0
-    std::vector<std::vector<TracerInfo>> tracer_list_pixel;
+    // Load Img
+    Matrix<double> intensity(1024, 1024);
+    std::vector<Matrix<double>> orig_img_list;
+    std::vector<int> max_intensity_list(n_cam, 0);
+    std::vector<int> min_intensity_list(n_cam, 0);
     for (int i = 0; i < n_cam; i ++)
     {
         intensity = img_list[i].LoadImg(0);
-        intensity_list.push_back(intensity);
+        orig_img_list.push_back(intensity);
 
-        std::vector<TracerInfo> tracer_found 
-            = tf.FindObject(intensity, depth, threshold);
-        std::cout << "Number of found tracer: " << tracer_found.size() << std::endl;
-        tracer_list_pixel.push_back(tracer_found);
+        max_intensity_list[i] = 255;
+        min_intensity_list[i] = 10;
     }
-
-    // Stereomatch
-    clock_t t_start, t_end;
-    t_start = clock();
-
-    StereoMatch<TracerInfo> tracer_match(
-        cam_list,
-        1e-2, 
-        2.4e-2  
-    ); // original code: divide each direction into 1000 voxels
-    // tracer_match.SetNumThread(4);
-    // tracer_match.SetTolerance1D(3);
-    // tracer_match.Match(tracer_list_pixel, 0);
-    tracer_match.Match(tracer_list_pixel, 1);
-    // tracer_match.WriteObjectInfoMatchList(std::string("Result/tracer_list.csv"));
-    std::vector<TracerInfo> object_info;
-    tracer_match.GetObjectInfoMatchList(object_info);
-    
-    t_end = clock();
-    std::cout << "Matching time: " 
-              << (double) (t_end - t_start)/CLOCKS_PER_SEC
-              << std::endl;
 
     // OTF 
     AxisLimit limit;
@@ -96,9 +69,10 @@ int main()
     limit._z_min = -20; limit._z_max = 20;
     OTF otf(4, 3, limit);
 
-    // Shake
-    Shake<TracerInfo> s (intensity_list, object_info, 1e-2, cam_list, otf);
-    s.RunShake();
+    // IPR
+    IPR<TracerInfo> ipr(orig_img_list, max_intensity_list, min_intensity_list, cam_list, otf);
+    std::vector<TracerInfo> object_info;
+    ipr.RunIPR(object_info);
 
     std::cout << "Test ended!" << std::endl;
     return 0;

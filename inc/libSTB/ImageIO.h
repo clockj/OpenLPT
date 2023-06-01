@@ -52,7 +52,7 @@ public:
     // Load Image
     // input: id_img (image index)
     // output: intensity matrix
-    Matrix<int> LoadImg (int img_id);
+    Matrix<double> LoadImg (int img_id);
 
     // Save Image
     void SaveImage (std::string save_path, Matrix<int>& intensity_mtx);

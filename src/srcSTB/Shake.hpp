@@ -154,17 +154,41 @@ Matrix<double> Shake<T>::UpdatePos3D (Matrix<double> const& pos_old, std::vector
         }
         FitQuadratic(coeff, array_list, residue_list);
 
-        array_list[3] = - coeff[1] / (2 * coeff[0]);
-        if (array_list[3]>array_list[0] && array_list[3]<array_list[2])
+        if (coeff[0] == 0)
         {
-            pos_new(i,0) = array_list[3];
-            residue_list[3] = CalPointResidue(
-                pos_new,
-                search_range_list,
-                aug_img_list
-            );
+            if (coeff[1] == 0)
+            {
+                pos_new(i,0) = array_list[1];
+            }
+            else if (coeff[1] > 0)
+            {
+                pos_new(i,0) = array_list[0];
+            }
+            else
+            {
+                pos_new(i,0) = array_list[2];
+            }
         }
-        pos_new(i,0) = array_list[myMATH::MinID<double>(residue_list)];
+        else 
+        {
+            array_list[3] = - coeff[1] / (2 * coeff[0]);
+            if (array_list[3]>array_list[0] && array_list[3]<array_list[2])
+            {
+                pos_new(i,0) = array_list[3];
+                residue_list[3] = CalPointResidue(
+                    pos_new,
+                    search_range_list,
+                    aug_img_list
+                );
+            }
+            else
+            {
+                residue_list[3] = 1e4;
+            }
+
+            pos_new(i,0) = array_list[myMATH::MinID<double>(residue_list)];
+        }
+        
         // TODO: update Augemented image according to new position?
     }
 
@@ -588,17 +612,17 @@ void Shake<T>::RunShake ()
 
         // Initialize residue img 
         int n_cam = _cam.size();
-        for (int cam_id = 0; cam_id < n_cam; cam_id ++)
-        {
-            _res_img_list.push_back(_orig_img_list[cam_id].TypeToDouble());
-        }
 
-
+        double delta;
         for (int loop = 0; loop < _n_loop; loop ++)
         {
             std::cout << "Shake loop " << loop << " start!" << std::endl;
 
-            double delta;
+            for (int cam_id = 0; cam_id < n_cam; cam_id ++)
+            {
+                _res_img_list[cam_id] = _orig_img_list[cam_id];
+            }
+            TracerResImg();
 
             if (loop < 1)
             {
@@ -612,8 +636,6 @@ void Shake<T>::RunShake ()
             {
                 delta = _shake_width / 20;
             }
-            
-            TracerResImg();
 
             // std::cout << "zsj shake 2" << std::endl;
 
@@ -628,13 +650,13 @@ void Shake<T>::RunShake ()
                 }
             }
             
-            // std::cout << "zsj shake 3" << std::endl;
+            std::cout << "zsj shake 3"  << std::endl;
         }
 
         // Remove ghost objects 
         RemoveGhost ();
 
-        // std::cout << "zsj shake 4" << std::endl;
+        std::cout << "zsj shake 4" << std::endl;
 
         // Compute final res img 
         TracerResImg();

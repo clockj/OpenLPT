@@ -38,7 +38,7 @@ void ImageIO::LoadImgPath (std::string folder_path, std::string file_img_path)
 }
 
 
-Matrix<int> ImageIO::LoadImg (int img_id)
+Matrix<double> ImageIO::LoadImg (int img_id)
 {
     if (img_id >= int(_img_path.size()))
     {
@@ -88,12 +88,12 @@ Matrix<int> ImageIO::LoadImg (int img_id)
     uint32* buffer = (uint32*) _TIFFmalloc(_n_row*_n_col * sizeof (uint32));
     TIFFReadRGBAImage(image, _n_col, _n_row, buffer, 0);
 
-    Matrix<int> intensity_mtx(_n_row, _n_col, -1);
+    Matrix<double> intensity_mtx(_n_row, _n_col, -1);
     for (int iter_x = 0; iter_x < _n_row; iter_x ++)
     {
         for (int iter_y = 0; iter_y < _n_col; iter_y ++)
         {
-            intensity_mtx(_n_row-1-iter_x, iter_y) = (int) TIFFGetG(buffer[iter_x*_n_col + iter_y]);
+            intensity_mtx(_n_row-1-iter_x, iter_y) = (double) TIFFGetG(buffer[iter_x*_n_col + iter_y]);
         }
     }
 

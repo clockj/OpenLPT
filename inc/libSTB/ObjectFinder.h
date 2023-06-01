@@ -21,8 +21,8 @@ template <class T>
 class ObjectFinder
 {
 protected:
-    bool IsLocalMax (Matrix<int> const& mtx, int i, int j);
-    std::vector<TracerInfo> FindTracer(Matrix<int> const& img, int max_intensity, int min_intensity);
+    bool IsLocalMax (Matrix<double> const& mtx, int i, int j);
+    std::vector<TracerInfo> FindTracer(Matrix<double> const& img, int max_intensity, int min_intensity);
 public:
     ObjectFinder() {};
     virtual ~ObjectFinder() {};
@@ -30,7 +30,7 @@ public:
     // Find object position
     //  input: intensity matrix, maximum intensity (2^bit_per_sample-1)
     //  output: a vector with all the particles positions （x_pixel(col_id), y_pixel(row_id))
-    std::vector<T> FindObject(Matrix<int> const& img, int max_intensity, int min_intensity);
+    std::vector<T> FindObject(Matrix<double> const& img, int max_intensity, int min_intensity);
 
 };
 

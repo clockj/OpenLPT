@@ -4,14 +4,14 @@
 #include "IPR.h"
 
 template<class T>
-IPR<T>::IPR(std::vector<Matrix<int>>& orig_img_list, std::vector<int>& max_intensity_list, std::vector<int>& min_intensity_list, std::vector<Camera>& cam_list, OTF& otf) 
+IPR<T>::IPR(std::vector<Matrix<double>>& orig_img_list, std::vector<int>& max_intensity_list, std::vector<int>& min_intensity_list, std::vector<Camera>& cam_list, OTF& otf) 
     : _orig_img_list(orig_img_list), _max_intensity_list(max_intensity_list), _min_intensity_list(min_intensity_list), _cam_list(cam_list), _otf(otf) 
 {}
 
 template<class T>
-std::vector<T> IPR<T>::RunIPR() 
+void IPR<T>::RunIPR(std::vector<T>& object_info) 
 {
-    std::vector<Matrix<int>> intensity_list(_orig_img_list);
+    std::vector<Matrix<double>> intensity_list(_orig_img_list);
 
     int n_cam = _cam_list.size();
     for (int loop_id = 0; loop_id < _n_loop_ipr; loop_id ++)
@@ -35,8 +35,8 @@ std::vector<T> IPR<T>::RunIPR()
 
         StereoMatch<T> tracer_match(
             _cam_list,
-            _tol_2d,//3e-2, 2e-2,
-            _tol_3d //8e-2, 1e-3
+            _tol_2d,
+            _tol_3d 
         );
         tracer_match.Match(tracer_list_pixel, 1);
         
@@ -69,7 +69,7 @@ std::vector<T> IPR<T>::RunIPR()
         std::cout << "Finish shake!" << std::endl;
 
         
-        intensity_list = s.GetResImg();
+        s.GetResImg(intensity_list);
         
 
         _object_info.insert(_object_info.end(), tracer_info_match_list.begin(), tracer_info_match_list.end());
@@ -78,7 +78,7 @@ std::vector<T> IPR<T>::RunIPR()
     }
 
     std::cout << "IPR Finish! " << "Find " << _object_info.size() << " particles. " << std::endl;
-    return _object_info;
+    object_info = _object_info;
 }
 
 #endif
