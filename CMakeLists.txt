@@ -36,6 +36,7 @@ set(HEADER_FILES
     ${CMAKE_HOME_DIRECTORY}/inc/libSTB/OTF.h
     ${CMAKE_HOME_DIRECTORY}/inc/libSTB/Shake.h
     ${CMAKE_HOME_DIRECTORY}/inc/libSTB/IPR.h
+    ${CMAKE_HOME_DIRECTORY}/inc/libSTB/PredField.h
 )
 
 set(SOURCE_FILES main.cpp
@@ -51,6 +52,7 @@ set(SOURCE_FILES main.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcSTB/OTF.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcSTB/Shake.hpp
     ${CMAKE_HOME_DIRECTORY}/src/srcSTB/IPR.hpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcSTB/PredField.cpp
 )
 
 # Add executable target with source files listed in SOURCE_FILES variable

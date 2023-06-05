@@ -110,6 +110,12 @@ enum SortTypeID
     type_ms
 };
 
+enum FrameTypeID
+{
+    PREV_FRAME,
+    CURR_FRAME
+};
+
 const double log8bit[256] = 
 {
     0,
