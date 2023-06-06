@@ -68,6 +68,8 @@ public:
     std::vector<T> GetCol (int j);
     double Mag ();
     double Dot (Matrix<T> const& mtx);
+    double DistSqr (Matrix<T> const& mtx); // usually for vec: (x_ij-y_ij)^2
+    double DistSqr (Matrix<T> const& pt, Matrix<T> const& unit); // for calculating the distance square from this pt to a line
     double Dist (Matrix<T> const& mtx); // usually for vec: sqrt((x_ij-y_ij)^2)
     double Dist (Matrix<T> const& pt, Matrix<T> const& unit); // for calculating the distance from this pt to a line
 

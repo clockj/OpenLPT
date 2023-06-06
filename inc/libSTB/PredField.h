@@ -9,11 +9,11 @@ class PredField
 private:
     // X,Y,Z limits of view area
     AxisLimit _limit;
-    // # of grids in X,Y,Z
+    // # of grids in X,Y,Z >=2
     std::vector<int> _n_xyz;
     int _n_tot;
     // grid spacing in X,Y,Z
-    std::vector<double> _grid_size;
+    double _dx, _dy, _dz;
     
     // grid points 
     // i in 0 ~ n_grid: i = index_x*_ny*_nz + index_y*_nz + index_z
@@ -21,7 +21,10 @@ private:
     //     for index_y in 0:_ny-1 
     //         for index_z in 0:_nz-1  
     //             i ++
-    Matrix<double> _grid;
+    Matrix<double> _grid; // 3*_n_tot
+    std::vector<double> _grid_x;
+    std::vector<double> _grid_y;
+    std::vector<double> _grid_z;
 
     // 3D particles at prev and curr frame
     std::vector<Matrix<double>>& _pt_list_prev;
@@ -61,10 +64,10 @@ public:
     }
 
     void Field();
-    void FindVolPt(std::vector<int>& pt_list_id, double rsqr, int grid, FrameTypeID frame);
-    void DispMap(std::vector<std::vector<std::vector<int>>>& dispMap, std::vector<std::vector<double>>& displacements);
-    std::vector<double> DispMapPeak(std::vector<std::vector<std::vector<int>>>& dispMap);
-    std::vector<int> MaxElemD(double*** &array);
+    void FindVolPt(std::vector<int>& pt_list_id, double rsqr, int grid_id, FrameTypeID frame);
+    void DispMap(std::vector<std::vector<std::vector<double>>>& disp_map, std::vector<std::vector<double>> const& displacements);
+    std::vector<double> DispMapPeak(std::vector<std::vector<std::vector<double>>>& disp_map);
+    std::vector<int> MaxElemID(std::vector<std::vector<std::vector<double>>>& disp_map);
     double Gauss1DPeak(double y1, double v1, double y2, double v2, double y3, double v3);
 
     // getting the necessary variables
@@ -81,7 +84,7 @@ public:
         return _pt_list_prev;
     }
 
-    Matrix<double> ParticleInterpolation(Matrix<double> const& pos3D);
+    Matrix<double> PtInterp(Matrix<double> const& pt);
 
     // void MatfileSave(vector<double*> pos, string name);
     // void MatfileSave(vector<double> pos[3], string name);

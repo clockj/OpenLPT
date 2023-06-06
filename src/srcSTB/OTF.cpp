@@ -8,9 +8,9 @@ OTF::OTF(int n_cam, int n_x, int n_y, int n_z, AxisLimit& boundary, std::string 
           _boundary(boundary)
 {
     bool judge = _a.GetDimX()!=_n_cam || _a.GetDimY()!=_n_grid || 
-                    _b.GetDimX()!=_n_cam || _b.GetDimY()!=_n_grid ||
-                    _c.GetDimX()!=_n_cam || _c.GetDimY()!=_n_grid ||
-                    _alpha.GetDimX()!=_n_cam || _alpha.GetDimY()!=_n_grid;
+                 _b.GetDimX()!=_n_cam || _b.GetDimY()!=_n_grid ||
+                 _c.GetDimX()!=_n_cam || _c.GetDimY()!=_n_grid ||
+                 _alpha.GetDimX()!=_n_cam || _alpha.GetDimY()!=_n_grid;
     if (judge)
     {
         std::cerr << "OTF::OTF error: a/b/c/alpha dim is inconsistent!" << std::endl;
