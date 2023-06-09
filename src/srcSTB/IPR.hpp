@@ -56,7 +56,7 @@ void IPR<T>::RunIPR(std::vector<T>& object_info)
         {
             break;
         }
-        std::cout << "Start shake!" << std::endl;
+        // std::cout << "Start shake!" << std::endl;
         Shake<T> s(
             intensity_list,
             tracer_info_match_list, // also used as output
@@ -66,7 +66,7 @@ void IPR<T>::RunIPR(std::vector<T>& object_info)
         );
         s.SetShakeTimes (_n_loop_shake);
         s.RunShake();
-        std::cout << "Finish shake!" << std::endl;
+        // std::cout << "Finish shake!" << std::endl;
 
         
         s.GetResImg(intensity_list);

@@ -35,6 +35,9 @@ void PredField::Field()
 {
     double rsqr = pow(_r, 2);
 
+    clock_t t_start, t_end;
+    t_start = clock();
+
     // omp_set_num_threads(1);
     #pragma omp parallel //num_threads(8)
     {
@@ -92,6 +95,12 @@ void PredField::Field()
             }
         }
     }
+
+    t_end = clock();
+    std::cout << "Displacement field setup time: " 
+              << (double) (t_end - t_start)/CLOCKS_PER_SEC
+              << std::endl;
+
 }
 
 

@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <typeinfo>
+#include <omp.h>
 
 #include "Matrix.h"
 #include "ObjectInfo.h"

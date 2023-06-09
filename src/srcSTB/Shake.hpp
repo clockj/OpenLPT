@@ -616,7 +616,7 @@ void Shake<T>::RunShake ()
         double delta;
         for (int loop = 0; loop < _n_loop; loop ++)
         {
-            std::cout << "Shake loop " << loop << " start!" << std::endl;
+            // std::cout << "Shake loop " << loop << " start!" << std::endl;
 
             for (int cam_id = 0; cam_id < n_cam; cam_id ++)
             {
@@ -637,31 +637,22 @@ void Shake<T>::RunShake ()
                 delta = _shake_width / 20;
             }
 
-            // std::cout << "zsj shake 2" << std::endl;
-
             #pragma omp parallel
             {
                 #pragma omp for
                 for (int i = 0; i < n_object; i ++)
                 {
-                    // std::cout << "zsj shake 2.1, i = " << i << std::endl;
                     _intensity_list[i] = ShakingTracer(_object_info[i], delta, _intensity_list[i]);
-                    // std::cout << "zsj shake 2.1, i = " << i << std::endl;
                 }
             }
-            
-            std::cout << "zsj shake 3"  << std::endl;
         }
 
         // Remove ghost objects 
         RemoveGhost ();
 
-        std::cout << "zsj shake 4" << std::endl;
-
         // Compute final res img 
         TracerResImg();
-
-        // std::cout << "zsj shake 5" << std::endl;
+        
 
         AbsResImg();
     }
