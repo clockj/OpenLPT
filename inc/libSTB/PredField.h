@@ -3,6 +3,9 @@
 
 #include "Matrix.h"
 #include "myMATH.h"
+#include<vector>
+#include<deque>
+#include<omp.h>
 
 class PredField
 {
@@ -39,13 +42,25 @@ private:
 
     Matrix<double> _disp_field;
 
-    // Set grid
     void SetGrid();
+    void Field();
+    void FindVolPt(std::deque<int>& pt_list_id, double rsqr, int grid_id, FrameTypeID frame);
+    void DispMap(std::vector<std::vector<std::vector<double>>>& disp_map, std::vector<std::vector<double>> const& displacements);
+    std::vector<double> DispMapPeak(std::vector<std::vector<std::vector<double>>>& disp_map);
+    std::vector<int> MaxElemID(std::vector<std::vector<std::vector<double>>>& disp_map);
+    double Gauss1DPeak(double y1, double v1, double y2, double v2, double y3, double v3);
+
+    int MapGridIndexToID (int index_x, int index_y, int index_z)
+    {
+        return index_x*_n_xyz[1]*_n_xyz[2] + index_y*_n_xyz[2] + index_z;
+    }
 
 public:
     // constructor : To get predictive field( takes the previous frame 3D pos, field parameters from file, frame, matlabFlag )
     PredField(AxisLimit& limit, std::vector<int>& n_xyz, std::vector<Matrix<double>>& pt_list_prev, std::vector<Matrix<double>>& pt_list_curr, double r) 
-        : _limit(limit), _n_xyz(n_xyz), _n_tot(n_xyz[0]*n_xyz[1]*n_xyz[2]), _grid(3, _n_tot), _pt_list_prev(pt_list_prev), _pt_list_curr(pt_list_curr), _r(r)
+        : _limit(limit), _n_xyz(n_xyz), _n_tot(n_xyz[0]*n_xyz[1]*n_xyz[2]), _grid(3, n_xyz[0]*n_xyz[1]*n_xyz[2]), 
+          _pt_list_prev(pt_list_prev), _pt_list_curr(pt_list_curr), _r(r), 
+          _disp_field(3, n_xyz[0]*n_xyz[1]*n_xyz[2])
     {
         SetGrid();
 
@@ -53,22 +68,12 @@ public:
         _size = 4 * _disp_map_res * _r + 1; // dispMapRes = 10
         _m = (_size - 1) / (4 * _r);
         _c = (_size - 1) / 2;
+
+        Field();
     };
 
     // destructor
     ~PredField() {};
-
-    int MapGridIndexToID (int index_x, int index_y, int index_z)
-    {
-        return index_x*_n_xyz[1]*_n_xyz[2] + index_y*_n_xyz[2] + index_z;
-    }
-
-    void Field();
-    void FindVolPt(std::vector<int>& pt_list_id, double rsqr, int grid_id, FrameTypeID frame);
-    void DispMap(std::vector<std::vector<std::vector<double>>>& disp_map, std::vector<std::vector<double>> const& displacements);
-    std::vector<double> DispMapPeak(std::vector<std::vector<std::vector<double>>>& disp_map);
-    std::vector<int> MaxElemID(std::vector<std::vector<std::vector<double>>>& disp_map);
-    double Gauss1DPeak(double y1, double v1, double y2, double v2, double y3, double v3);
 
     // getting the necessary variables
     Matrix<double> GetGrid() {

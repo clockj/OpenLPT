@@ -22,8 +22,8 @@ protected:
 
 	int _n_loop_ipr = 4;
 	int _n_loop_shake = 4;
-	double _tol_2d = 1e-2;      // [mm]
-	double _tol_3d = 2.4e-2;    // [mm]
+	double _tol_2d = 1e-2;      // [mm], 0.25 * (x_max-x_min)/1000
+	double _tol_3d = 2.4e-2;    // [mm], 0.60 * (x_max-x_min)/1000
 	double _shake_width = 1e-2; // [mm]
 
 	// OUTPUT
@@ -43,6 +43,21 @@ public:
 	
 	void SetIPRTimes (int n_loop_ipr) { _n_loop_ipr = n_loop_ipr; };
 	void SetShakeTimes (int n_loop_shake) { _n_loop_shake = n_loop_shake; };
+
+	std::vector<T> GetObjList () {return _object_info;};
+	std::vector<Matrix<double>> GetPtList () 
+	{
+		int n = _object_info.size();
+		std::vector<Matrix<double>> pt_list(n, Matrix<double>(3,1));
+		Matrix<double> pt(3,1);
+
+		for (int i = 0; i < n; i ++)
+		{
+			pt_list[i] = _object_info[i].GetCenterPos();
+		}
+
+		return pt_list;
+	};
 };
 
 #include "IPR.hpp"

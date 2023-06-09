@@ -35,14 +35,14 @@ void PredField::Field()
 {
     double rsqr = pow(_r, 2);
 
-
+    // omp_set_num_threads(1);
     #pragma omp parallel //num_threads(8)
     {
         #pragma omp for
-        for (int i = 0; i < _n_tot; i++) 
+        for (int i = 0; i < _n_tot; i ++) 
         {
-            std::vector<int> prev_id;
-            std::vector<int> curr_id;
+            std::deque<int> prev_id;
+            std::deque<int> curr_id;
             std::vector<std::vector<double>> displacements;
             
             // getting the points within the interrogation sphere around the grid point
@@ -71,13 +71,14 @@ void PredField::Field()
                 }
 
                 // intializing the displacement map to 0
-                std::vector<std::vector<std::vector<double>>> disp_map(3, std::vector<std::vector<double>> (3, std::vector<double> (3,0)));
+                std::vector<std::vector<std::vector<double>>> disp_map(_size, std::vector<std::vector<double>> (_size, std::vector<double> (_size, 0)));
 
                 // getting the 3D displacement correlation map
                 DispMap(disp_map, displacements);
 
                 // finding the peak of displacement map
-                std::vector<double> peak (DispMapPeak(disp_map));
+                std::vector<double> peak = DispMapPeak(disp_map);
+
                 // saving the peak dx,dy,dz to field
                 _disp_field(0, i) = peak[0];
                 _disp_field(1, i) = peak[1];
@@ -94,7 +95,7 @@ void PredField::Field()
 }
 
 
-void PredField::FindVolPt(std::vector<int>& pt_list_id, double rsqr, int grid_id, FrameTypeID frame)
+void PredField::FindVolPt(std::deque<int>& pt_list_id, double rsqr, int grid_id, FrameTypeID frame)
 {
     double x = _grid(0, grid_id);
     double y = _grid(1, grid_id);
@@ -175,7 +176,7 @@ void PredField::DispMap(std::vector<std::vector<std::vector<double>>>& disp_map,
 std::vector<double> PredField::DispMapPeak(std::vector<std::vector<std::vector<double>>>& disp_map)
 {
     // finding the index of largest element
-    std::vector<int> index(3);
+    std::vector<int> index(3,0);
     index = MaxElemID(disp_map);
     int x = index[0];
     int y = index[1];
@@ -189,7 +190,7 @@ std::vector<double> PredField::DispMapPeak(std::vector<std::vector<std::vector<d
     }
     else if (x == _size - 1)
     {
-        peak[0] == _size - 1;
+        peak[0] = _size - 1;
     }   
     else
     {
@@ -202,13 +203,13 @@ std::vector<double> PredField::DispMapPeak(std::vector<std::vector<std::vector<d
     }
     else if (y == _size - 1)
     {
-        peak[1] == _size - 1;
+        peak[1] = _size - 1;
     }
     else
     {
         peak[1] = Gauss1DPeak(y - 1, disp_map[x][y - 1][z], y, disp_map[x][y][z], y + 1, disp_map[x][y + 1][z]);
     }
-        
+
     if (z == 0)
     {
         peak[2] = 0;
@@ -221,7 +222,7 @@ std::vector<double> PredField::DispMapPeak(std::vector<std::vector<std::vector<d
     {
         peak[2] = Gauss1DPeak(z - 1, disp_map[x][y][z - 1], z, disp_map[x][y][z], z + 1, disp_map[x][y][z + 1]);
     }
-    
+
     return peak;
 }
 
