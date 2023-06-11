@@ -497,8 +497,14 @@ void Shake<T>::TracerResImg ()
             {
                 for (int col_id = col_min; col_id < col_max; col_id ++)
                 {
-                    _res_img_list[cam_id](row_id, col_id) -= 
-                        GaussianProjection(
+                    // _res_img_list[cam_id](row_id, col_id) -= 
+                    //     GaussianProjection(
+                    //         pt_img,
+                    //         otf_para,
+                    //         col_id, row_id
+                    // );
+                    _res_img_list[cam_id](row_id, col_id) = _orig_img_list[cam_id](row_id, col_id) 
+                        - GaussianProjection(
                             pt_img,
                             otf_para,
                             col_id, row_id
@@ -618,10 +624,10 @@ void Shake<T>::RunShake ()
         {
             // std::cout << "Shake loop " << loop << " start!" << std::endl;
 
-            for (int cam_id = 0; cam_id < n_cam; cam_id ++)
-            {
-                _res_img_list[cam_id] = _orig_img_list[cam_id];
-            }
+            // for (int cam_id = 0; cam_id < n_cam; cam_id ++)
+            // {
+            //     _res_img_list[cam_id] = _orig_img_list[cam_id];
+            // }
             TracerResImg();
 
             if (loop < 1)

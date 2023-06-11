@@ -75,8 +75,8 @@ int main()
 
         // IPR
         IPR<TracerInfo> ipr(orig_img_list, max_intensity_list, min_intensity_list, cam_list, otf);
-        // ipr.SetShakeTimes(2);
-        // ipr.SetIPRTimes(1);
+        ipr.SetShakeTimes(4);
+        ipr.SetIPRTimes(4);
         std::vector<TracerInfo> object_info;
         ipr.RunIPR(object_info);
         pt_list_all.push_back(ipr.GetPtList());
