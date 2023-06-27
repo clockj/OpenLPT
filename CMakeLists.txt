@@ -38,6 +38,7 @@ set(HEADER_FILES
     ${CMAKE_HOME_DIRECTORY}/inc/libSTB/IPR.h
     ${CMAKE_HOME_DIRECTORY}/inc/libSTB/PredField.h
     ${CMAKE_HOME_DIRECTORY}/inc/libSTB/Track.h
+    ${CMAKE_HOME_DIRECTORY}/inc/libSTB/STB.h
 )
 
 set(SOURCE_FILES main.cpp
@@ -55,6 +56,7 @@ set(SOURCE_FILES main.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcSTB/IPR.hpp
     ${CMAKE_HOME_DIRECTORY}/src/srcSTB/PredField.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcSTB/Track.hpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcSTB/STB.hpp
 )
 
 # Add executable target with source files listed in SOURCE_FILES variable
