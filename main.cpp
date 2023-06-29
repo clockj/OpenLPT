@@ -90,7 +90,11 @@ int main()
 
     Matrix<double> disp_pred(3,1);
     disp_pred = pf.PtInterp(pt_list_all[1][0]);
-    disp_pred.Print();
+    // disp_pred.Print();
+    Matrix<double> disp_field(3,50*50*50);
+    disp_field = pf.GetField();
+    disp_field.WriteMatrix("pf_disp_field.csv");
 
+    std::cout << "Finish OpenLPT!" << std::endl;
     return 0;
 }

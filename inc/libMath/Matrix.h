@@ -14,7 +14,6 @@
 #include <vector>
 #include <iomanip>
 #include <math.h>
-#include <memory.h>
 
 #include <iostream>
 #include <string>

@@ -32,42 +32,64 @@ private:
     static const int _UNLINKED = -1;
     static const int _MINTRACK = 10;
     static const int _EMPTY = INT_MAX;
-    bool _TRIONLY = false;
-    bool _IPRONLY = false;
 
+
+    // ####### IO data ####### //
     // first and last frames
     int _first, _last;
 
+    // view area
+    AxisLimit _xyz_limit;
+    double _vox_to_mm;
+
+    // camera param
+    int _n_cam;
     std::vector<ImageIO> _imgio_list;
-
-    // ################## initialization phase #################
     std::string _img_folder;
-    std::vector<std::vector<Matrix<double>>> _ipr_matched;
-    bool _ipr_flag;	// use ipr or .mat files for 3D positions?
-    double _r_stb;  // mm 
-    int _r_object;  // pixel
+    std::deque<Camera> _cam_list;
 
-    // ################# convergence phase ###################
-    
+    // initialization phase
+    std::vector<std::vector<Matrix<double>>> _ipr_matched;
+    bool _ipr_flag;	        // use ipr (1) or .mat files (0) for 3D positions?
+    double _r_search_init;  // mm 
+
+    // convergence phase
     std::deque<Matrix<double>> _img_org_list;			// original images
     std::deque<Matrix<double>> _img_res_list;			// residue images
-    std::deque<Matrix<double>> _img_prj_list            // reproject images                       
-    double _dist_obj_avg;                               // avg. interparticle distance
-    double _shift_max;                                  // Largest expected particle shift
+    std::deque<Matrix<double>> _img_prj_list            // reproject images 
+    double _shake_shift;                                // Shaking range, mm
+    double _space_avg;                                  // avg interparticle dist
+    double _shift_betframe_max;                         // Largest expected particle shift
+    double _shift_abs_max;                              // maximum allowed change in particle shift accross 2 frames
+    double _shift_rel_max;                              // maximum allowed relative achange in particle shift accross 2 frames
     double _fpt;										// a multiplying factor on particle intensity in order to ensure the residual has no traces of tracked particles
-    double _int_lower;
-    int    _n_loop_inner;							    // no. of innerloop iterations
-    double _shift_abs_max;							// maximum allowed change in particle shift accross 2 frames
-    double _shift_rel_max;							// maximum allowed relative achange in particle shift accross 2 frames
-    double _acc_diff_thred = 0;
-    bool   _is_acc_check = false;
+    double _int_lower;                                  // lower intensity threshold (xx*avg. Intensity) to eliminate ghost particles while tracking
 
-    // camera parameters
-    std::deque<int> _cam_id_list;
-    std::deque<Camera> _cam_list;
+    //Predictive Field 
+    std::vector<int> _ngrid_xyz;
+    double _r_search_pred; // mm
+
+    // IPR
+    bool _TRIONLY = false;                     
+    bool _IPRONLY = false;
+    int _ipr_loop_outer;                       // no. of outerloop iterations
+    int _ipr_loop_inner;                       // no. of innerloop iterations
+    double _ipr_int_lower;                     // lower intensity threshold (xx*avg. Intensity) to eliminate ghost particles
+    double _ipr_tol_2d;                        // mm  
+    double _ipr_tol_3d;                        // mm
+    bool _is_cam_reduced = false;
+    std::vector<int> _cam_id_list;
     std::deque<Camera> _cam_reduced;
-    int _n_cam, _n_pixh, _n_pixw;
-    bool _is_cam_reduced;
+
+    // Object info
+    T _obj_info_sample;                              // object searching particle radius, pixel
+    std::vector<int> _imgint_max_list;
+    std::vector<int> _imgint_min_list;
+
+
+    // ####### STB intermediate variable ####### //
+    double _acc_diff_thred = 0;
+    bool _is_acc_check = false;
 
     // storing the tracks
     std::deque<T> _active_long_track;		    // tracks with more than 3 particles
@@ -85,13 +107,13 @@ private:
     double _r_design = 5;
     double _lfit_error[100];
 
-    void LoadParam(std::string folder);
+    void SetTracerParam (std::stringstream& parsed);
 
 public:
     // constructor
-    STB(std::string folder);
-    // copy constructor
-    STB(STB& s);
+    STB(std::string file);
+    // // copy constructor
+    // STB(STB& s);
     // destructor
     ~STB() {};
 
@@ -101,56 +123,56 @@ public:
     // to make tracks for the first four frames
     void InitialPhase(string pfieldfile);
 
-    // a function to start a track for particles that were left untracked in current frame
-    void StartTrack(int frame, PredictiveField& pField);
-    // extends the particle track to nextFrame using search radius method (can be used for first 4 links in both, intialization and convergence phase)
-    void MakeLink(int nextFrame, const Position& new_velocity, double radius, Track& track, bool& activeTrack);
-    pair<Frame::const_iterator, float> ComputeCost(Frame& fr1, Frame& fr2, double radius,
-        const Position& estimate,
-        const Position& velocity,
-        const Position& new_velocity,
-        bool stopflag);
-    pair<Frame::const_iterator, float> ComputeCost(Frame& fr1, Frame& fr2, double radius,
-        const Position& estimate,
-        const Position& velocity,
-        const Position& new_velocity,
-        bool stopflag,
-        bool* candidate_used);
+//     // a function to start a track for particles that were left untracked in current frame
+//     void StartTrack(int frame, PredictiveField& pField);
+//     // extends the particle track to nextFrame using search radius method (can be used for first 4 links in both, intialization and convergence phase)
+//     void MakeLink(int nextFrame, const Position& new_velocity, double radius, Track& track, bool& activeTrack);
+//     pair<Frame::const_iterator, float> ComputeCost(Frame& fr1, Frame& fr2, double radius,
+//         const Position& estimate,
+//         const Position& velocity,
+//         const Position& new_velocity,
+//         bool stopflag);
+//     pair<Frame::const_iterator, float> ComputeCost(Frame& fr1, Frame& fr2, double radius,
+//         const Position& estimate,
+//         const Position& velocity,
+//         const Position& new_velocity,
+//         bool stopflag,
+//         bool* candidate_used);
 
-    // convergence phase
-    void ConvPhase();
-    void Pred(int frame, Frame& estPos, deque<double>& estInt);
-    vector<double> Polyfit(Track tracks, string direction, int datapoints, int polydegree);		// predictor for convergence phase
-    /*
-     * Function: predict the next point with Wiener Predictor using LMS algorithm
-     * Input: tracks: the track to be predicted
-     * 		  direction: to indicate the axis to be predicted
-     * 		  order: the order of the Wiener Predictor
-     * Notice: the order should be less than the length of track.
-     * Output: the next point
-     */
-    double LMSWienerPred(Track tracks, string direction, int order);
-    std::deque<int> Rem(Frame& pos3D, deque<double>& int3D, double mindist_3D);
-    void MakeShortLinkResidual(int nextFrame, Frame& candidates, deque<Track>::iterator& tr, int iterations, bool* erase, bool* candidate_used);
-    void MakeShortLinkResidual(int nextFrame, Frame& candidates, deque<Track>::iterator& tr, int iterations);
+//     // convergence phase
+//     void ConvPhase();
+//     void Pred(int frame, Frame& estPos, deque<double>& estInt);
+//     vector<double> Polyfit(Track tracks, string direction, int datapoints, int polydegree);		// predictor for convergence phase
+//     /*
+//      * Function: predict the next point with Wiener Predictor using LMS algorithm
+//      * Input: tracks: the track to be predicted
+//      * 		  direction: to indicate the axis to be predicted
+//      * 		  order: the order of the Wiener Predictor
+//      * Notice: the order should be less than the length of track.
+//      * Output: the next point
+//      */
+//     double LMSWienerPred(Track tracks, string direction, int order);
+//     std::deque<int> Rem(Frame& pos3D, deque<double>& int3D, double mindist_3D);
+//     void MakeShortLinkResidual(int nextFrame, Frame& candidates, deque<Track>::iterator& tr, int iterations, bool* erase, bool* candidate_used);
+//     void MakeShortLinkResidual(int nextFrame, Frame& candidates, deque<Track>::iterator& tr, int iterations);
 
-//	bool CheckVelocity(deque<Track>::iterator& tr);
-    bool CheckVelocity(Track& tr);
-    bool CheckAcceleration(deque<Track>::iterator& tr);
-    void GetAccThred();
-//	bool CheckLinearFit(deque<Track>::iterator& tr);
-    bool CheckLinearFit(Track& tr);
+// //	bool CheckVelocity(deque<Track>::iterator& tr);
+//     bool CheckVelocity(Track& tr);
+//     bool CheckAcceleration(deque<Track>::iterator& tr);
+//     void GetAccThred();
+// //	bool CheckLinearFit(deque<Track>::iterator& tr);
+//     bool CheckLinearFit(Track& tr);
 
-    void MatTracksSave(string addres, string s, bool is_back_STB);
-    void MatfileSave(deque<Track> tracks, string address, string name, int size);
-    void SaveTrackToTXT(deque<Track> tracks, string address);
-    void LoadAllTracks(string address, string frame_number, bool is_back_STB);
-    void LoadTrackFromTXT(string path, TrackType trackType);
+//     void MatTracksSave(string addres, string s, bool is_back_STB);
+//     void MatfileSave(deque<Track> tracks, string address, string name, int size);
+//     void SaveTrackToTXT(deque<Track> tracks, string address);
+//     void LoadAllTracks(string address, string frame_number, bool is_back_STB);
+//     void LoadTrackFromTXT(string path, TrackType trackType);
 
-    //###################### TEMPORARY FUNTIONS FOR TESTING ###############################
+//     //###################### TEMPORARY FUNTIONS FOR TESTING ###############################
 
-    // to load 3D positions without IPR
-    std::vector<Matrix<double>> Load_3Dpoints(string path);
+//     // to load 3D positions without IPR
+//     std::vector<Matrix<double>> Load_3Dpoints(string path);
 
 };
 

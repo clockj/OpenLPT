@@ -41,7 +41,7 @@ private:
     int _size;
     double _m, _c;
 
-    Matrix<double> _disp_field;
+    Matrix<double> _disp_field; // 3*_n_tot
 
     void SetGrid();
     void Field();
