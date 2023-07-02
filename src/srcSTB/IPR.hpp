@@ -23,7 +23,7 @@ void IPR<T>::RunIPR(std::vector<T>& object_info)
             ObjectFinder<T> tf;
             std::vector<T> tracer_found 
                 = tf.FindObject(intensity_list[i], _max_intensity_list[i], _min_intensity_list[i]);
-            std::cout << "Number of found tracer: " << tracer_found.size() << std::endl;
+            std::cout << "\t Number of found tracer: " << tracer_found.size() << std::endl;
 
             tracer_list_pixel.push_back(tracer_found);
         }
@@ -46,7 +46,7 @@ void IPR<T>::RunIPR(std::vector<T>& object_info)
         );
 
         t_end = clock();
-        std::cout << "Matching time: " 
+        std::cout << "\t Matching time: " 
                   << (double) (t_end - t_start)/CLOCKS_PER_SEC
                   << std::endl;
 
@@ -74,7 +74,7 @@ void IPR<T>::RunIPR(std::vector<T>& object_info)
 
         _object_info.insert(_object_info.end(), tracer_info_match_list.begin(), tracer_info_match_list.end());
 
-        std::cout << "IPR step " << loop_id << ": find " << _object_info.size() << " particles. " << std::endl;
+        std::cout << "\t IPR step " << loop_id << ": find " << _object_info.size() << " particles. " << std::endl;
     }
 
     std::cout << "IPR Finish! " << "Find " << _object_info.size() << " particles. " << std::endl;

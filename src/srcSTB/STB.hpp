@@ -40,7 +40,9 @@ STB<T>::STB (std::string file) :_ngrid_xyz(3,0)
         );
         _cam_list.push_back(cam);
     }
-    for (int i = 0; i < n_cam; i ++)
+    _n_pix_w = _cam_list[0].GetNpixw();
+    _n_pix_h = _cam_list[1].GetNpixh();
+    for (int i = 0; i < _n_cam; i ++)
     {
         ImageIO img;
         img.LoadImgPath(
@@ -69,7 +71,7 @@ STB<T>::STB (std::string file) :_ngrid_xyz(3,0)
     parsed >> _vox_to_mm;
 
     // Initial phase
-    parsed >> _ipr_flag; // 1 for using ipr in initialphase (0 for use .mat files)
+    parsed >> _ipr_flag; // 1 for using ipr in initialphase (0 for use .csv files)
     parsed >> _r_search_init; _r_search_init *= _vox_to_mm; // mm
 
     // Convergence phase
@@ -110,7 +112,13 @@ STB<T>::STB (std::string file) :_ngrid_xyz(3,0)
     parsed >> _ipr_loop_outer;
     parsed >> _ipr_loop_inner;
     parsed >> _ipr_int_lower;
+    parsed >> _ipr_tol_2d; _ipr_tol_2d *= _vox_to_mm;
+    parsed >> _ipr_tol_3d; _ipr_tol_3d *= _vox_to_mm;
 
+    parsed >> _ipr_is_reduced;
+    parsed >> _ipr_loop_reduced;
+    parsed >> _ipr_tol_2d_reduced; _ipr_tol_2d_reduced *= _vox_to_mm;
+    parsed >> _ipr_tol_3d_reduced; _ipr_tol_3d_reduced *= _vox_to_mm;
     
     //             //
     // Object Info //
@@ -128,6 +136,7 @@ STB<T>::STB (std::string file) :_ngrid_xyz(3,0)
         throw;
     }
 }
+
 
 template<class T>
 void STB<T>::SetTracerParam (std::stringstream& parsed)
@@ -150,6 +159,43 @@ void STB<T>::SetTracerParam (std::stringstream& parsed)
 }
 
 
+template<class T>
+void STB<T>::InitialPhase ()
+{
+    int endframe = _last + 1;
+    if (!_TRIONLY && !_IPRONLY)
+    {
+        endframe = (_last >= _first + 4) ? _first+4 : _last+1;
+    }
 
+    Matrix<double> intensity(_n_pix_h, _n_pix_w);
+    for (int frame = _first; frame < endframe; frame ++)
+    {
+        std::cout << "IPR on frame " << frame << " of " << _last << std::endl;
+
+        if (_ipr_flag)
+        {
+            // Load img
+            std::vector<Matrix<double>> img_list; 
+            for (int i = 0; i < _n_cam; i ++)
+            {
+                intensity = _imgio_list[i].LoadImg(frame);
+                img_list.push_back(intensity);
+            }
+
+            // IPR
+            IPR<T> ipr(img_list, _imgint_max_list, _imgint_min_list, _cam_list, _otf);
+            ipr.SetIPRTimes(_ipr_loop_outer);
+            ipr.SetShakeTimes(_ipr_loop_inner);
+            ipr.SetTol2D(_ipr_tol_2d);
+            ipr.SetTol3D(_ipr_tol_3d);
+
+            std::vector<T> obj_list;
+            ipr.RunIPR(obj_list);
+            _ipr_matched.push_back(obj_list);
+        }
+    }
+    
+}
 
 #endif

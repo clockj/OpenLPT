@@ -8,6 +8,7 @@
 #include <deque>
 #include <omp.h>
 
+template<class T>
 class PredField
 {
 private:
@@ -31,8 +32,8 @@ private:
     std::vector<double> _grid_z;
 
     // 3D particles at prev and curr frame
-    std::vector<Matrix<double>>& _pt_list_prev;
-    std::vector<Matrix<double>>& _pt_list_curr;
+    std::vector<T>& _pt_list_prev;
+    std::vector<T>& _pt_list_curr;
 
     // radius of interrogation sphere
     double _r;
@@ -58,7 +59,7 @@ private:
 
 public:
     // constructor : To get predictive field( takes the previous frame 3D pos, field parameters from file, frame, matlabFlag )
-    PredField(AxisLimit& limit, std::vector<int>& n_xyz, std::vector<Matrix<double>>& pt_list_prev, std::vector<Matrix<double>>& pt_list_curr, double r) 
+    PredField(AxisLimit& limit, std::vector<int>& n_xyz, std::vector<T>& pt_list_prev, std::vector<T>& pt_list_curr, double r) 
         : _limit(limit), _n_xyz(n_xyz), _n_tot(n_xyz[0]*n_xyz[1]*n_xyz[2]), _grid(3, n_xyz[0]*n_xyz[1]*n_xyz[2]), 
           _pt_list_prev(pt_list_prev), _pt_list_curr(pt_list_curr), _r(r), 
           _disp_field(3, n_xyz[0]*n_xyz[1]*n_xyz[2])
@@ -77,28 +78,36 @@ public:
     ~PredField() {};
 
     // getting the necessary variables
-    Matrix<double> GetGrid() {
+    Matrix<double> GetGrid() 
+    {
         return _grid;
-    }
-    Matrix<double> GetField() {
+    };
+    Matrix<double> GetField() 
+    {
         return _disp_field;
-    }
-    std::vector<Matrix<double>> GetCurrPos3D() {
+    };
+    std::vector<Matrix<double>> GetCurrPos3D() 
+    {
         return _pt_list_curr;
-    }
-    std::vector<Matrix<double>> GetPrevPos3D() {
+    };
+    std::vector<Matrix<double>> GetPrevPos3D() 
+    {
         return _pt_list_prev;
-    }
+    };
 
     Matrix<double> PtInterp(Matrix<double> const& pt);
 
     // void MatfileSave(vector<double*> pos, string name);
     // void MatfileSave(vector<double> pos[3], string name);
     // void MatfileSave(vector< vector<double> > pos, string name);
-    // void SaveField(string file_path);
-    // void Load_field(string path);
+    void SaveField(std::string file_path)
+    {
+        _disp_field.WriteMatrix(file_path);
+    };
+    // void LoadField(std::string path);
 
 };
 
+#include "PredField.hpp"
 
 #endif

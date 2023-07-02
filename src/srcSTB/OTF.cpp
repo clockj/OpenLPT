@@ -27,6 +27,29 @@ OTF::OTF(int n_cam, int n_x, int n_y, int n_z, AxisLimit& boundary, std::string 
 };
 
 
+void OTF::LoadParam (int n_cam, int n_x, int n_y, int n_z, AxisLimit& boundary)
+{
+    _n_cam = n_cam; 
+    _nx = n_x;
+    _ny = n_y;
+    _nz = n_z;
+    _n_grid = _nx*_ny*_nz;
+    _a = Matrix<double>(_n_cam, _n_grid, 125);
+    _b = Matrix<double>(_n_cam, _n_grid, 1.5);
+    _c = Matrix<double>(_n_cam, _n_grid, 1.5);
+    _alpha = Matrix<double>(_n_cam, _n_grid, 0);
+    _boundary = boundary;
+
+    SetGrid();
+}
+
+
+void OTF::LoadParam (int n_cam, int n, AxisLimit& boundary)
+{
+    LoadParam (n_cam, n, n, n, boundary);
+}
+
+
 void OTF::SetGrid ()
 {
     _grid_x = myMATH::Linspace(_boundary._x_min, _boundary._x_max, _nx);

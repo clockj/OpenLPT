@@ -18,6 +18,7 @@
 #include "IPR.h"
 #include "PredField.h"
 #include "Track.h"
+#include "STB.h"
 
 
 int main()
@@ -61,7 +62,7 @@ int main()
     Matrix<double> intensity(1024, 1024);
     std::vector<int> max_intensity_list(n_cam, 255);
     std::vector<int> min_intensity_list(n_cam, 10);
-    std::vector<std::vector<Matrix<double>>> pt_list_all;
+    std::vector<std::vector<TracerInfo>> pt_list_all;
     for (int frame_id = 0; frame_id < n_frame; frame_id ++)
     {
         // Load Img
@@ -78,22 +79,47 @@ int main()
         ipr.SetIPRTimes(4);
         std::vector<TracerInfo> object_info;
         ipr.RunIPR(object_info);
-        pt_list_all.push_back(ipr.GetPtList());
+        pt_list_all.push_back(object_info);
     }
 
     // Predicted field
     std::cout << "PredField start!" << std::endl;
 
+    // // for debug
+    // Matrix<double> mtx_pre("3Dpoints_pf_1.csv");
+    // std::vector<Matrix<double>> pt_list_pre(mtx_pre.GetDimX(), Matrix<double>(3,1,0));
+    // for (int i = 0; i < mtx_pre.GetDimX(); i ++)
+    // {
+    //     pt_list_pre[i](0,0) = mtx_pre(i,0);
+    //     pt_list_pre[i](1,0) = mtx_pre(i,1);
+    //     pt_list_pre[i](2,0) = mtx_pre(i,2);
+    // }
+
+    // Matrix<double> mtx_cur("3Dpoints_pf_2.csv");
+    // std::vector<Matrix<double>> pt_list_cur(mtx_cur.GetDimX(), Matrix<double>(3,1,0));
+    // for (int i = 0; i < mtx_cur.GetDimX(); i ++)
+    // {
+    //     pt_list_cur[i](0,0) = mtx_cur(i,0);
+    //     pt_list_cur[i](1,0) = mtx_cur(i,1);
+    //     pt_list_cur[i](2,0) = mtx_cur(i,2);
+    // }
+
+    // pt_list_all.push_back(pt_list_pre);
+    // pt_list_all.push_back(pt_list_cur);
+
+
     std::vector<int> n_xyz = {50,50,50};
     double r = 25 * 40/1000; // 25 * (max-min)/1000
-    PredField pf (limit, n_xyz, pt_list_all[0], pt_list_all[1], r);
+    PredField<TracerInfo> pf (limit, n_xyz, pt_list_all[0], pt_list_all[1], r);
 
     Matrix<double> disp_pred(3,1);
-    disp_pred = pf.PtInterp(pt_list_all[1][0]);
+    disp_pred = pf.PtInterp(pt_list_all[1][0].GetCenterPos());
     // disp_pred.Print();
     Matrix<double> disp_field(3,50*50*50);
     disp_field = pf.GetField();
     disp_field.WriteMatrix("pf_disp_field.csv");
+
+    STB<TracerInfo> stb("./Data/stbConfig.txt");
 
     std::cout << "Finish OpenLPT!" << std::endl;
     return 0;

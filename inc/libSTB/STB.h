@@ -43,20 +43,20 @@ private:
     double _vox_to_mm;
 
     // camera param
-    int _n_cam;
-    std::vector<ImageIO> _imgio_list;
+    int _n_cam, _n_pix_w, _n_pix_h;
     std::string _img_folder;
     std::deque<Camera> _cam_list;
-
+    std::vector<ImageIO> _imgio_list;
+    
     // initialization phase
-    std::vector<std::vector<Matrix<double>>> _ipr_matched;
+    std::vector<std::vector<T>> _ipr_matched;
     bool _ipr_flag;	        // use ipr (1) or .mat files (0) for 3D positions?
     double _r_search_init;  // mm 
 
     // convergence phase
     std::deque<Matrix<double>> _img_org_list;			// original images
     std::deque<Matrix<double>> _img_res_list;			// residue images
-    std::deque<Matrix<double>> _img_prj_list            // reproject images 
+    std::deque<Matrix<double>> _img_prj_list;           // reproject images 
     double _shake_shift;                                // Shaking range, mm
     double _space_avg;                                  // avg interparticle dist
     double _shift_betframe_max;                         // Largest expected particle shift
@@ -65,7 +65,7 @@ private:
     double _fpt;										// a multiplying factor on particle intensity in order to ensure the residual has no traces of tracked particles
     double _int_lower;                                  // lower intensity threshold (xx*avg. Intensity) to eliminate ghost particles while tracking
 
-    //Predictive Field 
+    // Predictive Field 
     std::vector<int> _ngrid_xyz;
     double _r_search_pred; // mm
 
@@ -77,9 +77,13 @@ private:
     double _ipr_int_lower;                     // lower intensity threshold (xx*avg. Intensity) to eliminate ghost particles
     double _ipr_tol_2d;                        // mm  
     double _ipr_tol_3d;                        // mm
-    bool _is_cam_reduced = false;
+    bool _ipr_is_reduced = false;
+    int _ipr_loop_reduced;
+    double _ipr_tol_2d_reduced;
+    double _ipr_tol_3d_reduced;
     std::vector<int> _cam_id_list;
     std::deque<Camera> _cam_reduced;
+    OTF _otf;
 
     // Object info
     T _obj_info_sample;                              // object searching particle radius, pixel
@@ -99,7 +103,6 @@ private:
     std::deque<T> _inactive_long_tracks;
     std::deque<T> _buffer_tracks;			    //  new long tracks added from Back or Forward STB (multi-pass)
 
-    void Load_Tracks(std::string path, TrackType trackType);
     // dummy variables to identify the no. of tracks added and subtracted 
     int _a_as = 0, _a_al = 0, _a_is = 0, _s_as1 = 0, _s_as2 = 0, _s_as3 = 0, _s_as4 = 0, _s_al = 0, _a_il = 0;
     //TESTING
@@ -121,7 +124,8 @@ public:
 
     //############################### FUNCTIONS ##############################
     // to make tracks for the first four frames
-    void InitialPhase(string pfieldfile);
+    void InitialPhase();
+    void LoadTracks(std::string path, TrackType trackType);
 
 //     // a function to start a track for particles that were left untracked in current frame
 //     void StartTrack(int frame, PredictiveField& pField);

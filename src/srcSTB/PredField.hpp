@@ -1,6 +1,10 @@
+#ifndef PREDFIELD_HPP
+#define PREDFIELD_HPP
+
 #include "PredField.h"
 
-void PredField::SetGrid ()
+template<class T>
+void PredField<T>::SetGrid ()
 {
     int nx = _n_xyz[0];
     int ny = _n_xyz[1];
@@ -31,7 +35,8 @@ void PredField::SetGrid ()
 }
 
 
-void PredField::Field()
+template<class T>
+void PredField<T>::Field()
 {
     double rsqr = pow(_r, 2);
 
@@ -57,6 +62,8 @@ void PredField::Field()
             // getting the displacement vectors (if there are particles in the search volume for both the frames)
             std::vector<double> disp(4, 0); // dx,dy,dz,I_curr*I_prev
             int curr, prev;
+            Matrix<double> pt_pre(3,1,0);
+            Matrix<double> pt_cur(3,1,0);
             if (curr_id.size() != 0 && prev_id.size() != 0) 
             {
                 for (int j = 0; j < curr_id.size(); j ++) 
@@ -65,9 +72,12 @@ void PredField::Field()
                     for (int k = 0; k < prev_id.size(); k ++) 
                     {  
                         prev = prev_id[k];
-                        disp[0] = _pt_list_curr[curr](0,0) - _pt_list_prev[prev](0,0);
-                        disp[1] = _pt_list_curr[curr](1,0) - _pt_list_prev[prev](1,0);
-                        disp[2] = _pt_list_curr[curr](2,0) - _pt_list_prev[prev](2,0);
+                        pt_pre = _pt_list_prev[prev].GetCenterPos();
+                        pt_cur = _pt_list_curr[curr].GetCenterPos();
+
+                        disp[0] = pt_cur(0,0) - pt_pre(0,0);
+                        disp[1] = pt_cur(1,0) - pt_pre(1,0);
+                        disp[2] = pt_cur(2,0) - pt_pre(2,0);
                         disp[3] = 1; // currFrame[curr]->Info() * prevFrame[prev]->Info();
                         displacements.push_back(disp);
                     }
@@ -104,20 +114,21 @@ void PredField::Field()
 }
 
 
-void PredField::FindVolPt(std::deque<int>& pt_list_id, double rsqr, int grid_id, FrameTypeID frame)
+template<class T>
+void PredField<T>::FindVolPt(std::deque<int>& pt_list_id, double rsqr, int grid_id, FrameTypeID frame)
 {
     double x = _grid(0, grid_id);
     double y = _grid(1, grid_id);
     double z = _grid(2, grid_id);
     double x_temp, y_temp, z_temp, distsqr;
-
+    
     if (frame == PREV_FRAME)
     {
         for (int i = 0; i < _pt_list_prev.size(); i ++)
         {   
-            x_temp = _pt_list_prev[i](0,0);
-            y_temp = _pt_list_prev[i](1,0);
-            z_temp = _pt_list_prev[i](2,0);
+            x_temp = _pt_list_prev[i].GetCenterPos()(0,0);
+            y_temp = _pt_list_prev[i].GetCenterPos()(1,0);
+            z_temp = _pt_list_prev[i].GetCenterPos()(2,0);
             if (x_temp<x+_r && x_temp>x-_r &&
                 y_temp<y+_r && y_temp>y-_r &&
                 z_temp<z+_r && z_temp>z-_r)
@@ -134,9 +145,9 @@ void PredField::FindVolPt(std::deque<int>& pt_list_id, double rsqr, int grid_id,
     {
         for (int i = 0; i < _pt_list_curr.size(); i ++)
         {   
-            x_temp = _pt_list_curr[i](0,0);
-            y_temp = _pt_list_curr[i](1,0);
-            z_temp = _pt_list_curr[i](2,0);
+            x_temp = _pt_list_curr[i].GetCenterPos()(0,0);
+            y_temp = _pt_list_curr[i].GetCenterPos()(1,0);
+            z_temp = _pt_list_curr[i].GetCenterPos()(2,0);
             if (x_temp<x+_r && x_temp>x-_r &&
                 y_temp<y+_r && y_temp>y-_r &&
                 z_temp<z+_r && z_temp>z-_r)
@@ -157,7 +168,8 @@ void PredField::FindVolPt(std::deque<int>& pt_list_id, double rsqr, int grid_id,
 }
 
 
-void PredField::DispMap(std::vector<std::vector<std::vector<double>>>& disp_map, std::vector<std::vector<double>> const& displacements)
+template <class T>
+void PredField<T>::DispMap(std::vector<std::vector<std::vector<double>>>& disp_map, std::vector<std::vector<double>> const& displacements)
 {
     for (int d = 0; d < displacements.size(); d ++) 
     {
@@ -182,7 +194,8 @@ void PredField::DispMap(std::vector<std::vector<std::vector<double>>>& disp_map,
 }
 
 
-std::vector<double> PredField::DispMapPeak(std::vector<std::vector<std::vector<double>>>& disp_map)
+template <class T>
+std::vector<double> PredField<T>::DispMapPeak(std::vector<std::vector<std::vector<double>>>& disp_map)
 {
     // finding the index of largest element
     std::vector<int> index(3,0);
@@ -236,7 +249,8 @@ std::vector<double> PredField::DispMapPeak(std::vector<std::vector<std::vector<d
 }
 
 
-std::vector<int> PredField::MaxElemID(std::vector<std::vector<std::vector<double>>>& disp_map)
+template <class T>
+std::vector<int> PredField<T>::MaxElemID(std::vector<std::vector<std::vector<double>>>& disp_map)
 {
     std::vector<int> max_id (3,0);
 
@@ -261,8 +275,9 @@ std::vector<int> PredField::MaxElemID(std::vector<std::vector<std::vector<double
     return max_id;
 }
     
-    
-double PredField::Gauss1DPeak(double y1, double v1, double y2, double v2, double y3, double v3)
+
+template <class T>
+double PredField<T>::Gauss1DPeak(double y1, double v1, double y2, double v2, double y3, double v3)
 {
     double lnz1, lnz2, lnz3;
 
@@ -301,7 +316,8 @@ double PredField::Gauss1DPeak(double y1, double v1, double y2, double v2, double
 }
 
 
-Matrix<double> PredField::PtInterp(Matrix<double> const& pt)
+template <class T>
+Matrix<double> PredField<T>::PtInterp(Matrix<double> const& pt)
 {
     // find out the limits of interpolation cube 
     double pt_x = std::min(
@@ -371,3 +387,6 @@ Matrix<double> PredField::PtInterp(Matrix<double> const& pt)
     return disp;
 }
 
+
+
+#endif

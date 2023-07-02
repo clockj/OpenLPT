@@ -8,7 +8,7 @@
 
 class OTF 
 {
-protected:
+private:
     // _a, _b, _c, _alpha: n_cam*n_grid, n_grid = _nx*_ny*_nz
     //  i in 0 ~ n_grid: i = index_x*_ny*_nz + index_y*_nz + index_z
     //  for index_x in 0:_nx-1 
@@ -21,10 +21,13 @@ protected:
     AxisLimit _boundary;
     std::vector<double> _grid_x, _grid_y, _grid_z;
 
+    void LoadParam (int n_cam, int n_x, int n_y, int n_z, AxisLimit& boundary);
+    void LoadParam (int n_cam, int n, AxisLimit& boundary);
     void SetGrid ();
 
 public:
     // TODO: add self-calibration code.
+    OTF () {};
     OTF(int n_cam, int n_x, int n_y, int n_z, AxisLimit& boundary) 
         : _n_cam(n_cam), _nx(n_x), _ny(n_y), _nz(n_z),
           _n_grid(_nx*_ny*_nz),

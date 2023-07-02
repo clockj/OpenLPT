@@ -54,7 +54,7 @@ set(SOURCE_FILES main.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcSTB/OTF.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcSTB/Shake.hpp
     ${CMAKE_HOME_DIRECTORY}/src/srcSTB/IPR.hpp
-    ${CMAKE_HOME_DIRECTORY}/src/srcSTB/PredField.cpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcSTB/PredField.hpp
     ${CMAKE_HOME_DIRECTORY}/src/srcSTB/Track.hpp
     ${CMAKE_HOME_DIRECTORY}/src/srcSTB/STB.hpp
 )
