@@ -38,7 +38,7 @@ protected:
     int _n_cam = 0;
     double _tor_2d = -1;
     double _tor_3d = -1;
-    int _check_cam_id = 4; // _check_cam_id <= n_cam
+    int _check_cam_id; // _check_cam_id <= n_cam
     int _tor_1d = 3;
     
     int _n_thread = 0; // num of parallel threads

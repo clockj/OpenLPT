@@ -78,7 +78,7 @@ int main()
         ipr.SetShakeTimes(4);
         ipr.SetIPRTimes(4);
         std::vector<TracerInfo> object_info;
-        ipr.RunIPR(object_info);
+        ipr.RunIPR(object_info, true, 1);
         pt_list_all.push_back(object_info);
     }
 

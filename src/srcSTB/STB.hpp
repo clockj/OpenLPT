@@ -116,7 +116,7 @@ STB<T>::STB (std::string file) :_ngrid_xyz(3,0)
     parsed >> _ipr_tol_3d; _ipr_tol_3d *= _vox_to_mm;
 
     parsed >> _ipr_is_reduced;
-    parsed >> _ipr_loop_reduced;
+    parsed >> _ipr_loop_outer_reduced;
     parsed >> _ipr_tol_2d_reduced; _ipr_tol_2d_reduced *= _vox_to_mm;
     parsed >> _ipr_tol_3d_reduced; _ipr_tol_3d_reduced *= _vox_to_mm;
     
@@ -131,7 +131,7 @@ STB<T>::STB (std::string file) :_ngrid_xyz(3,0)
     {
         std::cerr << "StereoMatch: " 
                   << "class " << typeid(T).name()
-                  << "is not included in StereoMatch!"
+                  << " is not included in StereoMatch!"
                   << std::endl;
         throw;
     }
@@ -169,6 +169,12 @@ void STB<T>::InitialPhase ()
     }
 
     Matrix<double> intensity(_n_pix_h, _n_pix_w);
+    for (int i = 0; i < _n_cam; i ++)
+    {
+        _img_org_list.push_back(intensity);
+        // _img_res_list.push_back(intensity);
+    }
+
     for (int frame = _first; frame < endframe; frame ++)
     {
         std::cout << "IPR on frame " << frame << " of " << _last << std::endl;
@@ -176,15 +182,13 @@ void STB<T>::InitialPhase ()
         if (_ipr_flag)
         {
             // Load img
-            std::vector<Matrix<double>> img_list; 
             for (int i = 0; i < _n_cam; i ++)
             {
-                intensity = _imgio_list[i].LoadImg(frame);
-                img_list.push_back(intensity);
+                _img_org_list[i] = _imgio_list[i].LoadImg(frame);
             }
 
             // IPR
-            IPR<T> ipr(img_list, _imgint_max_list, _imgint_min_list, _cam_list, _otf);
+            IPR<T> ipr(_img_org_list, _imgint_max_list, _imgint_min_list, _cam_list, _otf);
             ipr.SetIPRTimes(_ipr_loop_outer);
             ipr.SetShakeTimes(_ipr_loop_inner);
             ipr.SetTol2D(_ipr_tol_2d);

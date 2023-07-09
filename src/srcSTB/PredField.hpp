@@ -36,6 +36,22 @@ void PredField<T>::SetGrid ()
 
 
 template<class T>
+void PredField<T>::SetPtList ()
+{
+    for (int i = 0; i < _obj_list_prev.size(); i ++)
+    {
+        _pt_list_prev[i] = _obj_list_prev[i].GetCenterPos();
+    }
+
+    for (int i = 0; i < _obj_list_curr.size(); i ++)
+    {
+        _pt_list_curr[i] = _obj_list_curr[i].GetCenterPos();
+    }
+}
+
+
+
+template<class T>
 void PredField<T>::Field()
 {
     double rsqr = pow(_r, 2);
@@ -72,12 +88,10 @@ void PredField<T>::Field()
                     for (int k = 0; k < prev_id.size(); k ++) 
                     {  
                         prev = prev_id[k];
-                        pt_pre = _pt_list_prev[prev].GetCenterPos();
-                        pt_cur = _pt_list_curr[curr].GetCenterPos();
 
-                        disp[0] = pt_cur(0,0) - pt_pre(0,0);
-                        disp[1] = pt_cur(1,0) - pt_pre(1,0);
-                        disp[2] = pt_cur(2,0) - pt_pre(2,0);
+                        disp[0] = _pt_list_curr[curr](0,0) - _pt_list_prev[prev](0,0);
+                        disp[1] = _pt_list_curr[curr](1,0) - _pt_list_prev[prev](1,0);
+                        disp[2] = _pt_list_curr[curr](2,0) - _pt_list_prev[prev](2,0);
                         disp[3] = 1; // currFrame[curr]->Info() * prevFrame[prev]->Info();
                         displacements.push_back(disp);
                     }
@@ -126,9 +140,9 @@ void PredField<T>::FindVolPt(std::deque<int>& pt_list_id, double rsqr, int grid_
     {
         for (int i = 0; i < _pt_list_prev.size(); i ++)
         {   
-            x_temp = _pt_list_prev[i].GetCenterPos()(0,0);
-            y_temp = _pt_list_prev[i].GetCenterPos()(1,0);
-            z_temp = _pt_list_prev[i].GetCenterPos()(2,0);
+            x_temp = _pt_list_prev[i](0,0);
+            y_temp = _pt_list_prev[i](1,0);
+            z_temp = _pt_list_prev[i](2,0);
             if (x_temp<x+_r && x_temp>x-_r &&
                 y_temp<y+_r && y_temp>y-_r &&
                 z_temp<z+_r && z_temp>z-_r)
@@ -145,9 +159,9 @@ void PredField<T>::FindVolPt(std::deque<int>& pt_list_id, double rsqr, int grid_
     {
         for (int i = 0; i < _pt_list_curr.size(); i ++)
         {   
-            x_temp = _pt_list_curr[i].GetCenterPos()(0,0);
-            y_temp = _pt_list_curr[i].GetCenterPos()(1,0);
-            z_temp = _pt_list_curr[i].GetCenterPos()(2,0);
+            x_temp = _pt_list_curr[i](0,0);
+            y_temp = _pt_list_curr[i](1,0);
+            z_temp = _pt_list_curr[i](2,0);
             if (x_temp<x+_r && x_temp>x-_r &&
                 y_temp<y+_r && y_temp>y-_r &&
                 z_temp<z+_r && z_temp>z-_r)

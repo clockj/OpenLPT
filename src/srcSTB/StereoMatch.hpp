@@ -262,7 +262,7 @@ StereoMatch<T>::StereoMatch(
     std::vector<Camera> const& cam_list,
     double tor_2d,
     double tor_3d
-) : _cam_list(cam_list), _n_cam(cam_list.size()), _tor_2d(tor_2d), _tor_3d(tor_3d)
+) : _cam_list(cam_list), _n_cam(cam_list.size()), _tor_2d(tor_2d), _tor_3d(tor_3d), _check_cam_id(_n_cam)
 {}
 
 
@@ -294,7 +294,7 @@ void StereoMatch<T>::SetObjectListMMFromPixel (std::vector<std::vector<T>>& obje
     }
 
     t_end = clock();
-    std::cout << "SetObjectListMMFromPixel: " 
+    std::cout << "\t SetObjectListMMFromPixel: " 
               << (double) (t_end - t_start)/CLOCKS_PER_SEC
               << "s"
               << std::endl;
@@ -386,7 +386,7 @@ void StereoMatch<T>::MakeObjectIDMap(std::vector<std::vector<T>>& object_list_pi
     }
     
     t_end = clock();
-    std::cout << "MakeObjectIDMap: " 
+    std::cout << "\t MakeObjectIDMap: " 
               << (double) (t_end - t_start)/CLOCKS_PER_SEC
               << "s"
               << std::endl;
@@ -2297,7 +2297,7 @@ void StereoMatch<T>::SortPreference (std::vector<int>& sorted_id_list, std::vect
 template<class T>
 void StereoMatch<T>::DeleteGohstTracerMatchOrig (std::vector<std::vector<TracerInfo>>& object_list_pixel)
 {
-    std::cout << "Start deleting gohst match!" << std::endl;
+    std::cout << "\t Start deleting gohst match!" << std::endl;
 
     int n_match = _object_id_match_list.size();
 
@@ -2473,8 +2473,8 @@ void StereoMatch<T>::DeleteGohstTracerMatchOrig (std::vector<std::vector<TracerI
     //------------------------------------//
     _n_after_del = _object_info_match_list.size();
     _n_del = _n_before_del - _n_after_del;
-    std::cout << "Finish deleting gohst match!" << std::endl;
-    std::cout << "n_del = " << _n_del << ", "
+    std::cout << "\t Finish deleting gohst match: "
+              << "n_del = " << _n_del << ", "
               << "n_after_del = " << _n_after_del << "."
               << std::endl;
 }
@@ -2602,7 +2602,7 @@ void StereoMatch<T>::FillObjectInfo (std::vector<std::vector<T>>& object_list_pi
 template<class T>
 void StereoMatch<T>::TracerMatch (std::vector<std::vector<TracerInfo>>& object_list_pixel)
 {
-    std::cout << "Tracer match start!" << std::endl;
+    std::cout << "\t Tracer match start!" << std::endl;
 
     if (_n_cam < 2)
     {
@@ -2715,8 +2715,8 @@ void StereoMatch<T>::TracerMatch (std::vector<std::vector<TracerInfo>>& object_l
     }
 
     _n_before_del = _object_id_match_list.size();
-    std::cout << "Finish stereomatching!" << std::endl;
-    std::cout << "n_before_del = " << _n_before_del << "."
+    std::cout << "\t Finish stereomatching: " 
+              << "n_before_del = " << _n_before_del << "."
               << std::endl;
 }
 

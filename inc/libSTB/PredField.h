@@ -32,8 +32,10 @@ private:
     std::vector<double> _grid_z;
 
     // 3D particles at prev and curr frame
-    std::vector<T>& _pt_list_prev;
-    std::vector<T>& _pt_list_curr;
+    std::vector<T>& _obj_list_prev;
+    std::vector<T>& _obj_list_curr;
+    std::vector<Matrix<double>> _pt_list_prev;
+    std::vector<Matrix<double>> _pt_list_curr;
 
     // radius of interrogation sphere
     double _r;
@@ -45,6 +47,7 @@ private:
     Matrix<double> _disp_field; // 3*_n_tot
 
     void SetGrid();
+    void SetPtList();
     void Field();
     void FindVolPt(std::deque<int>& pt_list_id, double rsqr, int grid_id, FrameTypeID frame);
     void DispMap(std::vector<std::vector<std::vector<double>>>& disp_map, std::vector<std::vector<double>> const& displacements);
@@ -59,12 +62,14 @@ private:
 
 public:
     // constructor : To get predictive field( takes the previous frame 3D pos, field parameters from file, frame, matlabFlag )
-    PredField(AxisLimit& limit, std::vector<int>& n_xyz, std::vector<T>& pt_list_prev, std::vector<T>& pt_list_curr, double r) 
+    PredField(AxisLimit& limit, std::vector<int>& n_xyz, std::vector<T>& obj_list_prev, std::vector<T>& obj_list_curr, double r) 
         : _limit(limit), _n_xyz(n_xyz), _n_tot(n_xyz[0]*n_xyz[1]*n_xyz[2]), _grid(3, n_xyz[0]*n_xyz[1]*n_xyz[2]), 
-          _pt_list_prev(pt_list_prev), _pt_list_curr(pt_list_curr), _r(r), 
+          _obj_list_prev(obj_list_prev), _obj_list_curr(obj_list_curr), _pt_list_prev(obj_list_prev.size(), Matrix<double>(3,1,0)), _pt_list_curr(obj_list_curr.size(), Matrix<double>(3,1,0)), _r(r), 
           _disp_field(3, n_xyz[0]*n_xyz[1]*n_xyz[2])
     {
         SetGrid();
+
+        SetPtList();
 
         // converting the Map index (i) to displacement (dx) as i = m*dx + c;
         _size = 4 * _disp_map_res * _r + 1; // dispMapRes = 10
