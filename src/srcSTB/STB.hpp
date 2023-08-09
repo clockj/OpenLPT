@@ -150,11 +150,11 @@ void STB<T>::SetTracerParam (std::stringstream& parsed)
     _imgint_min_list = std::vector<int>(_n_cam, 0);
     for (int i = 0; i < _n_cam; i ++)
     {
-        parsed >>  _imgint_max_list[i];
+        parsed >> _imgint_max_list[i];
     }
     for (int i = 0; i < _n_cam; i ++)
     {
-        parsed >>  _imgint_min_list[i];
+        parsed >> _imgint_min_list[i];
     }
 }
 
@@ -195,11 +195,17 @@ void STB<T>::InitialPhase ()
             ipr.SetTol3D(_ipr_tol_3d);
 
             std::vector<T> obj_list;
-            ipr.RunIPR(obj_list);
+            ipr.RunIPR(obj_list, _ipr_is_reduced);
             _ipr_matched.push_back(obj_list);
         }
     }
     
 }
+
+
+// template<class T>
+
+
+
 
 #endif
