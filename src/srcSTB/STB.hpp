@@ -189,6 +189,7 @@ void STB<T>::InitialPhase ()
 
             // IPR
             IPR<T> ipr(_img_org_list, _imgint_max_list, _imgint_min_list, _cam_list, _otf);
+            ipr.SetTRIONLY(_TRIONLY);
             ipr.SetIPRTimes(_ipr_loop_outer);
             ipr.SetShakeTimes(_ipr_loop_inner);
             ipr.SetTol2D(_ipr_tol_2d);
@@ -197,6 +198,31 @@ void STB<T>::InitialPhase ()
             std::vector<T> obj_list;
             ipr.RunIPR(obj_list, _ipr_is_reduced);
             _ipr_matched.push_back(obj_list);
+        }
+    }
+
+    if (!_TRIONLY && !_IPRONLY)
+    {
+        for (int frame = _first; frame < endframe-1; frame ++)
+        {   
+            int currframe = frame;
+            int nextframe = frame + 1;
+
+            std::cout << "STB initial phase tracking b/w frames: "
+                      << currframe << " & " << nextframe;
+            
+            PredField<T> pf(_xyz_limit, _ngrid_xyz, _ipr_matched[currframe-_first], _ipr_matched[nextframe-_first], _r_search_pred);
+
+            // link particles b/w two frames
+            clock_t t_start, t_end;
+            t_start = clock();
+
+            
+
+            t_end = clock();
+            std::cout << "; link particles time: " 
+                      << (double) (t_end - t_start)/CLOCKS_PER_SEC
+                      << std::endl;
         }
     }
     

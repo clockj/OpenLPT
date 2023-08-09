@@ -21,6 +21,7 @@ protected:
 	int _n_cam;
 	OTF& _otf;
 
+	bool _TRIONLY = false;
 	int _n_loop_ipr = 4;
 	int _n_loop_shake = 6;
 	int _n_loop_ipr_reduced = 2;
@@ -41,8 +42,10 @@ public:
 	void ReducedCamLoop (std::vector<int> cam_id, int n_cam);
 	void CreateCamID (std::deque<std::vector<int>>& cam_id_all, std::vector<int> cam_id, int id, int n_rest);
 
-	void SetTol2D (double tol_2d) { _tol_2d = tol_2d; };
-	void SetTol3D (double tol_3d) { _tol_3d = tol_3d; };
+	void SetTRIONLY (bool TRIONLY) {_TRIONLY = TRIONLY;};
+
+	void SetTol2D (double tol_2d) {_tol_2d = tol_2d;};
+	void SetTol3D (double tol_3d) {_tol_3d = tol_3d;};
 
 	void SetShakeWidth (double shake_width) {_shake_width = shake_width;};
 	

@@ -606,51 +606,54 @@ void Shake<T>::RemoveGhost ()
 
 
 template<class T>
-void Shake<T>::RunShake ()
+void Shake<T>::RunShake (bool TRIONLY)
 { 
     int n_object = _object_info.size();
 
+    // For tracers
     if (typeid(T) == typeid(TracerInfo))
     {
-        // For tracers
-
-        // Initialize residue img 
-        double delta;
-        for (int loop = 0; loop < _n_loop; loop ++)
+        if (!TRIONLY)
         {
-            // std::cout << "Shake loop " << loop << " start!" << std::endl;
+            // Initialize residue img 
+            double delta;
+            for (int loop = 0; loop < _n_loop; loop ++)
+            {
+                // std::cout << "Shake loop " << loop << " start!" << std::endl;
 
-            // for (int cam_id = 0; cam_id < _n_cam; cam_id ++)
-            // {
-            //     _res_img_list[cam_id] = _orig_img_list[cam_id];
-            // }
-            TracerResImg();
+                // for (int cam_id = 0; cam_id < _n_cam; cam_id ++)
+                // {
+                //     _res_img_list[cam_id] = _orig_img_list[cam_id];
+                // }
+                TracerResImg();
 
-            if (loop < 1)
-            {
-                delta = _shake_width;
-            }
-            else if (loop < 5)
-            {
-                delta = _shake_width / std::pow(2, loop - 1);   
-            }
-            else 
-            {
-                delta = _shake_width / 20;
-            }
-
-            #pragma omp parallel
-            {
-                #pragma omp for
-                for (int i = 0; i < n_object; i ++)
+                if (loop < 1)
                 {
-                    _intensity_list[i] = ShakingTracer(_object_info[i], delta, _intensity_list[i]);
+                    delta = _shake_width;
+                }
+                else if (loop < 5)
+                {
+                    delta = _shake_width / std::pow(2, loop - 1);   
+                }
+                else 
+                {
+                    delta = _shake_width / 20;
+                }
+
+                #pragma omp parallel
+                {
+                    #pragma omp for
+                    for (int i = 0; i < n_object; i ++)
+                    {
+                        _intensity_list[i] = ShakingTracer(_object_info[i], delta, _intensity_list[i]);
+                    }
                 }
             }
-        }
 
-        // Remove ghost objects 
-        RemoveGhost ();
+            // Remove ghost objects 
+            RemoveGhost ();
+        }
+        
 
         // Compute final res img 
         TracerResImg();

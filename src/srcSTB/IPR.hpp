@@ -64,7 +64,7 @@ void IPR<T>::RunIPR(std::vector<T>& object_info, bool is_reduced, int n_reduced)
             _otf
         );
         s.SetShakeTimes (_n_loop_shake);
-        s.RunShake();
+        s.RunShake(_TRIONLY);
         // std::cout << "Finish shake!" << std::endl;
 
         

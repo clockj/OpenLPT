@@ -46,15 +46,14 @@ public:
     void SetMatchPosInfo (std::vector<Camera>& cam_list)
     {
         int n_cam = cam_list.size();
+        _match_pos_info = std::vector<Matrix<double>> (n_cam, Matrix<double> (3,1));
         for (int cam_id = 0; cam_id < n_cam; cam_id ++)
         {     
-            _match_pos_info.push_back(
-                cam_list[cam_id].ImgMMToPixel(
+            _match_pos_info[cam_id] = cam_list[cam_id].ImgMMToPixel(
                     cam_list[cam_id].WorldToImgMM(
                         _pt_center
                     )
-                )
-            );
+                );
         }
     };
     void ClearMatchPosInfo ()

@@ -117,7 +117,7 @@ public:
 
     ~Shake() {};
 
-    void RunShake();
+    void RunShake(bool TRIONLY=false);
 
     // For output: Matrix<int> residue img 
     void GetResImg(std::vector<Matrix<double>>& res_img_list_out) 
