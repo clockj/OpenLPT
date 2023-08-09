@@ -19,6 +19,7 @@ class ObjectInfo
 protected:
     Matrix<double> _pt_center; 
     std::vector<Matrix<double>> _match_pos_info; // n_cam * (3*1) [2D, pixel]
+    bool _is_tracked = false;
     bool _is_fake = false;
     double _tri_error = 0.0;
 
@@ -95,6 +96,9 @@ public:
 
     void SetIsFake (bool is_fake) {_is_fake = is_fake;};
     bool IsFake () {return _is_fake;};
+
+    void SetIsTrack (bool is_tracked) {_is_tracked = is_tracked;};
+    bool IsTrack() {return _is_tracked;};
 };
 
 

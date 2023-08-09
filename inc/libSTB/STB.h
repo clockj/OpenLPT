@@ -129,8 +129,9 @@ public:
 
 //     // a function to start a track for particles that were left untracked in current frame
 //     void StartTrack(int frame, PredictiveField& pField);
-//     // extends the particle track to nextFrame using search radius method (can be used for first 4 links in both, intialization and convergence phase)
-//     void MakeLink(int nextFrame, const Position& new_velocity, double radius, Track& track, bool& activeTrack);
+    // extends the particle track to nextFrame using search radius method (can be used for first 4 links in both, intialization and convergence phase)
+    void MakeLink(int nextframe, const Matrix<double>& vel_cur, double radius, Track<T>& track, bool& active);
+    void NearestNeighbor(std::vector<T>& obj_list, double radius, const Matrix<double>& pt_estimate, int& obj_id);
 //     pair<Frame::const_iterator, float> ComputeCost(Frame& fr1, Frame& fr2, double radius,
 //         const Position& estimate,
 //         const Position& velocity,

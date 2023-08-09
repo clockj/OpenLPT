@@ -217,7 +217,13 @@ void STB<T>::InitialPhase ()
             clock_t t_start, t_end;
             t_start = clock();
 
-            
+            Matrix<double> vel_curr(3,1);
+            for (std::deque<Track<T>>::iterator tr = _active_short_track.begin(); tr != _active_short_track.end();)
+            {
+                bool active;
+                vel_curr = pf.PtInterp(tr->Last().GetCenterPos());
+                MakeLink();
+            }
 
             t_end = clock();
             std::cout << "; link particles time: " 
@@ -229,9 +235,54 @@ void STB<T>::InitialPhase ()
 }
 
 
-// template<class T>
+template<class T>
+void STB<T>::MakeLink(int nextframe, const Matrix<double>& vel_cur, double radius, Track<T>& track, bool& active)
+{
+    Matrix<double> pt_last(3,1);
+    Matrix<double> pt_estimate(3,1);
+
+    pt_last = track.Last().GetCenterPos();
+    pt_estimate = pt_last + vel_cur;
+
+    int len = track.Length();
+    int obj_id = _UNLINKED;
+    int m = nextframe-_first;
+
+    NearestNeighbor(_ipr_matched[m], radius, pt_estimate, obj_id);
+
+    if (obj_id == _UNLINKED)
+    {
+        active = false;
+    }
+    else
+    {
+        _ipr_matched[m][obj_id].SetIsTracked(true);
+        track.AddNext(_ipr_matched[m], nextframe);
+        active = true;
+    }
+}
 
 
+template<class T>
+void STB<T>::NearestNeighbor(std::vector<T>& obj_list, double radius, const Matrix<double>& pt_estimate, int& obj_id)
+{
+    obj_id = -1;
+    double min2 = radius * radius;
+    double dis2 = 0;
+
+    Matrix<double> pt(3,1);
+    for (int i = 0; i < obj_list.size(); i ++)
+    {
+        pt = obj_list[i].GetCenterPos();
+        dis2 = pt_estimate.DistSqr(pt);
+
+        if (dis2 < min2)
+        {
+            obj_id = i;
+            min2 = dis2;
+        }
+    }
+}
 
 
 #endif
