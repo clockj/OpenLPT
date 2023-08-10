@@ -222,8 +222,19 @@ void STB<T>::InitialPhase ()
             {
                 bool active;
                 vel_curr = pf.PtInterp(tr->Last().GetCenterPos());
-                MakeLink();
+                MakeLink(nextframe, vel_curr, _r_search_pred, *tr, active);
+
+                if (!active)
+                {
+                    tr = _active_short_track.erase(tr);
+                }
+                else
+                {
+                    ++ tr;
+                }
             }
+
+            StartTrack(currframe, pf);
 
             t_end = clock();
             std::cout << "; link particles time: " 
@@ -236,7 +247,7 @@ void STB<T>::InitialPhase ()
 
 
 template<class T>
-void STB<T>::MakeLink(int nextframe, const Matrix<double>& vel_cur, double radius, Track<T>& track, bool& active)
+void STB<T>::MakeLink(int nextframe, const Matrix<double>& vel_curr, double radius, Track<T>& track, bool& active)
 {
     Matrix<double> pt_last(3,1);
     Matrix<double> pt_estimate(3,1);
@@ -256,7 +267,7 @@ void STB<T>::MakeLink(int nextframe, const Matrix<double>& vel_cur, double radiu
     }
     else
     {
-        _ipr_matched[m][obj_id].SetIsTracked(true);
+        _ipr_matched[m][obj_id].SetIsTrack(true);
         track.AddNext(_ipr_matched[m], nextframe);
         active = true;
     }
@@ -280,6 +291,33 @@ void STB<T>::NearestNeighbor(std::vector<T>& obj_list, double radius, const Matr
         {
             obj_id = i;
             min2 = dis2;
+        }
+    }
+}
+
+
+template<class T>
+void STB<T>::StartTrack(int frame, PredField<T>& pf)
+{
+    int m = frame-_first;
+    Matrix<double> vel_curr(3,1);
+    for (int i = 0; i < _ipr_matched[m].size(); i ++)
+    {
+        if (!_ipr_matched[m][i].IsTrack())
+        {
+            Track<T> init_tr;
+            init_tr.AddNext(_ipr_matched[m][i], frame);
+            _ipr_matched[m][i].SetIsTrack(true);
+
+            vel_curr = pf.PtInterp(_ipr_matched[m][i].GetCenterPos());
+
+            bool active;
+            MakeLink(frame+1, vel_curr, _r_search_pred, init_tr, active);
+
+            if (active)
+            {
+                _active_short_track.push_back(init_tr);
+            }
         }
     }
 }
