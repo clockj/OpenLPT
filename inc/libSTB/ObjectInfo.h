@@ -95,10 +95,10 @@ public:
     };
 
     void SetIsFake (bool is_fake) {_is_fake = is_fake;};
-    bool IsFake () {return _is_fake;};
+    bool IsFake () const {return _is_fake;};
 
     void SetIsTrack (bool is_tracked) {_is_tracked = is_tracked;};
-    bool IsTrack() {return _is_tracked;};
+    bool IsTrack() const {return _is_tracked;};
 };
 
 

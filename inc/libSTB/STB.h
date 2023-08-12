@@ -54,7 +54,7 @@ private:
     double _r_search_init;  // mm 
 
     // convergence phase
-    std::deque<Matrix<double>> _img_org_list;			// original images
+    std::vector<Matrix<double>> _img_org_list;			// original images
     // std::deque<Matrix<double>> _img_res_list;			// residue images
     // std::deque<Matrix<double>> _img_prj_list;           // reproject images 
     double _shake_shift;                                // Shaking range, mm
@@ -96,12 +96,12 @@ private:
     bool _is_acc_check = false;
 
     // storing the tracks
-    std::deque<T> _active_long_track;		    // tracks with more than 3 particles
-    std::deque<T> _active_short_track;		    // tracks with 3 or less particles
-    std::deque<T> _inactive_track;				// tracks that are inactive as they could not find the correct link
-    std::deque<T> _exit_track;					// tracks that left the measurement domain (out of at least 2 cameras)
-    std::deque<T> _inactive_long_tracks;
-    std::deque<T> _buffer_tracks;			    //  new long tracks added from Back or Forward STB (multi-pass)
+    std::deque<Track<T>> _active_long_track;		    // tracks with more than 3 particles
+    std::deque<Track<T>> _active_short_track;		    // tracks with 3 or less particles
+    std::deque<Track<T>> _inactive_track;				// tracks that are inactive as they could not find the correct link
+    std::deque<Track<T>> _exit_track;					// tracks that left the measurement domain (out of at least 2 cameras)
+    std::deque<Track<T>> _inactive_long_tracks;
+    std::deque<Track<T>> _buffer_tracks;			    //  new long tracks added from Back or Forward STB (multi-pass)
 
     // dummy variables to identify the no. of tracks added and subtracted 
     int _a_as = 0, _a_al = 0, _a_is = 0, _s_as1 = 0, _s_as2 = 0, _s_as3 = 0, _s_as4 = 0, _s_al = 0, _a_il = 0;
@@ -123,6 +123,8 @@ public:
     enum TrackType{ Inactive = 0, ActiveShort = 1, ActiveLong = 2, Exit = 3, InactiveLong = 4, Buffer = 5};
 
     //############################### FUNCTIONS ##############################
+    void Run();
+    
     // to make tracks for the first four frames
     void InitialPhase();
     void LoadTracks(std::string path, TrackType trackType);

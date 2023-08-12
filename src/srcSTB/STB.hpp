@@ -66,7 +66,7 @@ STB<T>::STB (std::string file) :_ngrid_xyz(3,0)
     parsed >> _xyz_limit._y_max;
     parsed >> _xyz_limit._z_min;
     parsed >> _xyz_limit._z_max;
-    OTF otf(4, 3, _xyz_limit);
+    _otf = OTF(4, 3, _xyz_limit);
 
     parsed >> _vox_to_mm;
 
@@ -91,7 +91,7 @@ STB<T>::STB (std::string file) :_ngrid_xyz(3,0)
     parsed >> n_grid; _ngrid_xyz[0] = n_grid;
     parsed >> n_grid; _ngrid_xyz[1] = n_grid;
     parsed >> n_grid; _ngrid_xyz[2] = n_grid;
-
+    parsed >> _r_search_pred; _r_search_pred *= _vox_to_mm;
 
     //     //
     // IPR //
@@ -177,7 +177,7 @@ void STB<T>::InitialPhase ()
 
     for (int frame = _first; frame < endframe; frame ++)
     {
-        std::cout << "IPR on frame " << frame << " of " << _last << std::endl;
+        std::cout << "IPR on frame " << frame << " of " << endframe << std::endl;
 
         if (_ipr_flag)
         {
@@ -196,7 +196,7 @@ void STB<T>::InitialPhase ()
             ipr.SetTol3D(_ipr_tol_3d);
 
             std::vector<T> obj_list;
-            ipr.RunIPR(obj_list, _ipr_is_reduced);
+            ipr.RunIPR(obj_list, _ipr_is_reduced, 1);
             _ipr_matched.push_back(obj_list);
         }
     }
@@ -209,7 +209,7 @@ void STB<T>::InitialPhase ()
             int nextframe = frame + 1;
 
             std::cout << "STB initial phase tracking b/w frames: "
-                      << currframe << " & " << nextframe;
+                      << currframe << " & " << nextframe << "; ";
             
             PredField<T> pf(_xyz_limit, _ngrid_xyz, _ipr_matched[currframe-_first], _ipr_matched[nextframe-_first], _r_search_pred);
 
@@ -217,8 +217,9 @@ void STB<T>::InitialPhase ()
             clock_t t_start, t_end;
             t_start = clock();
 
+            // Extend all the tracks that are active in current frame
             Matrix<double> vel_curr(3,1);
-            for (std::deque<Track<T>>::iterator tr = _active_short_track.begin(); tr != _active_short_track.end();)
+            for (typename std::deque<Track<T>>::iterator tr = _active_short_track.begin(); tr != _active_short_track.end();)
             {
                 bool active;
                 vel_curr = pf.PtInterp(tr->Last().GetCenterPos());
@@ -234,6 +235,7 @@ void STB<T>::InitialPhase ()
                 }
             }
 
+            // Start a track for all particles left untracked in current frame
             StartTrack(currframe, pf);
 
             t_end = clock();
@@ -241,8 +243,46 @@ void STB<T>::InitialPhase ()
                       << (double) (t_end - t_start)/CLOCKS_PER_SEC
                       << std::endl;
         }
+
+        // Move all tracks longer than 3 from _active_short_track to _active_long_track
+        for (typename std::deque<Track<T>>::iterator tr = _active_short_track.begin(); tr != _active_short_track.end();)
+        {
+            if (tr->Length() > 3)
+            {
+                _active_long_track.push_back(*tr);
+                tr = _active_short_track.erase(tr);
+            }
+            else
+            {
+                ++ tr;
+            }
+        }
+
+        // Add the untracked particles from frame 4 to _active_short_track
+        int m = (endframe-1)-_first;
+        for (int i = 0; i < _ipr_matched[m].size(); i ++)
+        {
+            if (!_ipr_matched[m][i].IsTrack())
+            {
+                Track<T> temp(_ipr_matched[m][i], endframe-1);
+                _active_short_track.push_back(temp);
+            }
+        }
+
+        std::cout << "Done with initial phase!" << std::endl;
+        std::cout << "\tNo. of active short tracks: " << _active_short_track.size() 
+                  << "\tNo. of active long tracks: " << _active_long_track.size()
+                  << "\tNo. of exited tracks: " << _exit_track.size()
+                  << std::endl << std::endl;
     }
     
+}
+
+
+template<class T>
+void STB<T>::Run ()
+{
+    InitialPhase();
 }
 
 
@@ -253,7 +293,7 @@ void STB<T>::MakeLink(int nextframe, const Matrix<double>& vel_curr, double radi
     Matrix<double> pt_estimate(3,1);
 
     pt_last = track.Last().GetCenterPos();
-    pt_estimate = pt_last + vel_cur;
+    pt_estimate = pt_last + vel_curr;
 
     int len = track.Length();
     int obj_id = _UNLINKED;
@@ -268,7 +308,7 @@ void STB<T>::MakeLink(int nextframe, const Matrix<double>& vel_curr, double radi
     else
     {
         _ipr_matched[m][obj_id].SetIsTrack(true);
-        track.AddNext(_ipr_matched[m], nextframe);
+        track.AddNext(_ipr_matched[m][obj_id], nextframe);
         active = true;
     }
 }
@@ -285,7 +325,8 @@ void STB<T>::NearestNeighbor(std::vector<T>& obj_list, double radius, const Matr
     for (int i = 0; i < obj_list.size(); i ++)
     {
         pt = obj_list[i].GetCenterPos();
-        dis2 = pt_estimate.DistSqr(pt);
+        // dis2 = pt_estimate.DistSqr(pt);
+        dis2 = pt.DistSqr(pt_estimate);
 
         if (dis2 < min2)
         {

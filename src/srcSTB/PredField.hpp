@@ -122,8 +122,7 @@ void PredField<T>::Field()
 
     t_end = clock();
     std::cout << "Displacement field setup time: " 
-              << (double) (t_end - t_start)/CLOCKS_PER_SEC
-              << std::endl;
+              << (double) (t_end - t_start)/CLOCKS_PER_SEC;
 
 }
 

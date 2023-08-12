@@ -63,7 +63,7 @@ int Track<T>::Length() const
     // calculate effective size of the track: if the track ends with one or
     // more estimated positions, don't count them
     int adjust = 0;
-    for (int i = 0; i < _n_obj; i ++, adjust ++) 
+    for (int i = _n_obj-1; i > -1; i --, adjust ++) 
     {
         if (!_obj_list[i].IsFake()) 
         {
@@ -75,7 +75,7 @@ int Track<T>::Length() const
 }
 
 template<class T>
-int Track<T>::GetTime(int index) const throw(std::out_of_range)
+int Track<T>::GetTime(int index) const 
 {
     try 
     {
@@ -89,7 +89,7 @@ int Track<T>::GetTime(int index) const throw(std::out_of_range)
 }
 
 template<class T>
-Matrix<double> Track<T>::GetPos(int n) const throw(std::out_of_range)
+Matrix<double> Track<T>::GetPos(int n) const 
 {
     try 
     {
@@ -103,7 +103,7 @@ Matrix<double> Track<T>::GetPos(int n) const throw(std::out_of_range)
 }
 
 template<class T>
-T Track<T>::GetObj(int n) const throw(std::out_of_range)
+T Track<T>::GetObj(int n) const 
 {
     try 
     {
@@ -185,7 +185,7 @@ template<class T>
 Track<T>& Track<T>::operator=(const Track<T>& t)
 {
   _obj_list = t._obj_list;
-  _t_list = t.ti_t_listme;
+  _t_list = t._t_list;
   _occluded = t._occluded;
   _n_obj = t._n_obj;
 

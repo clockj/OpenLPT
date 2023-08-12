@@ -54,10 +54,10 @@ public:
     // get the length of the Track (not including any ending extrapolated points)
     int Length() const;
     // get the time of a particular element
-    int GetTime(int index) const throw(std::out_of_range);
+    int GetTime(int index) const;
     // get the position of nth element
-    Matrix<double> GetPos(int n) const throw(std::out_of_range);
-    T GetObj(int n) const throw(std::out_of_range);
+    Matrix<double> GetPos(int n) const;
+    T GetObj(int n) const;
 
     // check the occlusion counter
     int OcclusionCount() const {return _occluded;};
@@ -73,12 +73,9 @@ public:
     void WriteGDF(std::ofstream& output, float index, float fps = 1, int n_cam = 4) const;
     
     // member operators
-    Track& operator=(const Track& t);
+    Track<T>& operator=(const Track<T>& t);
     // return the nth point on the Track
     const T operator[](int n) {return _obj_list[n];};
-
-    // non-member operators
-    friend std::ostream& operator<<(std::ostream& os, const Track& t);
 
     // print only the estimated points
     void PrintEstimates(std::ostream& os) const;
