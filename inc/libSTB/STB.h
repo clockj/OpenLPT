@@ -135,9 +135,9 @@ public:
     void MakeLink(int nextframe, const Matrix<double>& vel_curr, double radius, Track<T>& track, bool& active);
     void NearestNeighbor(std::vector<T>& obj_list, double radius, const Matrix<double>& pt_estimate, int& obj_id);
 
-//     // convergence phase
-//     void ConvPhase();
-//     void Pred(int frame, Frame& estPos, deque<double>& estInt);
+    // convergence phase
+    void ConvergencePhase();
+    void Prediction(int frame, std::vector<T>& est_pos, std::deque<double>& est_int);
 //     vector<double> Polyfit(Track tracks, string direction, int datapoints, int polydegree);		// predictor for convergence phase
 //     /*
 //      * Function: predict the next point with Wiener Predictor using LMS algorithm
@@ -147,7 +147,7 @@ public:
 //      * Notice: the order should be less than the length of track.
 //      * Output: the next point
 //      */
-//     double LMSWienerPred(Track tracks, string direction, int order);
+    double LMSWienerPred(Track<T>& track, std::string direction, int order);
 //     std::deque<int> Rem(Frame& pos3D, deque<double>& int3D, double mindist_3D);
 //     void MakeShortLinkResidual(int nextFrame, Frame& candidates, deque<Track>::iterator& tr, int iterations, bool* erase, bool* candidate_used);
 //     void MakeShortLinkResidual(int nextFrame, Frame& candidates, deque<Track>::iterator& tr, int iterations);

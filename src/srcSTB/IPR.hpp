@@ -13,6 +13,9 @@ void IPR<T>::RunIPR(std::vector<T>& object_info, bool is_reduced, int n_reduced)
 {
     std::vector<Matrix<double>> intensity_list(_orig_img_list);
 
+    clock_t t_tot_start, t_tot_end;
+    t_tot_start = clock();
+
     for (int loop_id = 0; loop_id < _n_loop_ipr; loop_id ++)
     {
         // Step 1: identify 2D position from image
@@ -103,8 +106,8 @@ void IPR<T>::RunIPR(std::vector<T>& object_info, bool is_reduced, int n_reduced)
         }
     }
 
-
-    std::cout << "IPR Finish! " << "Find " << _object_info.size() << " particles. " << std::endl;
+    t_tot_end = clock();
+    std::cout << "IPR Finish! " << "Find " << _object_info.size() << " particles. " << "; Total time = " << (t_tot_end-t_tot_start)/CLOCKS_PER_SEC << " s." << std::endl;
     object_info = _object_info;
 }
 

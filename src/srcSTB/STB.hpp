@@ -280,6 +280,31 @@ void STB<T>::InitialPhase ()
 
 
 template<class T>
+void STB<T>::ConvergencePhase ()
+{
+    int endframe = _last;
+
+    // Track frame by frame using Wiener / polynomial predictor along with shaking
+    for (int currframe = _first+3; currframe < endframe; currframe ++)
+    {
+        // Note: previous code has a debug mode
+
+        // Initialize some variables
+        int c1 = _active_short_track.size();
+        int c2 = _active_long_track.size();
+        int c3 = _inactive_track.size();
+        int c4 = _inactive_long_tracks.size();
+        _a_as = 0; _a_al = 0; _a_is = 0; _s_as1 = 0; _s_as2 = 0; _s_as3 = 0; _s_as4 = 0; _s_al = 0; _a_il = 0;
+
+        int nextframe = currframe + 1;
+        std::cout << "\tSTB convergence phase tracking at frame: " << nextframe << std::endl;
+
+
+    }
+}
+
+
+template<class T>
 void STB<T>::Run ()
 {
     InitialPhase();
@@ -361,6 +386,144 @@ void STB<T>::StartTrack(int frame, PredField<T>& pf)
             }
         }
     }
+}
+
+
+template<class T>
+void STB<T>::Prediction(int frame, std::vector<T>& est_pos, std::deque<double>& est_int)
+{
+    // Use polynomial fit / Wiener filter to predict the particle position at nextFrame
+    std::vector<std::vector<double>> pred_coeff(3);
+
+    std::vector<std::string> direction = {"X", "Y", "Z"};
+    Matrix<double> est(3,1);
+    T obj = est_pos[0];
+
+    for (int k = _active_long_track.size()-1; k > -1; k --)
+    {
+        int size = _active_long_track[k].Length();
+        for (int i = 0; i < 3; i ++)
+        {
+            if (size < 4)
+            {
+                est(i,0) = LMSWienerPred(_active_long_track[k], direction[i], 3);
+            }
+            else if (size < 6)
+            {
+                est(i,0) = LMSWienerPred(_active_long_track[k], direction[i], size-1);
+            }
+            else 
+            {
+                est(i,0) = LMSWienerPred(_active_long_track[k], direction[i], 5);
+            }
+        }
+
+        // Check the boundary
+        // if the estimate particle is inside the boundary
+        if (_xyz_limit.Check(est(0,0), est(1,0), est(2,0)))
+        {
+            // Set initial intensity to 1
+            est_int.push_back(1);
+
+            est_pos.push_back();
+        }
+        else
+        {
+
+        }
+    }
+}
+
+
+template<class T>
+double STB<T>::LMSWienerPred(Track<T>& track, std::string direction, int order)
+{
+    int size = track.Length();
+    std::vector<double> series (order+1, 0);
+
+    // Get the series to be predicted
+    int axis = -1;
+    if (direction == "X" || direction == "x")
+    {
+        axis = 0;
+    }
+    else if (direction == "Y" || direction == "y")
+    {
+        axis = 1;
+    }
+    else if (direction == "Z" || direction == "z")
+    {
+        axis = 2;
+    }
+    else
+    {
+        std::cout << "STB::LMSWienerPred: no such direction: " 
+                    << direction
+                    << std::endl;
+        throw error_type;
+    }   
+    for (int i = 0; i < order+1; i ++)
+    {
+        series[i] = track[size-order-1 + i].GetCenterPos()(axis,0);     
+    }
+
+    // Wiener filter does badly near zero
+    // Make a shift to avoid zero-plane prediction
+    bool shift_label = false;
+    double shift = 10;
+    if (std::fabs(series[order]) < 1)
+    {
+        shift_label = true;
+        for (int i = 0; i < order+1; i ++)
+        {
+            series[i] = series[i] + shift;
+        }
+    }
+
+    std::vector<double> filter_param (order, 0);
+    
+    // calculate the step
+    double sum = 0;
+    for (int i = 0; i < order; i ++)
+    {
+        sum += series[i] * series[i];
+    }
+    double step = 1 / sum;
+
+    double prediction = 0;
+    for (int i = 0; i < order; i ++)
+    {
+        prediction += filter_param[i] * series[i];
+    }
+
+    double error = series[order] - prediction;
+
+    while (std::fabs(error) > SMALLNUMBER)
+    {
+        for (int i = 0; i < order; i ++)
+        {
+            filter_param[i] += step * series[i] * error;
+        }
+
+        // Calculate the prediction using the new filter param
+        prediction = 0;
+        for (int i = 0; i < order; i ++)
+        {
+            prediction += filter_param[i] * series[i];
+        }
+        error = series[order] - prediction;
+    }
+    prediction = 0;
+    for (int i = 0; i < order; i ++)
+    {
+        prediction += filter_param[i] * series[i+1];
+    }
+    if (shift_label)
+    {
+        prediction -= shift;
+    }
+
+    return prediction;
 }
 
 

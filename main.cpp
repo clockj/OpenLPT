@@ -119,7 +119,8 @@ int main()
     // disp_field = pf.GetField();
     // disp_field.WriteMatrix("pf_disp_field.csv");
 
-    STB<TracerInfo> stb("./Data/stbConfig.txt");
+    // STB<TracerInfo> stb("./Data/stbConfig.txt");
+    STB<TracerInfo> stb("D:/SD00125_New/stbConfig.txt");
     stb.Run();
 
     std::cout << "Finish OpenLPT!" << std::endl;

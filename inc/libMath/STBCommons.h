@@ -84,6 +84,18 @@ struct AxisLimit
         _z_min = limit._z_min;
         _z_max = limit._z_max;
     };
+
+    bool Check (double x, double y, double z)
+    {
+        if (x > _x_max || x < _x_min || 
+            y > _y_max || y < _y_min || 
+            z > _z_max || z < _z_min)
+        {
+            return false;
+        }
+
+        return true;
+    }
 };
 
 enum ErrorTypeID
