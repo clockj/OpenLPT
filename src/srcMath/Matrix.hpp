@@ -21,42 +21,46 @@ Matrix<T>::Matrix(int dim_x, int dim_y, T val)
 
 template<class T> 
 Matrix<T>::Matrix (std::vector<std::vector<T>> const& mtx)
-    : Matrix(mtx.size(), mtx[0].size(), 0)
+    : _dim_x(mtx.size()), _dim_y(mtx[0].size())
 {
+    _n = _dim_x * _dim_y;
+    _is_space = 1;
+    _mtx = new T [_n];
+
     for (int i = 0; i < _dim_x; i ++)
     {
-        if (mtx[i].size() != _dim_y)
-        {
-            std::cerr << "Matrix::Matrix: " 
-                      << "_dim_y=" << _dim_y << ","
-                      << "mtx[" << i << "].size()=" << mtx[i].size()
-                      << std::endl;
-            throw error_size;
-        }
-
         for (int j = 0; j < _dim_y; j ++)
         {
-            _mtx[i][j] = mtx[i][j];
+            _mtx[MapID(i,j)] = mtx[i][j];
         }
     }
 }
 
 template<class T> 
 Matrix<T>::Matrix (const Matrix<T>& mtx) 
-    : Matrix(mtx._dim_x, mtx._dim_y, 0)
+    : _dim_x(mtx._dim_x), _dim_y(mtx._dim_y), _n(mtx._n), _is_space(1)
 {
-    for (int i = 0; i < _dim_x; i ++)
+    _mtx = new T [_n];
+    for (int i = 0; i < _n; i ++)
     {
-        for (int j = 0; j < _dim_y; j ++)
-        {
-            _mtx[i][j] = mtx._mtx[i][j];
-        }
+        _mtx[i] = mtx._mtx[i];
     }
 }
 
+// template<class T> 
+// Matrix<T>::Matrix (int dim_x, int dim_y, const T* mtx) 
+//     : _dim_x(dim_x), _dim_y(dim_y), _n(dim_x*dim_y)
+// {
+//     _mtx = new T [_n];
+//     for (int i = 0; i < _n; i ++)
+//     {
+//         _mtx[i] = mtx[i];
+//     }
+// }
+
 template<class T>
-Matrix<T>::Matrix (const Matrix<T>& vec_1, const Matrix<T>& vec_2)
-    : Matrix(vec_1._dim_x, vec_1._dim_y, 0)
+Matrix<T>::Matrix (const Matrix<T>& vec_1, const Matrix<T>& vec_2) // vec_1, vec_2 have same dim
+    : _dim_x(vec_1._dim_x), _dim_y(vec_1._dim_y), _n(vec_1._n), _is_space(1)
 {
     if (vec_2._dim_x != _dim_x || vec_2._dim_y != _dim_y)
     {
@@ -65,17 +69,15 @@ Matrix<T>::Matrix (const Matrix<T>& vec_1, const Matrix<T>& vec_2)
         throw error_size;
     }
 
+    _mtx = new T [_n];
+
     T mag = 0;
     T value = 0;
-    for (int i = 0; i < _dim_x; i ++)
+    for (int i = 0; i < _n; i ++)
     {
-        for (int j = 0; j < _dim_y; j ++)
-        {
-            value = vec_1._mtx[i][j] - vec_2._mtx[i][j];
-
-            _mtx[i][j] = value;
-            mag += value * value;
-        }
+        value = vec_1._mtx[i] - vec_2._mtx[i];
+        _mtx[i] = value;
+        mag += (value * value);
     }
 
     if (mag < MAGSMALLNUMBER)
@@ -86,38 +88,38 @@ Matrix<T>::Matrix (const Matrix<T>& vec_1, const Matrix<T>& vec_2)
     }
 
     mag = T (std::sqrt(mag));
-    for (int i = 0; i < _dim_x; i ++)
+    for (int i = 0; i < _n; i ++)
     {
-        for (int j = 0; j < _dim_y; j ++)
-        {
-            _mtx[i][j] /= mag;
-        }
+        _mtx[i] /= mag;
     }
 }
 
 template<class T> 
 Matrix<T>::Matrix (T m11, T m12,
                    T m21, T m22)
-    : Matrix(2, 2, 0)
+    : _dim_x(2), _dim_y(2), _n(4), _is_space(1)
 {
-    _mtx[0][0] = m11; _mtx[0][1] = m12;
-    _mtx[1][0] = m21; _mtx[1][1] = m22;
+    _mtx = new T [4];
+    _mtx[0] = m11; _mtx[1] = m12;
+    _mtx[2] = m21; _mtx[3] = m22;
 }
 
 template<class T> 
 Matrix<T>::Matrix (T m11, T m12, T m13,
                    T m21, T m22, T m23,
                    T m31, T m32, T m33)
-    : Matrix(3, 3, 0)
+    : _dim_x(3), _dim_y(3), _n(9), _is_space(1)
 {    
-    _mtx[0][0] = m11; _mtx[0][1] = m12; _mtx[0][2] = m13;
-    _mtx[1][0] = m21; _mtx[1][1] = m22; _mtx[1][2] = m23;
-    _mtx[2][0] = m31; _mtx[2][1] = m32; _mtx[2][2] = m33;
+    _mtx = new T [9];
+
+    _mtx[0] = m11; _mtx[1] = m12; _mtx[2] = m13;
+    _mtx[3] = m21; _mtx[4] = m22; _mtx[5] = m23;
+    _mtx[6] = m31; _mtx[7] = m32; _mtx[8] = m33;
 }
 
 template<class T>
 Matrix<T>::Matrix (int dim_x, int dim_y, T v1, T v2, T v3)
-    : Matrix(3,1)
+    : _dim_x(3), _dim_y(1), _n(3), _is_space(1)
 {
     if (dim_x != 3 || dim_y != 1)
     {
@@ -126,10 +128,11 @@ Matrix<T>::Matrix (int dim_x, int dim_y, T v1, T v2, T v3)
                   << std::endl;
         throw error_size;
     }
+    _mtx = new T [3];
 
-    _mtx[0][0] = v1;
-    _mtx[1][0] = v2;
-    _mtx[2][0] = v3;
+    _mtx[0] = v1;
+    _mtx[1] = v2;
+    _mtx[2] = v3;
 }
 
 template<class T> 
@@ -138,7 +141,7 @@ Matrix<T>::Matrix (int dim)
 {
     for (int i = 0; i < _dim_x; i ++)
     {
-        _mtx[i][i] = 1;
+        _mtx[MapID(i,i)] = 1;
     }
 }
 
@@ -191,24 +194,17 @@ Matrix<T>::Matrix (std::string file_name)
             std::istringstream istream_data;
             istream_data.str(line);
 
+            int id_start = i * _dim_y;
             int j = 0;
             while (istream_data >> value)
             {
-                _mtx[i][j] = value;
+                _mtx[id_start+j] = value;
                 j ++;
                 if (istream_data.peek() == ',')
                 {
                     istream_data.ignore();
                 }
-            }
-            if (j < _dim_y)
-            {
-                for (int z = j; z < _dim_y; z ++)
-                {
-                    _mtx[i][z] = 0;
-                }
-            }
-            
+            } // NOTE: make sure each row has the same elem
         }
 
         infile_data.close();
@@ -235,31 +231,12 @@ void Matrix<T>::ClearMtx()
 {
     if (_is_space)
     {
-        for (int i = 0; i < _dim_x; i ++)
-        {
-            delete[] _mtx[i];
-        }
-        delete[] _mtx;
+        _dim_x = 0;
+        _dim_y = 0;
+        _n = 0;
         _is_space = 0;
-    }
-}
 
-template<class T>
-void Matrix<T>::ReCreateCol (int dim_y)
-{
-    if (_is_space && dim_y > 0)
-    {
-        _dim_y = dim_y;
-        for (int i = 0; i < _dim_x; i ++)
-        {
-            delete[] _mtx[i];
-            _mtx[i] = new T [_dim_y];
-
-            for (int j = 0; j < _dim_y; j ++)
-            {
-                _mtx[i][j] = 0;
-            }
-        }
+        delete[] _mtx;
     }
 }
 
@@ -272,63 +249,14 @@ void Matrix<T>::CreateMtx(int dim_x, int dim_y, T val)
 
         _dim_x = dim_x;
         _dim_y = dim_y;
+        _n = _dim_x * _dim_y;
 
-        int temp = 0;
-        while (temp < 5)
+        _mtx = new T [_n];
+
+        for (int i = 0; i < _n; i ++)
         {
-            try 
-            {
-                _mtx = new T* [_dim_x];
-
-                break;
-            }
-            catch (...)
-            {    
-                if (temp == 4)
-                {
-                    std::cout << "CreateMtx: dim_x no enough space\n";
-                    throw;
-                }
-            }
-            temp += 1;
+            _mtx[i] = val;
         }
-        for (int i = 0; i < _dim_x; i ++)
-        {
-            int temp = 0;
-            while (temp < 5)
-            {
-                try 
-                {
-                    _mtx[i] = new T [_dim_y];
-
-                    break;
-                }
-                catch (...)
-                {    
-                    if (temp == 4)
-                    {
-                        std::cout << "CreateMtx: dim_y no enough space\n";
-                        throw;
-                    }
-                }
-                temp += 1;
-            }
-            
-            for (int j = 0; j < _dim_y; j ++)
-            {
-                _mtx[i][j] = val;
-            }
-        }
-
-        // _mtx = new T* [_dim_x];
-        // for (int i = 0; i < _dim_x; i ++)
-        // {
-        //     _mtx[i] = new T [_dim_y];
-        //     for (int j = 0; j < _dim_y; j ++)
-        //     {
-        //         _mtx[i][j] = val;
-        //     }
-        // }
     }
     else
     {
@@ -345,17 +273,22 @@ void Matrix<T>::CreateMtx(T val)
 }
 
 
+// Get id
+template<class T>
+inline int Matrix<T>::MapID(int id_x, int id_y) const
+{
+    return (id_x * _dim_y + id_y);
+}
+
+
 // Type transform
 template<class T> 
 Matrix<double> Matrix<T>::TypeToDouble ()
 {
-    Matrix<double> res(_dim_x, _dim_y);
-    for (int iter_x = 0; iter_x < _dim_x; iter_x ++)
+    Matrix<double> res(_dim_x,_dim_y);
+    for (int i = 0; i < _n; i ++)
     {
-        for (int iter_y = 0; iter_y < _dim_y; iter_y ++)
-        {
-            res(iter_x, iter_y) = double(_mtx[iter_x][iter_y]);
-        }
+        res._mtx[i] = double(_mtx[i]);
     }
     return res;
 }
@@ -364,12 +297,9 @@ template<class T>
 Matrix<int> Matrix<T>::TypeToInt ()
 {
     Matrix<int> res(_dim_x, _dim_y);
-    for (int iter_x = 0; iter_x < _dim_x; iter_x ++)
+    for (int i = 0; i < _n; i ++)
     {
-        for (int iter_y = 0; iter_y < _dim_y; iter_y ++)
-        {
-            res(iter_x, iter_y) = int(_mtx[iter_x][iter_y]);
-        }
+        res._mtx[i] = int(_mtx[i]);
     }
     return res;
 }
@@ -382,34 +312,37 @@ Matrix<int> Matrix<T>::TypeToInt ()
 template<class T> 
 T Matrix<T>::operator() (int i, int j) const
 {
-    return _mtx[i][j];
+    return _mtx[MapID(i,j)];
 }
 
 template<class T> 
 T& Matrix<T>::operator() (int i, int j)
 {
-    return _mtx[i][j];
+    return _mtx[MapID(i,j)];
 }
 
+// Just for vector
 template<class T>
 T Matrix<T>::operator[] (int i) const 
 {
-    return _mtx[i][0];
+    return _mtx[i];
 }
 
+// Just for vector
 template<class T>
 T& Matrix<T>::operator[] (int i)
 {
-    return _mtx[i][0];
+    return _mtx[i];
 }
 
 template<class T> 
 std::vector<T> Matrix<T>::GetRow(int i)
 {
     std::vector<T> row(_dim_y, 0);
+    int id_start = i * _dim_y;
     for (int iter = 0; iter < _dim_y; iter ++)
     {
-        row[iter] = _mtx[i][iter];
+        row[iter] = _mtx[id_start + iter];
     }
     return row;
 }
@@ -420,7 +353,7 @@ std::vector<T> Matrix<T>::GetCol(int j)
     std::vector<T> col(_dim_x, 0);
     for (int iter = 0; iter < _dim_x; iter ++)
     {
-        col[iter] = _mtx[iter][j];
+        col[iter] = _mtx[MapID(iter,j)];
     }
     return col;
 }
@@ -430,13 +363,13 @@ std::vector<T> Matrix<T>::GetCol(int j)
 // Get matrix info
 //
 template<class T> 
-int Matrix<T>::GetDimX() const
+inline int Matrix<T>::GetDimX() const
 {
     return _dim_x;
 }
 
 template<class T> 
-int Matrix<T>::GetDimY() const
+inline int Matrix<T>::GetDimY() const
 {
     return _dim_y;
 }
@@ -449,9 +382,11 @@ void Matrix<T>::Print()
     std::cout << "(dim_x, dim_y) = " 
               << "(" << _dim_x << "," << _dim_y << ")" 
               << std::endl;
-    
+    int id_start;
     for (int iter_x = 0; iter_x < _dim_x; iter_x ++)
     {
+        id_start = iter_x * _dim_y;
+
         std::cout << "| ";
         for (int iter_y = 0; iter_y < _dim_y; iter_y ++)
         {
@@ -459,7 +394,7 @@ void Matrix<T>::Print()
                       << std::setprecision(2)  
                       << std::setfill(' ') 
                       << std::left 
-                      << _mtx[iter_x][iter_y] << " ";
+                      << _mtx[id_start + iter_y] << " ";
         }
         std::cout << "|" << std::endl;
     }
@@ -476,12 +411,9 @@ template<class T>
 double Matrix<T>::FrobeniusNorm()
 {
     double res = 0.0;
-    for (int iter_x = 0; iter_x < _dim_x; iter_x ++)
+    for (int i = 0; i < _n; i ++)
     {
-        for (int iter_y = 0; iter_y < _dim_y; iter_y ++)
-        {
-            res += _mtx[iter_x][iter_y] * _mtx[iter_x][iter_y];
-        }
+        res += (_mtx[i] * _mtx[i]);
     }
     return std::sqrt(res);
 }
@@ -498,12 +430,9 @@ double Matrix<T>::Dot(Matrix<T> const& mtx)
     }
 
     double res = 0;
-    for (int i = 0; i < _dim_x; i ++)
+    for (int i = 0; i < _n; i ++)
     {
-        for (int j = 0; j < _dim_y; j ++)
-        {
-            res += _mtx[i][j] * mtx._mtx[i][j];
-        }
+        res += (_mtx[i] * mtx._mtx[i]);
     }
 
     return res;
@@ -519,12 +448,9 @@ double Matrix<T>::DistSqr(Matrix<T> const& mtx)
     }
 
     double dist = 0;
-    for (int i = 0; i <_dim_x; i ++)
+    for (int i = 0; i < _n; i ++)
     {
-        for (int j = 0; j <_dim_y; j ++)
-        {
-            dist += std::pow((double)_mtx[i][j] - mtx._mtx[i][j], 2);
-        }
+        dist += std::pow((double)_mtx[i] - mtx._mtx[i], 2);
     }
 
     return dist;
@@ -539,12 +465,12 @@ double Matrix<T>::DistSqr(Matrix<T> const& pt, Matrix<T> const& unit)
         throw error_size;
     }
 
-    double x1 = pt._mtx[0][0] - _mtx[0][0];
-    double x2 = pt._mtx[1][0] - _mtx[1][0];
-    double x3 = pt._mtx[2][0] - _mtx[2][0];
+    double x1 = pt._mtx[0] - _mtx[0];
+    double x2 = pt._mtx[1] - _mtx[1];
+    double x3 = pt._mtx[2] - _mtx[2];
 
     // calculate dot 
-    double res = x1*unit._mtx[0][0] + x2*unit._mtx[1][0] + x3*unit._mtx[2][0];
+    double res = x1*unit._mtx[0] + x2*unit._mtx[1] + x3*unit._mtx[2];
 
     double dist = x1*x1 + x2*x2 + x3*x3 - res*res;
 
@@ -595,12 +521,13 @@ void Matrix<T>::WriteMatrix (std::string file_name)
     T value;
     for (int i = 0; i < _dim_x; i ++)
     {
+        int id_start = i * _dim_y;
         for (int j = 0; j < _dim_y-1; j ++)
         {
-            value = _mtx[i][j];
+            value = _mtx[id_start + j];
             outfile << value << ",";
         }
-        outfile << _mtx[i][_dim_y-1] << "\n";
+        outfile << _mtx[id_start + _dim_y-1] << "\n";
     }
 
     outfile.close();
@@ -618,15 +545,18 @@ Matrix<T>& Matrix<T>::operator= (Matrix<T> const& mtx)
     if (_dim_x != mtx._dim_x || _dim_y != mtx._dim_y)
     {
         ClearMtx();
-        CreateMtx(mtx._dim_x, mtx._dim_y, 0);
+
+        _is_space = 1;
+        _dim_x = mtx._dim_x;
+        _dim_y = mtx._dim_y;
+        _n = mtx._n;
+
+        _mtx = new T [_n];
     }
 
-    for (int i = 0; i < _dim_x; i ++)
+    for (int i = 0; i < _n; i ++)
     {
-        for (int j = 0; j < _dim_y; j ++)
-        {
-            _mtx[i][j] = mtx._mtx[i][j];
-        }
+        _mtx[i]= mtx._mtx[i];
     }
 
     return *this;
@@ -642,12 +572,9 @@ Matrix<T> Matrix<T>::operator+ (Matrix<T> const& mtx)
     }
 
     Matrix<T> res(mtx);
-    for (int iter_x = 0; iter_x < _dim_x; iter_x ++)
+    for (int i = 0; i < _n; i ++)
     {
-        for (int iter_y = 0; iter_y < _dim_y; iter_y ++)
-        {
-            res._mtx[iter_x][iter_y] = _mtx[iter_x][iter_y] + mtx._mtx[iter_x][iter_y];
-        }
+        res._mtx[i] += _mtx[i];
     }
 
     return res;
@@ -661,12 +588,9 @@ Matrix<T>& Matrix<T>::operator+= (Matrix<T> const& mtx)
         std::cerr << "The size of matrices do not match!" << std::endl;
         throw error_size;
     }
-    for (int iter_x = 0; iter_x < _dim_x; iter_x ++)
+    for (int i = 0; i < _n; i ++)
     {
-        for (int iter_y = 0; iter_y < _dim_y; iter_y ++)
-        {
-            _mtx[iter_x][iter_y] += mtx._mtx[iter_x][iter_y];
-        }
+        _mtx[i] += mtx._mtx[i];
     }
     return *this;
 }
@@ -682,12 +606,9 @@ Matrix<T> Matrix<T>::operator- (Matrix<T> const& mtx)
 
     Matrix<T> res(_dim_x, _dim_y, 0);
 
-    for (int iter_x = 0; iter_x < _dim_x; iter_x ++)
+    for (int i = 0; i < _n; i ++)
     {
-        for (int iter_y = 0; iter_y < _dim_y; iter_y ++)
-        {
-            res._mtx[iter_x][iter_y] = _mtx[iter_x][iter_y] - mtx._mtx[iter_x][iter_y];
-        }
+        res._mtx[i] = _mtx[i] - mtx._mtx[i];
     }
 
     return res;
@@ -701,12 +622,9 @@ Matrix<T>& Matrix<T>::operator-= (Matrix<T> const& mtx)
         std::cerr << "The size of matrices do not match!" << std::endl;
         throw error_size;
     }
-    for (int iter_x = 0; iter_x < _dim_x; iter_x ++)
+    for (int i = 0; i < _n; i ++)
     {
-        for (int iter_y = 0; iter_y < _dim_y; iter_y ++)
-        {
-            _mtx[iter_x][iter_y] -= mtx._mtx[iter_x][iter_y];
-        }
+        _mtx[i] -= mtx._mtx[i];
     }
     return *this;
 }
@@ -727,7 +645,7 @@ Matrix<T> Matrix<T>::operator* (Matrix<T> const& mtx)
         {
             for (int iter = 0; iter < _dim_y; iter ++)
             {
-                res._mtx[iter_x][iter_y] += (_mtx[iter_x][iter] * mtx._mtx[iter][iter_y]);
+                res(iter_x,iter_y) += (_mtx[MapID(iter_x,iter)] * mtx(iter,iter_y));
             }
         }
     }
@@ -751,22 +669,24 @@ Matrix<T>& Matrix<T>::operator*= (Matrix<T> const& mtx)
         {
             for (int iter = 0; iter < _dim_y; iter ++)
             {
-                res._mtx[iter_x][iter_y] += (_mtx[iter_x][iter] * mtx._mtx[iter][iter_y]);
+                res(iter_x,iter_y) += (_mtx[MapID(iter_x,iter)] * mtx(iter,iter_y));
             }
         }
     }
     
     if (_dim_y != res._dim_y)
     {
-        ReCreateCol(res._dim_y);
+        // _dim_x = res._dim_x;
+        _dim_y = res._dim_y;
+        _n = res._n;
+
+        delete[] _mtx;
+        _mtx = new T [_n];
     }
 
-    for (int i = 0; i < _dim_x; i ++)
+    for (int i = 0; i < _n; i ++)
     {
-        for (int j = 0; j < _dim_y; j ++)
-        {
-            _mtx[i][j] = res._mtx[i][j];
-        }
+        _mtx[i] = res._mtx[i];
     }
 
     return *this;
@@ -777,28 +697,20 @@ template<class T>
 Matrix<T> Matrix<T>::operator* (T ratio)
 {
     Matrix<T> res(*this);
-    for (int iter_x = 0; iter_x < _dim_x; iter_x ++)
+    for (int i = 0; i < _n; i ++)
     {
-        for (int iter_y = 0; iter_y < _dim_y; iter_y ++)
-        {
-            res._mtx[iter_x][iter_y] = _mtx[iter_x][iter_y] * ratio;
-        }
+        res._mtx[i] *= ratio;
     }
-
     return res;
 }
 
 template<class T> 
 Matrix<T>& Matrix<T>::operator*= (T ratio)
 {
-    for (int iter_x = 0; iter_x < _dim_x; iter_x ++)
+    for (int i = 0; i < _n; i ++)
     {
-        for (int iter_y = 0; iter_y < _dim_y; iter_y ++)
-        {
-            _mtx[iter_x][iter_y] *= ratio;   
-        }
+        _mtx[i] *= ratio;   
     }
-
     return *this;
 }
 
@@ -806,28 +718,20 @@ template<class T>
 Matrix<T> Matrix<T>::operator/ (T ratio)
 {
     Matrix<T> res(*this);
-    for (int iter_x = 0; iter_x < _dim_x; iter_x ++)
+    for (int i = 0; i < _n; i ++)
     {
-        for (int iter_y = 0; iter_y < _dim_y; iter_y ++)
-        {
-            res._mtx[iter_x][iter_y] = _mtx[iter_x][iter_y] / ratio;
-        }
+        res._mtx[i] /= ratio;
     }
-
     return res;
 }
 
 template<class T> 
 Matrix<T>& Matrix<T>::operator/= (T ratio)
 {
-    for (int iter_x = 0; iter_x < _dim_x; iter_x ++)
+    for (int i = 0; i < _n; i ++)
     {
-        for (int iter_y = 0; iter_y < _dim_y; iter_y ++)
-        {
-            _mtx[iter_x][iter_y] /= ratio;   
-        }
+        _mtx[i] /= ratio;
     }
-
     return *this;
 }
 
@@ -835,12 +739,10 @@ Matrix<T>& Matrix<T>::operator/= (T ratio)
 template<class T> 
 void Matrix<T>::PiecewiseMultiply (Matrix<T> const& mtx)
 {
-    for (int iter_x = 0; iter_x < _dim_x; iter_x ++)
+    // TODO: justify dimensions
+    for (int i = 0; i < _n; i ++)
     {
-        for (int iter_y = 0; iter_y < _dim_y; iter_y ++)
-        {
-            _mtx[iter_x][iter_y] *= mtx._mtx[iter_x][iter_y];
-        }
+        _mtx[i] *= mtx._mtx[i];
     }
 }
 
@@ -857,7 +759,7 @@ Matrix<T> Matrix<T>::Transpose ()
     {
         for (int iter_y = 0; iter_y < _dim_y; iter_y ++)
         {
-            res(iter_y, iter_x) = _mtx[iter_x][iter_y];
+            res(iter_y,iter_x) = _mtx[MapID(iter_x,iter_y)];
         }
     }
     return res;
@@ -877,7 +779,7 @@ Matrix<T> Matrix<T>::Diagonal ()
     Matrix<T> res(_dim_x, _dim_x, 0);
     for (int iter_x = 0; iter_x < _dim_x; iter_x ++)
     {
-        res(iter_x, iter_x) = _mtx[iter_x][iter_x];
+        res(iter_x,iter_x) = _mtx[MapID(iter_x,iter_x)];
     }
 
     return res;
@@ -897,7 +799,7 @@ double Matrix<T>::Trace ()
     double res = 0.0;
     for (int iter_x = 0; iter_x < _dim_x; iter_x ++)
     {
-        res += _mtx[iter_x][iter_x];
+        res += _mtx[MapID(iter_x,iter_x)];
     }
 
     return res;
@@ -952,21 +854,25 @@ Matrix<double> Matrix<T>::DetInverse ()
     }
     
     Matrix<double> res(3,3,0);
+    //        [0]    [1]    [2]
+    // [0] res[0] res[1] res[2]
+    // [1] res[3] res[4] res[5]
+    // [2] res[6] res[7] res[8]
 
-    double det =   _mtx[0][0] * ( _mtx[1][1]*_mtx[2][2] - _mtx[1][2]*_mtx[2][1] )
-                 - _mtx[0][1] * ( _mtx[1][0]*_mtx[2][2] - _mtx[1][2]*_mtx[2][0] ) 
-                 + _mtx[0][2] * ( _mtx[1][0]*_mtx[2][1] - _mtx[1][1]*_mtx[2][0] );
-    res._mtx[0][0] =   (_mtx[1][1]*_mtx[2][2] - _mtx[1][2]*_mtx[2][1]) / det;
-    res._mtx[0][1] = - (_mtx[1][0]*_mtx[2][2] - _mtx[1][2]*_mtx[2][0]) / det;
-    res._mtx[0][2] =   (_mtx[1][0]*_mtx[2][1] - _mtx[1][1]*_mtx[2][0]) / det;
+    double det =   _mtx[0] * ( _mtx[4]*_mtx[8] - _mtx[5]*_mtx[7] )
+                 - _mtx[1] * ( _mtx[3]*_mtx[8] - _mtx[5]*_mtx[6] ) 
+                 + _mtx[2] * ( _mtx[3]*_mtx[7] - _mtx[4]*_mtx[6] );
+    res._mtx[0] =   (_mtx[4]*_mtx[8] - _mtx[5]*_mtx[7]) / det;
+    res._mtx[1] = - (_mtx[3]*_mtx[8] - _mtx[5]*_mtx[6]) / det;
+    res._mtx[2] =   (_mtx[3]*_mtx[7] - _mtx[4]*_mtx[6]) / det;
 
-    res._mtx[1][0] = - (_mtx[0][1]*_mtx[2][2] - _mtx[0][2]*_mtx[2][1]) / det;
-    res._mtx[1][1] =   (_mtx[0][0]*_mtx[2][2] - _mtx[0][2]*_mtx[2][0]) / det;
-    res._mtx[1][2] = - (_mtx[0][0]*_mtx[2][1] - _mtx[0][1]*_mtx[2][0]) / det;
+    res._mtx[3] = - (_mtx[1]*_mtx[8] - _mtx[2]*_mtx[7]) / det;
+    res._mtx[4] =   (_mtx[0]*_mtx[8] - _mtx[2]*_mtx[6]) / det;
+    res._mtx[5] = - (_mtx[0]*_mtx[7] - _mtx[1]*_mtx[6]) / det;
 
-    res._mtx[2][0] =   (_mtx[0][1]*_mtx[1][2] - _mtx[0][2]*_mtx[1][1]) / det;
-    res._mtx[2][1] = - (_mtx[0][0]*_mtx[1][2] - _mtx[0][2]*_mtx[1][0]) / det;
-    res._mtx[2][2] =   (_mtx[0][0]*_mtx[1][1] - _mtx[0][1]*_mtx[1][0]) / det;
+    res._mtx[6] =   (_mtx[1]*_mtx[5] - _mtx[2]*_mtx[4]) / det;
+    res._mtx[7] = - (_mtx[0]*_mtx[5] - _mtx[2]*_mtx[3]) / det;
+    res._mtx[8] =   (_mtx[0]*_mtx[4] - _mtx[1]*_mtx[3]) / det;
 
     return res;
 }
@@ -1053,8 +959,8 @@ Matrix<double> Matrix<T>::GaussBackward(Matrix<double> b_mtx, Matrix<double> u_m
         {
             for (int iter_x = iter_y+1; iter_x < u_mtx._dim_x; iter_x ++)
             {
-                b_mtx(sortedRowIndex[iter_x], iter) -= u_mtx(sortedRowIndex[iter_x], iter_y) 
-                                                     * b_mtx(sortedRowIndex[iter_y], iter);
+                b_mtx(sortedRowIndex[iter_x], iter) -= (u_mtx(sortedRowIndex[iter_x], iter_y) 
+                                                      * b_mtx(sortedRowIndex[iter_y], iter));
             }
         }
 
@@ -1067,7 +973,7 @@ Matrix<double> Matrix<T>::GaussBackward(Matrix<double> b_mtx, Matrix<double> u_m
             z = b_mtx(sortedRowIndex[iter_x], iter);
             for (int iter_y = iter_x+1; iter_y < u_mtx._dim_y; iter_y ++)
             {
-                z -= u_mtx(sortedRowIndex[iter_x], iter_y) * res(iter_y, iter);
+                z -= (u_mtx(sortedRowIndex[iter_x], iter_y) * res(iter_y, iter));
             }
             res(iter_x, iter) = z / u_mtx(sortedRowIndex[iter_x], iter_x);
         }

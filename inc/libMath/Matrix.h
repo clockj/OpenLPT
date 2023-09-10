@@ -27,8 +27,10 @@ template <class T>
 class Matrix
 {
     int _dim_x; int _dim_y;
+    int _n; // tot number of elem
     int _is_space = 0; // 0 for nothing installed; 1 for already claim space
-    T** _mtx;
+    int MapID (int id_x, int id_y) const; // id_x*_dim_y + _dim_x
+    T* _mtx;
     
 public:
     // Constructor
@@ -36,9 +38,10 @@ public:
     Matrix (int dim_x, int dim_y);
     Matrix (int dim_x, int dim_y, T val);
     Matrix (const Matrix<T>& mtx);
+    // Matrix (int dim_x, int dim_y, const T* mtx); // dim_x, dim_y must be compatible with mtx
+    Matrix (std::vector<std::vector<T>> const& mtx); // must make sure each row has the same number of columns
     Matrix (const Matrix<T>& vec_1, const Matrix<T>& vec_2); // generate a unit vector: v = (v_1-v_2)/|v_1-v_2|
                                                              // not applicable for int 
-    Matrix (std::vector<std::vector<T>> const& mtx); // must make sure each row has the same number of columns
     Matrix (T m11, T m12,
             T m21, T m22);
     Matrix (T m11, T m12, T m13,
@@ -52,7 +55,7 @@ public:
 
     // Create/Clear space 
     void ClearMtx  ();
-    void ReCreateCol (int dim_y);
+    // void ReCreateCol (int dim_y);
     void CreateMtx (int dim_x, int dim_y, T val);
     void CreateMtx (T val);
 

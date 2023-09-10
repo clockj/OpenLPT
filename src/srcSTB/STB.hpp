@@ -168,7 +168,7 @@ void STB<T>::InitialPhase ()
         endframe = (_last >= _first + 4) ? _first+4 : _last+1;
     }
 
-    Matrix<double> intensity(_n_pix_h, _n_pix_w);
+    Matrix<double> intensity(_n_pix_h, _n_pix_w); // TODO: 1024*1024
     for (int i = 0; i < _n_cam; i ++)
     {
         _img_org_list.push_back(intensity);
@@ -196,8 +196,8 @@ void STB<T>::InitialPhase ()
             ipr.SetTol3D(_ipr_tol_3d);
 
             std::vector<T> obj_list;
-            ipr.RunIPR(obj_list, _ipr_is_reduced, 1);
             _ipr_matched.push_back(obj_list);
+            ipr.RunIPR(_ipr_matched.back(), _ipr_is_reduced, 1);
         }
     }
 

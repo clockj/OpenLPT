@@ -359,6 +359,10 @@ Matrix<double> PredField<T>::PtInterp(Matrix<double> const& pt)
         (int) std::floor((pt_z - _limit._z_min) / _dz)
     );
 
+    index_x = std::min(index_x, _n_xyz[0]-2);
+    index_y = std::min(index_y, _n_xyz[1]-2);
+    index_z = std::min(index_z, _n_xyz[2]-2);
+
     AxisLimit grid_limit;
 
     grid_limit._x_min = _grid_x[index_x];

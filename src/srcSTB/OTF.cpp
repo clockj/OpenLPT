@@ -91,6 +91,10 @@ std::vector<double> OTF::GetOTFParam(int cam_index, const Matrix<double>& pt_wor
         (int) std::floor((pt_z - _boundary._z_min) / _dz)
     );
 
+    index_x = std::min(index_x, _nx-2);
+    index_y = std::min(index_y, _ny-2);
+    index_z = std::min(index_z, _nz-2);
+
     AxisLimit grid_limit;
 
     grid_limit._x_min = _grid_x[index_x];
