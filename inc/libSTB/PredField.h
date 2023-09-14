@@ -79,6 +79,22 @@ public:
         Field();
     };
 
+    // Only require pt_list
+    PredField(AxisLimit& limit, std::vector<int>& n_xyz, std::vector<Matrix<double>>& pt_list_prev, std::vector<Matrix<double>>& pt_list_curr, double r, std::vector<T> useless) 
+        : _limit(limit), _n_xyz(n_xyz), _n_tot(n_xyz[0]*n_xyz[1]*n_xyz[2]), _grid(3, n_xyz[0]*n_xyz[1]*n_xyz[2]), 
+          _obj_list_prev(useless),  _obj_list_curr(useless), _pt_list_prev(pt_list_prev), _pt_list_curr(pt_list_curr), _r(r), 
+          _disp_field(3, n_xyz[0]*n_xyz[1]*n_xyz[2])
+    {
+        SetGrid();
+
+        // converting the Map index (i) to displacement (dx) as i = m*dx + c;
+        _size = 4 * _disp_map_res * _r + 1; // dispMapRes = 10
+        _m = (_size - 1) / (4 * _r);
+        _c = (_size - 1) / 2;
+
+        Field();
+    };
+
     // destructor
     ~PredField() {};
 

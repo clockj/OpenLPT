@@ -134,10 +134,11 @@ public:
     // extends the particle track to nextFrame using search radius method (can be used for first 4 links in both, intialization and convergence phase)
     void MakeLink(int nextframe, const Matrix<double>& vel_curr, double radius, Track<T>& track, bool& active);
     void NearestNeighbor(std::vector<T>& obj_list, double radius, const Matrix<double>& pt_estimate, int& obj_id);
+    void NearestNeighbor(std::vector<T>& obj_list, double radius, const Matrix<double>& pt_estimate, int& obj_id, std::vector<int>& candidate_used);
 
     // convergence phase
     void ConvergencePhase();
-    void Prediction(int frame, std::vector<T>& est_pos, std::deque<double>& est_int);
+    void Prediction(int frame, std::vector<T>& est_pos);
 //     vector<double> Polyfit(Track tracks, string direction, int datapoints, int polydegree);		// predictor for convergence phase
 //     /*
 //      * Function: predict the next point with Wiener Predictor using LMS algorithm
@@ -148,8 +149,9 @@ public:
 //      * Output: the next point
 //      */
     double LMSWienerPred(Track<T>& track, std::string direction, int order);
-//     std::deque<int> Rem(Frame& pos3D, deque<double>& int3D, double mindist_3D);
-//     void MakeShortLinkResidual(int nextFrame, Frame& candidates, deque<Track>::iterator& tr, int iterations, bool* erase, bool* candidate_used);
+
+    // Link short tracks with obj candidates in residual images
+    void MakeShortLinkResidual(int nextFrame, std::vector<T>& obj_list, Track<T>& tr, int n_iter, int& is_erase, std::vector<int>& candidate_used);
 //     void MakeShortLinkResidual(int nextFrame, Frame& candidates, deque<Track>::iterator& tr, int iterations);
 
 // //	bool CheckVelocity(deque<Track>::iterator& tr);

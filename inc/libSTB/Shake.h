@@ -39,6 +39,7 @@ protected:
 
     // OUTPUTS //
     std::vector<int> _remove_object_id;
+    std::vector<int> _keep_object_id_back;
     int _n_ghost = 0;
 
 
@@ -177,6 +178,14 @@ public:
         }
     };
 
+    std::vector<int> GetRemID ()
+    {
+        return _remove_object_id;
+    };
+    std::vector<int> GetKeepID_BackWards ()
+    {
+        return _keep_object_id_back;
+    };
 };
 
 #include "Shake.hpp"

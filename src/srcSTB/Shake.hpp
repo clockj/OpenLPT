@@ -601,6 +601,10 @@ void Shake<T>::RemoveGhost ()
             _object_info.erase(_object_info.begin() + i);
             _n_ghost ++;
         }
+        else
+        {
+            _keep_object_id_back.push_back(i);
+        }
     }
 }
 

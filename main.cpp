@@ -20,6 +20,41 @@
 #include "Track.h"
 #include "STB.h"
 
+void LoadPtList(std::vector<Matrix<double>>& pt_list, std::string file_name)
+{
+    std::string line;
+    int n_pt;
+    double value;
+
+    std::ifstream infile;
+    std::istringstream istream;
+    infile.open(file_name);
+
+    std::getline(infile, line);
+    istream.str(line);
+    istream >> n_pt;
+
+    pt_list = std::vector<Matrix<double>>(n_pt, Matrix<double>(3,1,0));
+
+    for (int i = 0; i < n_pt; i ++)
+    {
+        std::getline(infile, line);
+        std::istringstream istream_data;
+        istream_data.str(line);
+        for (int j = 0; j < 3; j ++)
+        {   
+            istream_data >> value;
+            pt_list[i](j,0) = value;
+            if (istream_data.peek() == ',')
+            {
+                istream_data.ignore();
+            }
+        }
+
+    }
+    infile.close();
+};
+
 
 int main()
 {
@@ -122,6 +157,29 @@ int main()
     // STB<TracerInfo> stb("./Data/stbConfig.txt");
     STB<TracerInfo> stb("D:/SD00125_New/stbConfig.txt");
     stb.Run();
+
+    // Holo data analysis
+    // int n_frame = 100;
+    // std::vector<std::vector<Matrix<double>>> pt_list_all(n_frame);
+    // for (int i = 0; i < n_frame; i ++)
+    // {
+    //     LoadPtList(pt_list_all[i], "D:/My Code/Tracking Code/Holography track/Case/Data/"+std::to_string(i+1)+".csv");
+    // }
+    // std::cout << "Finish loading!" << std::endl;
+    // std::vector<ObjectInfo> useless;
+    // AxisLimit limit;
+    // limit._x_min = 0;
+    // limit._x_max = 306;
+    // limit._y_min = 0;
+    // limit._y_max = 811;
+    // limit._z_min = 0;
+    // limit._z_max = 1001;
+    // std::vector<int> n_xyz = {50,135,166};
+    // for (int i = 0; i < n_frame-1; i ++)
+    // {
+    //     PredField<ObjectInfo> pf(limit, n_xyz, pt_list_all[i], pt_list_all[i+1], 4, useless);
+    //     pf.SaveField("D:/My Code/Tracking Code/Holography track/Case/DispField/"+std::to_string(i+1)+".csv");
+    // }
 
     std::cout << "Finish OpenLPT!" << std::endl;
     return 0;

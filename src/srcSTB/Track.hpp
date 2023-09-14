@@ -184,12 +184,13 @@ void Track<T>::WriteGDF(std::ofstream& output, float index, float fps /* = 1 */,
 template<class T>
 Track<T>& Track<T>::operator=(const Track<T>& t)
 {
-  _obj_list = t._obj_list;
-  _t_list = t._t_list;
-  _occluded = t._occluded;
-  _n_obj = t._n_obj;
-
-  return *this;
+    _obj_list = t._obj_list;
+    _t_list = t._t_list;
+    _occluded = t._occluded;
+    _n_obj = t._n_obj;
+    _active = t._active;
+    
+    return *this;
 }
 
 template<class T>

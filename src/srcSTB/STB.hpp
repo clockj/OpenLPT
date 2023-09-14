@@ -194,6 +194,7 @@ void STB<T>::InitialPhase ()
             ipr.SetShakeTimes(_ipr_loop_inner);
             ipr.SetTol2D(_ipr_tol_2d);
             ipr.SetTol3D(_ipr_tol_3d);
+            ipr.SetShakeWidth(_shake_shift);
 
             std::vector<T> obj_list;
             _ipr_matched.push_back(obj_list);
@@ -285,10 +286,8 @@ void STB<T>::ConvergencePhase ()
     int endframe = _last;
 
     // Track frame by frame using Wiener / polynomial predictor along with shaking
-    for (int currframe = _first+3; currframe < endframe; currframe ++)
+    for (int currframe = _first+3; currframe < endframe-1; currframe ++)
     {
-        // Note: previous code has a debug mode
-
         // Initialize some variables
         int c1 = _active_short_track.size();
         int c2 = _active_long_track.size();
@@ -297,9 +296,132 @@ void STB<T>::ConvergencePhase ()
         _a_as = 0; _a_al = 0; _a_is = 0; _s_as1 = 0; _s_as2 = 0; _s_as3 = 0; _s_as4 = 0; _s_al = 0; _a_il = 0;
 
         int nextframe = currframe + 1;
-        std::cout << "\tSTB convergence phase tracking at frame: " << nextframe << std::endl;
+        std::cout << "STB convergence phase tracking at frame: " << nextframe << std::endl;
 
 
+        // Prediction for active long tracks
+        std::cout << "\tPrediction: ";
+        clock_t t_start, t_end;
+        t_start = clock();
+
+        std::vector<Matrix<double>> est_pos;
+        Prediction(nextframe, est_pos); 
+        std::vector<int> est_int(est_pos.size(), 1);
+
+        t_end = clock();
+        std::cout << (t_end-t_start)/CLOCKS_PER_SEC << "s" << std::endl;
+        std::cout << "\tDone!" << std::endl;
+
+
+        // Load img
+        for (int i = 0; i < _n_cam; i ++)
+        {
+            _img_org_list[i] = _imgio_list[i].LoadImg(nextframe);
+        }
+
+
+        // Shaking prediction
+        int n_obj = est_pos.size();
+        if (n_obj)
+        {
+            // Create obj_list based on est_pos
+            std::vector<T> obj_info_match_list(n_obj);
+            T obj;
+            for (int i = 0; i < n_obj; i ++)
+            {
+                obj.SetCenterPos(est_pos[i]);
+                obj.SetMatchPosInfo(_cam_list);
+                obj_info_match_list[i] = obj;
+            }
+
+            // Shaking prediction
+            // correcting the predicted positions by shaking, removing wrong / ambiguous predictions and updating the residual images
+            t_start = clock();
+
+            Shake<T> s(
+                _img_org_list,
+                obj_info_match_list, // also used as output
+                _shake_shift, // unit: mm
+                _cam_list,
+                _otf
+            );
+            s.SetShakeTimes (_ipr_loop_inner);
+            s.RunShake(_TRIONLY);
+            s.GetResImg(_img_org_list);
+
+            t_end = clock();
+            std::cout << "\tShaking time: " << (t_end-t_start)/CLOCKS_PER_SEC << "s" << std::endl;
+
+            // Add the corrected particle position in nextFrame to its respective track
+            std::vector<int> tr_id_keep_back = s.GetKeepID_BackWards();
+            
+            int n_obj_shake = tr_id_keep_back.size();
+            if (n_obj_shake != obj_info_match_list.size())
+            {
+                std::cout << "STB::ConvergencePhase issues:\n"
+                          << "n_obj_shake=" << n_obj_shake << "\n"
+                          << "obj_info_match_list.size=" << obj_info_match_list.size() << std::endl;
+                throw error_size;
+            }          
+            for (int i = 0; i < n_obj_shake; i ++)
+            {
+                int id = tr_id_keep_back[n_obj_shake-i-1];
+                _active_long_track[id].AddNext(obj_info_match_list[i], nextframe);
+            }
+
+            // Update track list status
+            //  from back to front
+            std::vector<int> tr_id_rem_back = s.GetRemID();
+            for (int i = 0; i < tr_id_rem_back.size(); i ++)
+            {
+                int id = tr_id_rem_back[i];
+                if (_active_long_track[id].Length() > 6)
+                {
+                    _inactive_long_tracks.push_back(_active_long_track[id]);
+                    _a_il ++;
+                }
+                else
+                {               
+                    _a_is ++;
+                }
+                _active_long_track.erase(_active_long_track.begin()+id);
+                _s_al ++;
+            }
+
+            std::cout << "\tDone!" << std::endl;
+        }
+    
+
+        // IPR on residues
+        IPR<T> ipr(_img_org_list, _imgint_max_list, _imgint_min_list, _cam_list, _otf);
+        ipr.SetTRIONLY(_TRIONLY);
+        ipr.SetIPRTimes(_ipr_loop_outer);
+        ipr.SetShakeTimes(_ipr_loop_inner);
+        ipr.SetTol2D(_ipr_tol_2d);
+        ipr.SetTol3D(_ipr_tol_3d);
+        ipr.SetShakeWidth(_shake_shift);
+
+        std::vector<T> obj_list;
+        ipr.RunIPR(obj_list, _ipr_is_reduced, 1);
+
+
+        // Link each _active_short_track with a obj candidate
+        int n_short_tr = _active_short_track.size();
+        std::vector<int> is_erase(n_short_tr,0);
+        int n_obj = obj_list.size();
+        std::vector<int> is_obj_used(n_obj, 0);
+
+        #pragma omp parallel
+        {
+            #pragma omp for
+            for (int i = 0; i < n_short_tr; i ++)
+            {
+                
+            }
+
+        }
+
+        
     }
 }
 
@@ -363,6 +485,34 @@ void STB<T>::NearestNeighbor(std::vector<T>& obj_list, double radius, const Matr
 
 
 template<class T>
+void STB<T>::NearestNeighbor(std::vector<T>& obj_list, double radius, const Matrix<double>& pt_estimate, int& obj_id, std::vector<int>& candidate_used)
+{
+    obj_id = -1;
+    double min2 = radius * radius;
+    double dis2 = 0;
+
+    Matrix<double> pt(3,1);
+    for (int i = 0; i < obj_list.size(); i ++)
+    {
+        if (candidate_used[i])
+        {
+            continue;
+        }
+        
+        pt = obj_list[i].GetCenterPos();
+        // dis2 = pt_estimate.DistSqr(pt);
+        dis2 = pt.DistSqr(pt_estimate);
+
+        if (dis2 < min2)
+        {
+            obj_id = i;
+            min2 = dis2;
+        }
+    }
+}
+
+
+template<class T>
 void STB<T>::StartTrack(int frame, PredField<T>& pf)
 {
     int m = frame-_first;
@@ -390,7 +540,7 @@ void STB<T>::StartTrack(int frame, PredField<T>& pf)
 
 
 template<class T>
-void STB<T>::Prediction(int frame, std::vector<T>& est_pos, std::deque<double>& est_int)
+void STB<T>::Prediction(int frame, std::vector<T>& est_pos)
 {
     // Use polynomial fit / Wiener filter to predict the particle position at nextFrame
     std::vector<std::vector<double>> pred_coeff(3);
@@ -422,14 +572,14 @@ void STB<T>::Prediction(int frame, std::vector<T>& est_pos, std::deque<double>& 
         // if the estimate particle is inside the boundary
         if (_xyz_limit.Check(est(0,0), est(1,0), est(2,0)))
         {
-            // Set initial intensity to 1
-            est_int.push_back(1);
-
-            est_pos.push_back();
+            est_pos.push_back(est);  
         }
         else
         {
-
+            // the track should be put into exit tracks since it is outside the boundary
+            _exit_track.push_back(_active_long_track[k]);
+            _active_long_track.erase(_active_long_track.begin()+k);
+            _s_al ++;
         }
     }
 }
@@ -526,5 +676,11 @@ double STB<T>::LMSWienerPred(Track<T>& track, std::string direction, int order)
     return prediction;
 }
 
+
+template<class T>
+void STB<T>::MakeShortLinkResidual(int nextFrame, std::vector<T>& obj_list, Track<T>& tr, int n_iter, int& is_erase, std::vector<int>& candidate_used)
+{
+
+}
 
 #endif

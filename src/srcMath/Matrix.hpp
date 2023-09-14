@@ -510,7 +510,7 @@ double Matrix<T>::Dist(Matrix<T> const& pt, Matrix<T> const& unit)
 template<class T>
 void Matrix<T>::WriteMatrix (std::string file_name)
 {
-    std::cout << "Start writing!" << std::endl;
+    std::cout << "\nStart writing!" << std::endl;
 
     std::ofstream outfile(file_name, std::ios::out);
 
