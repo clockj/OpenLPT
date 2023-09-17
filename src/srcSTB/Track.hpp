@@ -91,6 +91,7 @@ int Track<T>::GetTime(int index) const
 template<class T>
 Matrix<double> Track<T>::GetPos(int n) const 
 {
+    // TODO: remove try, if want to increase speed
     try 
     {
         return _obj_list.at(n).GetCenterPos();

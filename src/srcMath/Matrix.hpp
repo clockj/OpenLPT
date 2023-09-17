@@ -450,7 +450,7 @@ double Matrix<T>::DistSqr(Matrix<T> const& mtx)
     double dist = 0;
     for (int i = 0; i < _n; i ++)
     {
-        dist += std::pow((double)_mtx[i] - mtx._mtx[i], 2);
+        dist += (double) (_mtx[i] - mtx._mtx[i])*(_mtx[i] - mtx._mtx[i]);
     }
 
     return dist;

@@ -133,7 +133,9 @@ public:
     void StartTrack(int frame, PredField<T>& pf);
     // extends the particle track to nextFrame using search radius method (can be used for first 4 links in both, intialization and convergence phase)
     void MakeLink(int nextframe, const Matrix<double>& vel_curr, double radius, Track<T>& track, bool& active);
+    // obj_id = -1 => UNLINKED
     void NearestNeighbor(std::vector<T>& obj_list, double radius, const Matrix<double>& pt_estimate, int& obj_id);
+    // obj_id = -1 => UNLINKED
     void NearestNeighbor(std::vector<T>& obj_list, double radius, const Matrix<double>& pt_estimate, int& obj_id, std::vector<int>& candidate_used);
 
     // convergence phase
@@ -151,15 +153,13 @@ public:
     double LMSWienerPred(Track<T>& track, std::string direction, int order);
 
     // Link short tracks with obj candidates in residual images
-    void MakeShortLinkResidual(int nextFrame, std::vector<T>& obj_list, Track<T>& tr, int n_iter, int& is_erase, std::vector<int>& candidate_used);
-//     void MakeShortLinkResidual(int nextFrame, Frame& candidates, deque<Track>::iterator& tr, int iterations);
+    void MakeShortLinkResidual(int nextframe, std::vector<T>& obj_list, Track<T>& tr, int n_iter, int& is_erase, std::vector<int>& candidate_used);
 
 // //	bool CheckVelocity(deque<Track>::iterator& tr);
 //     bool CheckVelocity(Track& tr);
 //     bool CheckAcceleration(deque<Track>::iterator& tr);
 //     void GetAccThred();
-// //	bool CheckLinearFit(deque<Track>::iterator& tr);
-//     bool CheckLinearFit(Track& tr);
+    bool CheckLinearFit(Track<T>& tr);
 
 //     void MatTracksSave(string addres, string s, bool is_back_STB);
 //     void MatfileSave(deque<Track> tracks, string address, string name, int size);

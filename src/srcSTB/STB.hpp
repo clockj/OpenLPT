@@ -410,18 +410,126 @@ void STB<T>::ConvergencePhase ()
         std::vector<int> is_erase(n_short_tr,0);
         int n_obj = obj_list.size();
         std::vector<int> is_obj_used(n_obj, 0);
+        if (n_obj)
+        {
+            t_start = clock();
+
+            #pragma omp parallel
+            {
+                #pragma omp for
+                for (int i = 0; i < n_short_tr; i ++)
+                {
+                    MakeShortLinkResidual(nextframe, obj_list, _active_short_track[i], 5, is_erase[i], is_obj_used);
+                }
+            }
+
+            // Delete labeled tr
+            //  from back to front
+            for (int i = n_short_tr-1; i > -1; i --)
+            {
+                if (is_erase[i])
+                {
+                    _active_short_track.erase(_active_short_track.begin()+i);
+                }
+            }
+
+            // Delete labeled candidates
+            //  from back to front
+            for (int i = n_obj-1; i > -1; i --)
+            {
+                if (is_obj_used[i])
+                {
+                    obj_list.erase(obj_list.begin() + i);
+                }
+            }
+
+            t_end = clock();
+            std::cout << "Link short track time: " 
+                      << (t_end - t_start)/CLOCKS_PER_SEC << "s"
+                      << std::endl;
+            
+            // Move all activeShortTracks longer than 3 particles to activeLongTracks
+            //  from back to front
+            for (int i = n_short_tr-1; i > -1; i --)
+            {
+                if (_active_short_track[i].Length() > 3)
+                {
+                    _active_long_track.push_back(_active_short_track[i]);
+                    _active_short_track.erase(_active_short_track.begin()+i);
+
+                    _s_as4 ++;
+                    _a_al ++;
+                }
+            }
+
+            // Add all the untracked candidates to a new short track
+            n_obj = obj_list.size();
+            for (int i = 0; i < n_obj; i ++)
+            {
+                _active_short_track.push_back(Track<T> (obj_list[i], nextframe));
+            }
+
+            std::cout << "Done." << std::endl;
+        }
+        
+
+        // Prune / Arrange the tracks
+        t_start = clock();
+
+        double threshold = 1.5 * _shift_betframe_max;
+        int r1 = 0, r2 = 0, r3 = 0, r4 = 0;
+        int n_long_tr = _active_long_track.size();
+        is_erase = std::vector<int> (n_long_tr, 0);
 
         #pragma omp parallel
         {
             #pragma omp for
-            for (int i = 0; i < n_short_tr; i ++)
+            for (int i = 0; i < n_long_tr; i ++)
             {
-                
+                if (!CheckLinearFit(_active_long_track[i]))
+                {
+                    r3 ++;
+                    is_erase[i] = 1;
+                }
             }
-
         }
 
+        // Delete unstatisfied long tr
+        //  from back to front
+        for (int i = n_long_tr-1; i > -1; i --)
+        {
+            if (is_erase[i])
+            {
+                if (_active_long_track[i].Length() > 6)
+                {
+                    _inactive_long_tracks.push_back(_active_long_track[i]);
+                           
+                    _a_il ++;
+                }
+                else
+                {
+                    _a_is ++;
+                }
+
+                _s_al ++;
+                _active_long_track.erase(_active_long_track.begin()+i);
+            }
+        }
         
+
+        // Print info
+        t_end = clock();
+
+        std::cout << "Pruning time: " << (t_start-t_end)/CLOCKS_PER_SEC << "s" << std::endl;
+
+        std::cout << "\t\tNo. of active Short tracks: " << c1 << " + " << _a_as << " - (" << _s_as1 << " + " << _s_as2 << " + " << _s_as3 << " + " << _s_as4 << ") = " << _active_short_track.size() << std::endl;
+
+        std::cout << "\t\tNo. of active Long tracks: " << c2 << " + " << _a_al << " - " << _s_al << " = " << _active_long_track.size() << std::endl;
+        
+        std::cout << "\t\tNo. of exited tracks: " << _exit_track.size() << std::endl;
+
+        std::cout << "\t\tNo. of inactive Long tracks:	" << c4 << " + " << _a_il << " = " << _inactive_long_tracks.size() << std::endl;
+    
     }
 }
 
@@ -430,6 +538,15 @@ template<class T>
 void STB<T>::Run ()
 {
     InitialPhase();
+
+    clock_t t_start, t_end;
+    t_start = clock();
+
+    ConvergencePhase();
+
+    t_end = clock();
+
+    std::cout << "\n\nTotal time taken by STB convergence phase: " << (t_start-t_end)/CLOCKS_PER_SEC << "s" << std::endl;
 }
 
 
@@ -508,6 +625,11 @@ void STB<T>::NearestNeighbor(std::vector<T>& obj_list, double radius, const Matr
             obj_id = i;
             min2 = dis2;
         }
+    }
+
+    if (obj_id != _UNLINKED)
+    {
+        candidate_used[obj_id] = 1;
     }
 }
 
@@ -677,10 +799,162 @@ double STB<T>::LMSWienerPred(Track<T>& track, std::string direction, int order)
 }
 
 
+// Link short tracks with obj candidates in residual images
 template<class T>
-void STB<T>::MakeShortLinkResidual(int nextFrame, std::vector<T>& obj_list, Track<T>& tr, int n_iter, int& is_erase, std::vector<int>& candidate_used)
+void STB<T>::MakeShortLinkResidual(int nextframe, std::vector<T>& obj_list, Track<T>& tr, int n_iter, int& is_erase, std::vector<int>& candidate_used)
 {
+    // iteratively trying to find a link for the short track from particle candidates
+    Matrix<double> vel(0,0,0);
+    Matrix<double> est(3,1);
+    int n_long_tr = _active_long_track.size();
+    double w;
+    double beta2;
+    int obj_id = _UNLINKED;
+
+    for (int i = 0; i < n_iter; i ++)
+    {
+        double rsqr = std::pow(std::pow(1.1, i) * 3 * _space_avg, 2);
+        double shift = std::pow(1.1, i) * _shift_betframe_max;
+        std::vector<double> weight;
+        double tot_weight = 0;
+        std::vector<Matrix<double>> disp;
+        vel *= 0;
+        beta2 = 1 / std::pow(std::pow(1.1, i) * 0.1 * _space_avg, 2); // typical length scale
+        
+        // calculate the predictive vel. field as an avg. of particle vel from neighbouring tracks
+        // identify the neighbour tr (using 3*avg interpt dist.) and get their pt vel
+        for (int j = 0; j < n_long_tr; j ++)
+        {
+            double dsqr = tr.Last().GetCenterPos().DistSqr(_active_long_track[j].Penultimate().GetCenterPos());
+
+            if (dsqr < rsqr && dsqr > 0)
+            {
+                w = 1/(1 + dsqr*beta2);
+                tot_weight = tot_weight + w;
+                weight.push_back(w);
+                disp.push_back(_active_long_track[j].Last().GetCenterPos()-_active_long_track[j].Penultimate().GetCenterPos());
+            }
+        }
+
+        int n_neighbour = weight.size();
+        if (n_neighbour > 0)
+        {
+            for (int j = 0; j < n_neighbour; j ++)
+            {
+                w = weight[j] / tot_weight;              
+                vel(0,0) += w * disp[j](0,0);
+                vel(1,0) += w * disp[j](1,0);
+                vel(2,0) += w * disp[j](2,0);
+            }
+
+            est = tr.Last().GetCenterPos() + vel;
+            NearestNeighbor(obj_list, _r_search_init, est, obj_id, candidate_used);
+        }
+        else
+        {
+            // if no neighbouring tracks are identified
+            est = tr.Last().GetCenterPos();
+            NearestNeighbor(obj_list, shift, est, obj_id, candidate_used);
+        }
+
+        // If linked with a candidate
+        //  add the candidate to the track
+        if (obj_id != _UNLINKED)
+        {
+            tr.AddNext(obj_list[obj_id], nextframe);
+            break;
+        }
+    }
+
+    // If no link is found for the short tr
+    if (obj_id == _UNLINKED)
+    {
+        int length = tr.Length();
+        if (length > 3)
+        {
+            // if the track has at least 4 particles
+            // _inactive_track.push_back(tr);
+            _a_is ++;
+        }
+        else if (length == 1)
+        {
+            _s_as1 ++;
+        }
+        else if (length == 2)
+        {
+            _s_as2++;
+        }
+        else if (length == 3)
+        {
+            _s_as3++;
+        }
+
+        is_erase = 1;
+    }
 
 }
+
+
+template<class T>
+bool STB<T>::CheckLinearFit(Track<T>& tr)
+{
+    int len = tr.Length();
+
+    std::vector<Matrix<double>> pt_list (4, Matrix<double> (3,1,0));
+    for (int i = 0; i < 4; i ++)
+    {
+        pt_list[i] = tr.GetPos(len - 4 + i); // TODO: remove try
+    }
+
+    double y0,y1,y2,y3;
+    Matrix<double> coeff(3,2);
+    Matrix<double> est(3,1,0);
+    for (int i = 0; i < 3; i ++)
+    {
+        y0 = pt_list[0](i,0);
+        y1 = pt_list[1](i,0);
+        y2 = pt_list[2](i,0);
+        y3 = pt_list[3](i,0);
+
+        coeff(i,0) = - 0.3*y0 - 0.1*y1 + 0.1*y2 + 0.3*y3;
+        coeff(i,1) =   0.7*y0 + 0.4*y1 + 0.1*y2 - 0.2*y3;
+        est(i,0) = coeff(i,0) * 3 + coeff(i,1);
+    }
+
+    double dist[4];
+    dist[3] = est.Dist(pt_list[3]);
+
+    double err = 0.05; // 0.05 mm
+    if (dist[3] > err) 
+    {
+        return false;
+    }
+    else if (dist[3] > err * 0.6)
+    {
+        // For those tracks that are at the edge of being deleted, check the whole track to see whether its error is large also
+        double tot_dist = dist[3];
+        for (int i = 0; i < 3; i ++)
+        {
+            est(0,0) = coeff(0,0) * i + coeff(0,1);
+            est(1,0) = coeff(1,0) * i + coeff(1,1);
+            est(2,0) = coeff(2,0) * i + coeff(2,1);
+
+            dist[i] = est.DistSqr(pt_list[i]);
+            if (dist[i] > err * 0.6)
+            {
+                return false;
+            }
+            tot_dist += dist[i];
+        }
+        if (tot_dist/4 > err * 0.6)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
 
 #endif
