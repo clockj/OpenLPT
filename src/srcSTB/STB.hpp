@@ -408,7 +408,7 @@ void STB<T>::ConvergencePhase ()
         // Link each _active_short_track with a obj candidate
         int n_short_tr = _active_short_track.size();
         std::vector<int> is_erase(n_short_tr,0);
-        int n_obj = obj_list.size();
+        n_obj = obj_list.size();
         std::vector<int> is_obj_used(n_obj, 0);
         if (n_obj)
         {
@@ -662,14 +662,13 @@ void STB<T>::StartTrack(int frame, PredField<T>& pf)
 
 
 template<class T>
-void STB<T>::Prediction(int frame, std::vector<T>& est_pos)
+void STB<T>::Prediction(int frame, std::vector<Matrix<double>>& est_pos)
 {
     // Use polynomial fit / Wiener filter to predict the particle position at nextFrame
     std::vector<std::vector<double>> pred_coeff(3);
 
     std::vector<std::string> direction = {"X", "Y", "Z"};
     Matrix<double> est(3,1);
-    T obj = est_pos[0];
 
     for (int k = _active_long_track.size()-1; k > -1; k --)
     {

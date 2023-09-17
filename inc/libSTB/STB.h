@@ -140,7 +140,7 @@ public:
 
     // convergence phase
     void ConvergencePhase();
-    void Prediction(int frame, std::vector<T>& est_pos);
+    void Prediction(int frame, std::vector<Matrix<double>>& est_pos);
 //     vector<double> Polyfit(Track tracks, string direction, int datapoints, int polydegree);		// predictor for convergence phase
 //     /*
 //      * Function: predict the next point with Wiener Predictor using LMS algorithm
