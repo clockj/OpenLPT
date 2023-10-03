@@ -77,44 +77,19 @@ int Track<T>::Length() const
 template<class T>
 int Track<T>::GetTime(int index) const 
 {
-    try 
-    {
-        return _t_list.at(index);
-    } 
-    catch (std::out_of_range& e) 
-    {
-        std::cerr << e.what() << std::endl;
-        throw std::out_of_range("Caught out_of_range in Track::GetTime()");
-    }
+    return _t_list[index];
 }
 
 template<class T>
 Matrix<double> Track<T>::GetPos(int n) const 
 {
-    // TODO: remove try, if want to increase speed
-    try 
-    {
-        return _obj_list.at(n).GetCenterPos();
-    }
-    catch (std::out_of_range& e) 
-    {
-        std::cerr << e.what() << std::endl;
-        throw std::out_of_range("Caught out_of_range in Track::GetPos()");
-    }
+    return _obj_list[n].GetCenterPos();
 }
 
 template<class T>
 T Track<T>::GetObj(int n) const 
 {
-    try 
-    {
-        return _obj_list.at(n);
-    }
-    catch (std::out_of_range& e) 
-    {
-        std::cerr << e.what() << std::endl;
-        throw std::out_of_range("Caught out_of_range in Track::GetPos()");
-    }
+    return _obj_list[n];
 }
 
 template<class T>

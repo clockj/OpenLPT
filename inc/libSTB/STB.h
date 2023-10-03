@@ -24,6 +24,8 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 template<class T>
 class STB
@@ -100,8 +102,8 @@ private:
     std::deque<Track<T>> _active_short_track;		    // tracks with 3 or less particles
     std::deque<Track<T>> _inactive_track;				// tracks that are inactive as they could not find the correct link
     std::deque<Track<T>> _exit_track;					// tracks that left the measurement domain (out of at least 2 cameras)
-    std::deque<Track<T>> _inactive_long_tracks;
-    std::deque<Track<T>> _buffer_tracks;			    //  new long tracks added from Back or Forward STB (multi-pass)
+    std::deque<Track<T>> _inactive_long_track;
+    std::deque<Track<T>> _buffer_track;			    //  new long tracks added from Back or Forward STB (multi-pass)
 
     // dummy variables to identify the no. of tracks added and subtracted 
     int _a_as = 0, _a_al = 0, _a_is = 0, _s_as1 = 0, _s_as2 = 0, _s_as3 = 0, _s_as4 = 0, _s_al = 0, _a_il = 0;
@@ -122,56 +124,58 @@ public:
 
     enum TrackType{ Inactive = 0, ActiveShort = 1, ActiveLong = 2, Exit = 3, InactiveLong = 4, Buffer = 5};
 
-    //############################### FUNCTIONS ##############################
     void Run();
     
+
+    // Initial phase
     // to make tracks for the first four frames
     void InitialPhase();
-    void LoadTracks(std::string path, TrackType trackType);
 
-//     // a function to start a track for particles that were left untracked in current frame
+    // Start a track for particles that were left untracked in current frame
     void StartTrack(int frame, PredField<T>& pf);
-    // extends the particle track to nextFrame using search radius method (can be used for first 4 links in both, intialization and convergence phase)
+
+    // Extends the particle track to nextFrame using search radius method (can be used for first 4 links in both, intialization and convergence phase)
     void MakeLink(int nextframe, const Matrix<double>& vel_curr, double radius, Track<T>& track, bool& active);
+
     // obj_id = -1 => UNLINKED
     void NearestNeighbor(std::vector<T>& obj_list, double radius, const Matrix<double>& pt_estimate, int& obj_id);
     // obj_id = -1 => UNLINKED
     void NearestNeighbor(std::vector<T>& obj_list, double radius, const Matrix<double>& pt_estimate, int& obj_id, std::vector<int>& candidate_used);
 
-    // convergence phase
+
+    // Convergence phase
     void ConvergencePhase();
     void Prediction(int frame, std::vector<Matrix<double>>& est_pos);
-//     vector<double> Polyfit(Track tracks, string direction, int datapoints, int polydegree);		// predictor for convergence phase
-//     /*
-//      * Function: predict the next point with Wiener Predictor using LMS algorithm
-//      * Input: tracks: the track to be predicted
-//      * 		  direction: to indicate the axis to be predicted
-//      * 		  order: the order of the Wiener Predictor
-//      * Notice: the order should be less than the length of track.
-//      * Output: the next point
-//      */
+
+    // vector<double> Polyfit(Track tracks, string direction, int datapoints, int polydegree);		// predictor for convergence phase
+    /*
+    Function: predict the next point with Wiener Predictor using LMS algorithm
+    Input: tracks: the track to be predicted
+     	   direction: to indicate the axis to be predicted
+     	   order: the order of the Wiener Predictor
+    Notice: the order should be less than the length of track.
+    Output: the next point
+    */
     double LMSWienerPred(Track<T>& track, std::string direction, int order);
 
     // Link short tracks with obj candidates in residual images
     void MakeShortLinkResidual(int nextframe, std::vector<T>& obj_list, Track<T>& tr, int n_iter, int& is_erase, std::vector<int>& candidate_used);
 
-// //	bool CheckVelocity(deque<Track>::iterator& tr);
-//     bool CheckVelocity(Track& tr);
-//     bool CheckAcceleration(deque<Track>::iterator& tr);
-//     void GetAccThred();
+    // bool CheckVelocity(deque<Track>::iterator& tr);
+    // bool CheckVelocity(Track& tr);
+    // bool CheckAcceleration(deque<Track>::iterator& tr);
+    // void GetAccThred();
     bool CheckLinearFit(Track<T>& tr);
 
-//     void MatTracksSave(string addres, string s, bool is_back_STB);
-//     void MatfileSave(deque<Track> tracks, string address, string name, int size);
-//     void SaveTrackToTXT(deque<Track> tracks, string address);
-//     void LoadAllTracks(string address, string frame_number, bool is_back_STB);
-//     void LoadTrackFromTXT(string path, TrackType trackType);
 
-//     //###################### TEMPORARY FUNTIONS FOR TESTING ###############################
+    // Data IO
+    // void MatTracksSave(string addres, string s, bool is_back_STB);
+    // void MatfileSave(deque<Track> tracks, string address, string name, int size);
+    void SaveTrack(std::deque<Track<T>> tracks, std::string address);
+    void LoadAllTrack(std::string address, std::string frame_number, bool is_back_STB=-1);
+    void LoadTrack(std::string file, TrackType trackType);
 
-//     // to load 3D positions without IPR
-//     std::vector<Matrix<double>> Load_3Dpoints(string path);
-
+    void CreateFolder(std::string folder);
 };
 
 #include "STB.hpp"

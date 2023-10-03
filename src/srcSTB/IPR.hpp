@@ -25,10 +25,11 @@ void IPR<T>::RunIPR(std::vector<T>& object_info, bool is_reduced, int n_reduced)
             ObjectFinder<T> tf;
             std::vector<T> tracer_found 
                 = tf.FindObject(_res_img_list[i], _max_intensity_list[i], _min_intensity_list[i]);
-            std::cout << "\t Number of found tracer: " << tracer_found.size() << std::endl;
+            // std::cout << "\t Number of found tracer: " << tracer_found.size() << std::endl;
 
             tracer_list_pixel.push_back(tracer_found);
         }
+        std::cout << "\t Number of found tracer in cam1: " << tracer_list_pixel[0].size() << std::endl;
 
 
         // Step 2: stereomatching
@@ -76,7 +77,7 @@ void IPR<T>::RunIPR(std::vector<T>& object_info, bool is_reduced, int n_reduced)
 
         _object_info.insert(_object_info.end(), tracer_info_match_list.begin(), tracer_info_match_list.end());
 
-        std::cout << "\t IPR step " << loop_id << ": find " << _object_info.size() << " particles. " << std::endl;
+        std::cout << "\tIPR step " << loop_id << ": find " << _object_info.size() << " particles. " << std::endl;
     }
 
 
@@ -93,7 +94,7 @@ void IPR<T>::RunIPR(std::vector<T>& object_info, bool is_reduced, int n_reduced)
             throw;
         }
 
-        std::cout << "\t Start reduced camera loop!" << std::endl;
+        std::cout << "\tStart reduced camera loop!" << std::endl;
 
         // Generate all possible cam_id
         std::deque<std::vector<int>> cam_id_all;
@@ -134,10 +135,11 @@ void IPR<T>::ReducedCamLoop(std::vector<int> cam_id, int n_loop)
             ObjectFinder<T> tf;
             std::vector<T> tracer_found 
                 = tf.FindObject(_res_img_list[id], _max_intensity_list[id], _min_intensity_list[id]);
-            std::cout << "\t Number of found tracer: " << tracer_found.size() << std::endl;
+            // std::cout << "\t Number of found tracer: " << tracer_found.size() << std::endl;
 
             tracer_list_pixel.push_back(tracer_found);
         }
+        std::cout << "\t Number of found tracer in cam1: " << tracer_list_pixel[0].size() << std::endl;
 
         // Step 2: stereomatching
         clock_t t_start, t_end;

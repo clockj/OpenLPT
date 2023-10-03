@@ -276,9 +276,8 @@ void StereoMatch<T>::SetObjectListMMFromMM (std::vector<std::vector<T>>& object_
 template<class T>
 void StereoMatch<T>::SetObjectListMMFromPixel (std::vector<std::vector<T>>& object_list_pixel)
 {
-    clock_t t_start, t_end;
-
-    t_start = clock();
+    // clock_t t_start, t_end;
+    // t_start = clock();
 
     _object_list_mm = object_list_pixel;
     Matrix<double> pt_mm(3,1);
@@ -293,11 +292,11 @@ void StereoMatch<T>::SetObjectListMMFromPixel (std::vector<std::vector<T>>& obje
         }
     }
 
-    t_end = clock();
-    std::cout << "\t SetObjectListMMFromPixel: " 
-              << (double) (t_end - t_start)/CLOCKS_PER_SEC
-              << "s"
-              << std::endl;
+    // t_end = clock();
+    // std::cout << "\t SetObjectListMMFromPixel: " 
+    //           << (double) (t_end - t_start)/CLOCKS_PER_SEC
+    //           << "s"
+    //           << std::endl;
 
 }
 
@@ -315,9 +314,8 @@ void StereoMatch<T>::ClearAll ()
 template<class T>
 void StereoMatch<T>::MakeObjectIDMap(std::vector<std::vector<T>>& object_list_pixel)
 {
-    clock_t t_start, t_end;
-
-    t_start = clock();
+    // clock_t t_start, t_end;
+    // t_start = clock();
 
     for (int i = 0; i < _n_cam; i++)
     {
@@ -385,11 +383,11 @@ void StereoMatch<T>::MakeObjectIDMap(std::vector<std::vector<T>>& object_list_pi
         #pragma endregion
     }
     
-    t_end = clock();
-    std::cout << "\t MakeObjectIDMap: " 
-              << (double) (t_end - t_start)/CLOCKS_PER_SEC
-              << "s"
-              << std::endl;
+    // t_end = clock();
+    // std::cout << "\t MakeObjectIDMap: " 
+    //           << (double) (t_end - t_start)/CLOCKS_PER_SEC
+    //           << "s"
+    //           << std::endl;
 }
 
 // TBC
@@ -1946,7 +1944,7 @@ void StereoMatch<T>::CheckTracerMatch (
 template<class T>
 void StereoMatch<T>::DeleteGohstTracerMatch (std::vector<std::vector<TracerInfo>>& object_list_pixel)
 {
-    std::cout << "Start deleting gohst match!" << std::endl;
+    // std::cout << "Start deleting gohst match!" << std::endl;
 
     std::vector<std::vector<int>> object_id_match_map; // indicate whether the 2D point is used
     // object_id_match_map.reserve(2 + _n_cam);
@@ -2055,7 +2053,7 @@ void StereoMatch<T>::DeleteGohstTracerMatch (std::vector<std::vector<TracerInfo>
     
     _n_after_del = _object_info_match_list.size();
     _n_del = _n_before_del - _n_after_del;
-    std::cout << "Finish deleting gohst match!" << std::endl;
+    std::cout << "Finish deleting gohst match: ";
     std::cout << "n_del = " << _n_del << ", "
               << "n_after_del = " << _n_after_del << "."
               << std::endl;
@@ -2065,7 +2063,7 @@ void StereoMatch<T>::DeleteGohstTracerMatch (std::vector<std::vector<TracerInfo>
 template<class T>
 void StereoMatch<T>::DeleteGohstTracerMatchNew (std::vector<std::vector<TracerInfo>>& object_list_pixel)
 {
-    std::cout << "Start deleting gohst match!" << std::endl;
+    // std::cout << "Start deleting gohst match!" << std::endl;
 
     int n_match = _object_id_match_list.size();
 
@@ -2131,9 +2129,9 @@ void StereoMatch<T>::DeleteGohstTracerMatchNew (std::vector<std::vector<TracerIn
     {
         if (_object_id_match_list[i].size() != _n_cam)
         {
-            std::cout << "wrong: " << _object_id_match_list[i].size() << std::endl;
-            // throw;
-            continue;
+            std::cout << "DeleteGohstTracerMatchNew: wrong: " << _object_id_match_list[i].size() << std::endl;
+            throw;
+            // continue;
         }
         for (int j = 0; j < _n_cam; j ++)
         {
@@ -2215,7 +2213,7 @@ void StereoMatch<T>::DeleteGohstTracerMatchNew (std::vector<std::vector<TracerIn
     
     _n_after_del = _object_info_match_list.size();
     _n_del = _n_before_del - _n_after_del;
-    std::cout << "Finish deleting gohst match!" << std::endl;
+    std::cout << "Finish deleting gohst match: ";
     std::cout << "n_del = " << _n_del << ", "
               << "n_after_del = " << _n_after_del << "."
               << std::endl;
@@ -2297,7 +2295,7 @@ void StereoMatch<T>::SortPreference (std::vector<int>& sorted_id_list, std::vect
 template<class T>
 void StereoMatch<T>::DeleteGohstTracerMatchOrig (std::vector<std::vector<TracerInfo>>& object_list_pixel)
 {
-    std::cout << "\t Start deleting gohst match!" << std::endl;
+    // std::cout << "\t Start deleting gohst match!" << std::endl;
 
     int n_match = _object_id_match_list.size();
 
@@ -2602,7 +2600,7 @@ void StereoMatch<T>::FillObjectInfo (std::vector<std::vector<T>>& object_list_pi
 template<class T>
 void StereoMatch<T>::TracerMatch (std::vector<std::vector<TracerInfo>>& object_list_pixel)
 {
-    std::cout << "\t Tracer match start!" << std::endl;
+    // std::cout << "\t Tracer match start!" << std::endl;
 
     if (_n_cam < 2)
     {
@@ -2715,7 +2713,7 @@ void StereoMatch<T>::TracerMatch (std::vector<std::vector<TracerInfo>>& object_l
     }
 
     _n_before_del = _object_id_match_list.size();
-    std::cout << "\t Finish stereomatching: " 
+    std::cout << "\tFinish stereomatching: " 
               << "n_before_del = " << _n_before_del << "."
               << std::endl;
 }

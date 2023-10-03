@@ -158,27 +158,29 @@ int main()
     STB<TracerInfo> stb("D:/SD00125_New/stbConfig.txt");
     stb.Run();
 
-    // Holo data analysis
+    // //Holo data analysis
     // int n_frame = 100;
     // std::vector<std::vector<Matrix<double>>> pt_list_all(n_frame);
     // for (int i = 0; i < n_frame; i ++)
     // {
-    //     LoadPtList(pt_list_all[i], "D:/My Code/Tracking Code/Holography track/Case/Data/"+std::to_string(i+1)+".csv");
+    //     // LoadPtList(pt_list_all[i], "D:/My Code/Tracking Code/Holography track/Case/Data/"+std::to_string(i+1)+".csv");
+    //     LoadPtList(pt_list_all[i], "D:/My Code/Tracking Code/Holography track/Case/Data_ml/"+std::to_string(i+1)+".csv");
     // }
     // std::cout << "Finish loading!" << std::endl;
     // std::vector<ObjectInfo> useless;
     // AxisLimit limit;
-    // limit._x_min = 0;
+    // limit._x_min = 1;
     // limit._x_max = 306;
-    // limit._y_min = 0;
-    // limit._y_max = 811;
-    // limit._z_min = 0;
+    // limit._y_min = 1;
+    // limit._y_max = 882;
+    // limit._z_min = 1;
     // limit._z_max = 1001;
-    // std::vector<int> n_xyz = {50,135,166};
+    // std::vector<int> n_xyz = {10,28,32};
     // for (int i = 0; i < n_frame-1; i ++)
     // {
-    //     PredField<ObjectInfo> pf(limit, n_xyz, pt_list_all[i], pt_list_all[i+1], 4, useless);
-    //     pf.SaveField("D:/My Code/Tracking Code/Holography track/Case/DispField/"+std::to_string(i+1)+".csv");
+    //     PredField<ObjectInfo> pf(limit, n_xyz, pt_list_all[i], pt_list_all[i+1], 10, useless);
+    //     // pf.SaveField("D:/My Code/Tracking Code/Holography track/Case/DispField/"+std::to_string(i+1)+".csv");
+    //     pf.SaveField("D:/My Code/Tracking Code/Holography track/Case/DispField_ml/"+std::to_string(i+1)+".csv");
     // }
 
     std::cout << "Finish OpenLPT!" << std::endl;

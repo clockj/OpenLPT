@@ -54,7 +54,7 @@ void PredField<T>::SetPtList ()
 template<class T>
 void PredField<T>::Field()
 {
-    double rsqr = pow(_r, 2);
+    double rsqr = _r*_r;
 
     clock_t t_start, t_end;
     t_start = clock();
