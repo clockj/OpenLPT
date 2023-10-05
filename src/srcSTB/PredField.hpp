@@ -221,11 +221,11 @@ std::vector<double> PredField<T>::DispMapPeak(std::vector<std::vector<std::vecto
     std::vector<double> peak(3);
     if (x == 0)
     {
-        peak[0] = 0;
+        peak[0] = _c;
     }
     else if (x == _size - 1)
     {
-        peak[0] = _size - 1;
+        peak[0] = 2*_r;
     }   
     else
     {
@@ -234,11 +234,11 @@ std::vector<double> PredField<T>::DispMapPeak(std::vector<std::vector<std::vecto
 
     if (y == 0)
     {
-        peak[1] = 0;
+        peak[1] = _c;
     }
     else if (y == _size - 1)
     {
-        peak[1] = _size - 1;
+        peak[1] = 2*_r;
     }
     else
     {
@@ -247,11 +247,11 @@ std::vector<double> PredField<T>::DispMapPeak(std::vector<std::vector<std::vecto
 
     if (z == 0)
     {
-        peak[2] = 0;
+        peak[2] = _c;
     }
     else if (z == _size - 1)
     {
-        peak[2] = _size - 1;
+        peak[2] = 2*_r;
     }
     else
     {

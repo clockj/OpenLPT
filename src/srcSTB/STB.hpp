@@ -214,6 +214,7 @@ void STB<T>::InitialPhase ()
                       << currframe << " & " << nextframe << "; ";
             
             PredField<T> pf(_xyz_limit, _ngrid_xyz, _ipr_matched[currframe-_first], _ipr_matched[nextframe-_first], _r_search_pred);
+            pf.SaveField(_img_folder + "PredField_" + std::to_string(currframe) + "&" + std::to_string(nextframe) + ".csv");
 
             // link particles b/w two frames
             clock_t t_start, t_end;

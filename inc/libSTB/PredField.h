@@ -80,7 +80,7 @@ public:
     };
 
     // Only require pt_list
-    PredField(AxisLimit& limit, std::vector<int>& n_xyz, std::vector<Matrix<double>>& pt_list_prev, std::vector<Matrix<double>>& pt_list_curr, double r, std::vector<T> useless) 
+    PredField(AxisLimit& limit, std::vector<int>& n_xyz, std::vector<Matrix<double>>& pt_list_prev, std::vector<Matrix<double>>& pt_list_curr, double r, std::vector<T>& useless) 
         : _limit(limit), _n_xyz(n_xyz), _n_tot(n_xyz[0]*n_xyz[1]*n_xyz[2]), _grid(3, n_xyz[0]*n_xyz[1]*n_xyz[2]), 
           _obj_list_prev(useless),  _obj_list_curr(useless), _pt_list_prev(pt_list_prev), _pt_list_curr(pt_list_curr), _r(r), 
           _disp_field(3, n_xyz[0]*n_xyz[1]*n_xyz[2])
@@ -94,6 +94,29 @@ public:
 
         Field();
     };
+
+    // Load displacement field from file
+    PredField(AxisLimit& limit, std::vector<int>& n_xyz, std::string file, double r, std::vector<T>& useless)
+        : _limit(limit), _n_xyz(n_xyz), _n_tot(n_xyz[0]*n_xyz[1]*n_xyz[2]), _grid(3, n_xyz[0]*n_xyz[1]*n_xyz[2]), 
+          _obj_list_prev(useless),  _obj_list_curr(useless), _r(r), _disp_field(3, n_xyz[0]*n_xyz[1]*n_xyz[2])
+    {
+        SetGrid();
+
+        // converting the Map index (i) to displacement (dx) as i = m*dx + c;
+        _size = 4 * _disp_map_res * _r + 1; // dispMapRes = 10
+        _m = (_size - 1) / (4 * _r);
+        _c = (_size - 1) / 2;
+
+        _disp_field = Matrix<double> (file);
+
+        if (_disp_field._dim_x() != 3 || _disp_field._dim_y() != _n_tot)
+        {
+            std::cout << "PredField: loaded disp field size is wrong! " << "(row,col)=" << _disp_field._dim_x() << "," << _disp_field._dim_y() << std::endl;
+
+            throw;
+        }
+    };
+
 
     // destructor
     ~PredField() {};
@@ -118,9 +141,6 @@ public:
 
     Matrix<double> PtInterp(Matrix<double> const& pt);
 
-    // void MatfileSave(vector<double*> pos, string name);
-    // void MatfileSave(vector<double> pos[3], string name);
-    // void MatfileSave(vector< vector<double> > pos, string name);
     void SaveField(std::string file_path)
     {
         _disp_field.WriteMatrix(file_path);

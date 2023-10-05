@@ -514,9 +514,9 @@ void Matrix<T>::WriteMatrix (std::string file_name)
 
     std::ofstream outfile(file_name, std::ios::out);
 
-    outfile << "Matrix: " << "(row,col)=" 
-            << "(" << _dim_x << "," 
-            << _dim_y << ")" << "\n";
+    // outfile << "Matrix: " << "(row,col)=" 
+    //         << "(" << _dim_x << "," 
+    //         << _dim_y << ")" << "\n";
 
     T value;
     for (int i = 0; i < _dim_x; i ++)
