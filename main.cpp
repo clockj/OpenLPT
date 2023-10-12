@@ -60,49 +60,53 @@ int main()
 {
     std::cout << "Simple test!" << std::endl;
 
-    // for debug
-    // OTF 
-    AxisLimit limit;
-    limit._x_min = -20; limit._x_max = 20;
-    limit._y_min = -20; limit._y_max = 20;
-    limit._z_min = -20; limit._z_max = 20;
-    OTF otf(4, 3, limit);
+    // // for debug
+    // // OTF 
+    // AxisLimit limit;
+    // limit._x_min = -20; limit._x_max = 20;
+    // limit._y_min = -20; limit._y_max = 20;
+    // limit._z_min = -20; limit._z_max = 20;
+    // OTF otf(4, 3, limit);
 
-    // Predicted field
-    std::cout << "PredField start!" << std::endl;
-    std::vector<std::vector<Matrix<double>>> pt_list_all;
-    Matrix<double> mtx_pre("3Dpoints_pf_1.csv");
-    std::vector<Matrix<double>> pt_list_pre(mtx_pre.GetDimX(), Matrix<double>(3,1,0));
-    for (int i = 0; i < mtx_pre.GetDimX(); i ++)
-    {
-        pt_list_pre[i](0,0) = mtx_pre(i,0);
-        pt_list_pre[i](1,0) = mtx_pre(i,1);
-        pt_list_pre[i](2,0) = mtx_pre(i,2);
-    }
-    Matrix<double> mtx_cur("3Dpoints_pf_2.csv");
-    std::vector<Matrix<double>> pt_list_cur(mtx_cur.GetDimX(), Matrix<double>(3,1,0));
-    for (int i = 0; i < mtx_cur.GetDimX(); i ++)
-    {
-        pt_list_cur[i](0,0) = mtx_cur(i,0);
-        pt_list_cur[i](1,0) = mtx_cur(i,1);
-        pt_list_cur[i](2,0) = mtx_cur(i,2);
-    }
-    pt_list_all.push_back(pt_list_pre);
-    pt_list_all.push_back(pt_list_cur);
+    // // Predicted field
+    // std::cout << "PredField start!" << std::endl;
+    // std::vector<std::vector<Matrix<double>>> pt_list_all;
+    // // Matrix<double> mtx_pre("3Dpoints_pf_1.csv");
+    // Matrix<double> mtx_pre("3Dpoints_ipr_1.csv");
+    // std::vector<Matrix<double>> pt_list_pre(mtx_pre.GetDimX(), Matrix<double>(3,1,0));
+    // for (int i = 0; i < mtx_pre.GetDimX(); i ++)
+    // {
+    //     pt_list_pre[i](0,0) = mtx_pre(i,0);
+    //     pt_list_pre[i](1,0) = mtx_pre(i,1);
+    //     pt_list_pre[i](2,0) = mtx_pre(i,2);
+    // }
+    // std::cout << pt_list_pre.size() << std::endl;
+    // // Matrix<double> mtx_cur("3Dpoints_pf_2.csv");
+    // Matrix<double> mtx_cur("3Dpoints_ipr_2.csv");
+    // std::vector<Matrix<double>> pt_list_cur(mtx_cur.GetDimX(), Matrix<double>(3,1,0));
+    // for (int i = 0; i < mtx_cur.GetDimX(); i ++)
+    // {
+    //     pt_list_cur[i](0,0) = mtx_cur(i,0);
+    //     pt_list_cur[i](1,0) = mtx_cur(i,1);
+    //     pt_list_cur[i](2,0) = mtx_cur(i,2);
+    // }
+    // std::cout << pt_list_cur.size() << std::endl;
+    // pt_list_all.push_back(pt_list_pre);
+    // pt_list_all.push_back(pt_list_cur);
 
-    std::vector<int> n_xyz = {21,21,21};
-    double r = 25 * 40/1000; // 25 * (max-min)/1000
-    std::vector<TracerInfo> useless;
-    PredField<TracerInfo> pf (limit, n_xyz, pt_list_all[0], pt_list_all[1], r, useless);
-    pf.SaveField("pf_disp_field.csv");
+    // std::vector<int> n_xyz = {21,21,21};
+    // double r = 25 * 40/1000; // 25 * (max-min)/1000
+    // std::vector<TracerInfo> useless;
+    // PredField<TracerInfo> pf (limit, n_xyz, pt_list_all[0], pt_list_all[1], r, useless);
+    // pf.SaveField("pf_disp_field.csv");
 
     // Matrix<double> disp_pred(3,1);
     // disp_pred = pf.PtInterp(pt_list_all[1][0]);
     // disp_pred.Print();
 
     // STB<TracerInfo> stb("./Data/stbConfig.txt");
-    // STB<TracerInfo> stb("D:/SD00125_New/stbConfig.txt");
-    // stb.Run();
+    STB<TracerInfo> stb("D:/SD00125_New/stbConfig.txt");
+    stb.Run();
 
     // //Holo data analysis
     // int n_frame = 100;

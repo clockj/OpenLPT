@@ -301,7 +301,7 @@ double Shake<T>::CalObjectIntensity (TracerInfo& tracer, std::vector<PixelRange>
 
 
     // Find outlier 
-    std::vector<bool> ignore_cam_id_list(cam_id_list.size(), false);
+    std::vector<int> ignore_cam_id_list(cam_id_list.size(), false);
     myMATH::IsOutlier<double> (ignore_cam_id_list, denominator_list_new);
     int n_normal = 0;
     for (int i = 0; i < cam_id_list.size(); i ++)
@@ -310,7 +310,7 @@ double Shake<T>::CalObjectIntensity (TracerInfo& tracer, std::vector<PixelRange>
         {
             int cam_id = cam_id_list[i];
             numerator += numerator_list[cam_id];
-            denominator += denominator_list[cam_id];
+            denominator += denominator_list_new[cam_id];
             n_normal ++;
         }
     }
@@ -579,7 +579,7 @@ void Shake<T>::RemoveGhost ()
     double mean_int = 0; // mean_int_temp = 0;
 
     int count = 0;
-    std::vector<bool> outlier(n_object, false);
+    std::vector<int> outlier(n_object, false);
     myMATH::IsOutlier(outlier, _intensity_list);
     for (int i = 0; i < n_object; i ++)
     {

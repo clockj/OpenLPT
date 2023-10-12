@@ -24,8 +24,9 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <sys/stat.h>
-#include <sys/types.h>
+// #include <sys/stat.h>
+// #include <sys/types.h>
+#include <direct.h>
 
 template<class T>
 class STB
@@ -171,7 +172,8 @@ public:
     // Data IO
     // void MatTracksSave(string addres, string s, bool is_back_STB);
     // void MatfileSave(deque<Track> tracks, string address, string name, int size);
-    void SaveTrack(std::deque<Track<T>> tracks, std::string address);
+    void SaveTrack(std::deque<Track<T>>& tracks, std::string address);
+    void SavePtList(std::vector<T>& obj_list, std::string address);
     void LoadAllTrack(std::string address, std::string frame_number, bool is_back_STB=-1);
     void LoadTrack(std::string file, TrackType trackType);
 

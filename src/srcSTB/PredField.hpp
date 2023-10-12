@@ -75,6 +75,47 @@ void PredField<T>::Field()
             // current frame
             FindVolPt(curr_id, rsqr, i, CURR_FRAME);
 
+            // // check id=[3500,5157,6291,6809,8446]-1
+            // if (i==3499 || i==5156 || i==6290 || i==6808 || i==8445)
+            // {
+            //     std::cout << i << ";" << _grid(0,i) << "," << _grid(1,i) << "," << _grid(2,i) << std::endl;
+            //     std::ofstream file_prev_id("prev_pt3d_"+std::to_string(i)+".csv", std::ios::out);
+            //     if (prev_id.size()!=0)
+            //     {
+            //         file_prev_id.precision(8);
+            //         for (int j = 0; j < prev_id.size(); j ++)
+            //         {
+            //             file_prev_id << prev_id[j] << ",";
+            //             file_prev_id << _pt_list_prev[prev_id[j]](0,0) << "," 
+            //                          << _pt_list_prev[prev_id[j]](1,0) << ","
+            //                          << _pt_list_prev[prev_id[j]](2,0) << "\n";
+            //         }
+            //     }
+            //     else 
+            //     {
+            //         file_prev_id << "\n";
+            //     }
+            //     file_prev_id.close();
+
+            //     std::ofstream file_curr_id("curr_pt3d_"+std::to_string(i)+".csv", std::ios::out);
+            //     file_curr_id.precision(8);
+            //     if (curr_id.size()!=0)
+            //     {
+            //         for (int j = 0; j < curr_id.size(); j ++)
+            //         {
+            //             file_curr_id << curr_id[j] << ",";
+            //             file_curr_id << _pt_list_curr[curr_id[j]](0,0) << "," 
+            //                          << _pt_list_curr[curr_id[j]](1,0) << ","
+            //                          << _pt_list_curr[curr_id[j]](2,0) << "\n";
+            //         }
+            //     }
+            //     else
+            //     {
+            //         file_curr_id << "\n";
+            //     }
+            //     file_curr_id.close();
+            // }
+
             // getting the displacement vectors (if there are particles in the search volume for both the frames)
             std::vector<double> disp(4, 0); // dx,dy,dz,I_curr*I_prev
             int curr, prev;
@@ -120,6 +161,42 @@ void PredField<T>::Field()
         }
     }
 
+    // // rule out outlier
+    // #pragma omp parallel
+    // {
+    //     #pragma omp for
+    //     for (int i = 0; i < 3; i ++)
+    //     {
+    //         std::vector<double> row;
+    //         std::vector<int> grid_id;
+    //         for (int j = 0; j < _n_tot; j ++)
+    //         {
+    //             if (_disp_field(i,j)!=0)
+    //             {
+    //                 row.push_back(_disp_field(i,j));
+    //                 grid_id.push_back(j);
+    //             }
+    //         }
+
+    //         if  (row.size() == 0)
+    //         {
+    //             continue;
+    //         }
+    //         std::vector<int> is_outlier(row.size(),0);
+    //         myMATH::IsOutlier(is_outlier, row);
+
+    //         for (int j = 0; j < is_outlier.size(); j ++)
+    //         {
+    //             if (is_outlier[j]) // if it is an outlier
+    //             {
+    //                 _disp_field(0, grid_id[j]) = 0;
+    //                 _disp_field(1, grid_id[j]) = 0;
+    //                 _disp_field(2, grid_id[j]) = 0;
+    //             }
+    //         }
+    //     }
+    // }
+
     t_end = clock();
     std::cout << "Displacement field setup time: " 
               << (double) (t_end - t_start)/CLOCKS_PER_SEC;
@@ -133,45 +210,90 @@ void PredField<T>::FindVolPt(std::deque<int>& pt_list_id, double rsqr, int grid_
     double x = _grid(0, grid_id);
     double y = _grid(1, grid_id);
     double z = _grid(2, grid_id);
-    double x_temp, y_temp, z_temp, distsqr;
+    double dx, dy, dz, distsqr;
     
+    // bool is_save = false;
+    // std::ofstream file;
     if (frame == PREV_FRAME)
     {
+        // if (grid_id==3499 || grid_id==5156 || grid_id==6290 || grid_id==6808 || grid_id==8445)
+        // {
+        //     std::cout << "FindVolPt,prev: " << grid_id << ";" << _grid(0,grid_id) << "," << _grid(1,grid_id) << "," << _grid(2,grid_id) << std::endl;
+        //     is_save = true;
+        //     file.open("prev_search_"+std::to_string(grid_id)+".csv", std::ios::out);
+        //     file.precision(8);
+        // }
+
         for (int i = 0; i < _pt_list_prev.size(); i ++)
         {   
-            x_temp = _pt_list_prev[i](0,0);
-            y_temp = _pt_list_prev[i](1,0);
-            z_temp = _pt_list_prev[i](2,0);
-            if (x_temp<x+_r && x_temp>x-_r &&
-                y_temp<y+_r && y_temp>y-_r &&
-                z_temp<z+_r && z_temp>z-_r)
+            dx = _pt_list_prev[i](0,0) - x;
+            dy = _pt_list_prev[i](1,0) - y;
+            dz = _pt_list_prev[i](2,0) - z;
+            
+            if (dx<_r && dx>-_r &&
+                dy<_r && dy>-_r &&
+                dz<_r && dz>-_r)
             {
-                distsqr = std::pow(x_temp-x,2) + std::pow(y_temp-y,2) + std::pow(z_temp-z,2);
+                distsqr = dx*dx + dy*dy + dz*dz;
                 if (distsqr < rsqr)
                 {
                     pt_list_id.push_back(i);
                 }
             }
+
+            // if (is_save)
+            // {
+            //     file << i << "," << _pt_list_prev[i](0,0) << "," 
+            //                      << _pt_list_prev[i](1,0) << "," 
+            //                      << _pt_list_prev[i](2,0) << ","
+            //                      << dx << "," << dy << "," << dz << "," 
+            //                      << distsqr << "," << rsqr << "\n";
+            // }
         }
+        // if (is_save)
+        // {
+        //     file.close();
+        // }
     }
     else if (frame == CURR_FRAME)
     {
+        // if (grid_id==3499 || grid_id==5156 || grid_id==6290 || grid_id==6808 || grid_id==8445)
+        // {
+        //     std::cout << "FindVolPt,curr: " << grid_id << ";" << _grid(0,grid_id) << "," << _grid(1,grid_id) << "," << _grid(2,grid_id) << std::endl;
+        //     is_save = true;
+        //     file.open("curr_search_"+std::to_string(grid_id)+".csv", std::ios::out);
+        //     file.precision(8);
+        // }
+
         for (int i = 0; i < _pt_list_curr.size(); i ++)
         {   
-            x_temp = _pt_list_curr[i](0,0);
-            y_temp = _pt_list_curr[i](1,0);
-            z_temp = _pt_list_curr[i](2,0);
-            if (x_temp<x+_r && x_temp>x-_r &&
-                y_temp<y+_r && y_temp>y-_r &&
-                z_temp<z+_r && z_temp>z-_r)
+            dx = _pt_list_curr[i](0,0) - x;
+            dy = _pt_list_curr[i](1,0) - y;
+            dz = _pt_list_curr[i](2,0) - z;
+            if (dx<_r && dx>-_r &&
+                dy<_r && dy>-_r &&
+                dz<_r && dz>-_r)
             {
-                distsqr = std::pow(x_temp-x,2) + std::pow(y_temp-y,2) + std::pow(z_temp-z,2);
+                distsqr = dx*dx + dy*dy + dz*dz;
                 if (distsqr < rsqr)
                 {
                     pt_list_id.push_back(i);
                 }
             }
+
+            // if (is_save)
+            // {
+            //     file << i << "," << _pt_list_curr[i](0,0) << "," 
+            //                      << _pt_list_curr[i](1,0) << "," 
+            //                      << _pt_list_curr[i](2,0) << ","
+            //                      << dx << "," << dy << "," << dz << "," 
+            //                      << distsqr << "," << rsqr << "\n";
+            // }
         }
+        // if (is_save)
+        // {
+        //     file.close();
+        // }
     }
     else 
     {
@@ -222,10 +344,12 @@ std::vector<double> PredField<T>::DispMapPeak(std::vector<std::vector<std::vecto
     if (x == 0)
     {
         peak[0] = _c;
+        // peak[0] = 0;
     }
     else if (x == _size - 1)
     {
         peak[0] = 2*_r;
+        // peak[0] = _size-1;
     }   
     else
     {
@@ -235,10 +359,12 @@ std::vector<double> PredField<T>::DispMapPeak(std::vector<std::vector<std::vecto
     if (y == 0)
     {
         peak[1] = _c;
+        // peak[1] = 0;
     }
     else if (y == _size - 1)
     {
         peak[1] = 2*_r;
+        // peak[1] = _size - 1;
     }
     else
     {
@@ -248,10 +374,12 @@ std::vector<double> PredField<T>::DispMapPeak(std::vector<std::vector<std::vecto
     if (z == 0)
     {
         peak[2] = _c;
+        // peak[2] = 0;
     }
     else if (z == _size - 1)
     {
         peak[2] = 2*_r;
+        // peak[2] = _size - 1;
     }
     else
     {
@@ -296,29 +424,29 @@ double PredField<T>::Gauss1DPeak(double y1, double v1, double y2, double v2, dou
 
     if (v1 == 0) 
     {
-        lnz1 = log(0.0001);
+        lnz1 = std::log(0.0001);
     }
     else 
     {
-        lnz1 = log(v1);
+        lnz1 = std::log(v1);
     }
 
     if (v2 == 0) 
     {
-        lnz2 = log(0.0001);
+        lnz2 = std::log(0.0001);
     }
     else 
     {
-        lnz2 = log(v2);
+        lnz2 = std::log(v2);
     }
 
     if (v3 == 0) 
     {
-        lnz3 = log(0.0001);
+        lnz3 = std::log(0.0001);
     }
     else 
     {
-        lnz3 = log(v3);
+        lnz3 = std::log(v3);
     }
     
     double yc = - 0.5 * ( lnz1*(y2*y2-y3*y3) - lnz2*(y1*y1-y3*y3) + lnz3*(y1*y1-y2*y2) )

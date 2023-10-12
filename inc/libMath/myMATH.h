@@ -238,7 +238,7 @@ double Median (std::vector<T> const& nums)
 
 // Find outlier in a vector
 template<class T>
-void IsOutlier (std::vector<bool>& judge, std::vector<T> const& nums)
+void IsOutlier (std::vector<int>& judge, std::vector<T> const& nums)
 {
     int n = nums.size();
     if (judge.size() != n)
@@ -261,7 +261,14 @@ void IsOutlier (std::vector<bool>& judge, std::vector<T> const& nums)
 
     for (int i = 0; i < n; i ++)
     {
-        judge[i] = (nums[i] < lb) || (nums[i] > rb);
+        if ((nums[i] < lb) || (nums[i] > rb))
+        {
+            judge[i] = 1;
+        }
+        else
+        {
+            judge[i] = 0;
+        }
     }
 };
 

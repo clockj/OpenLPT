@@ -278,13 +278,20 @@ void STB<T>::InitialPhase ()
                   << "; No. of exited tracks: " << _exit_track.size()
                   << std::endl;
     }
-    _ipr_matched.clear();
 
 
     // Save all the data
     std::string address = _img_folder + "Track/InitialTrack/";
     std::string s = std::to_string(endframe-1);
     std::string file;
+
+    // Save ipr data
+    for (int i = 0; i < 4; i ++)
+    {
+        file = "IPR_" + std::to_string(i) + ".csv";
+        SavePtList(_ipr_matched[i], address + file);
+    }
+    _ipr_matched.clear();
 
     // save the active long tracks
     file = "ActiveLongTrack" + s + ".csv";
@@ -312,9 +319,9 @@ template<class T>
 void STB<T>::ConvergencePhase ()
 {
     int endframe = _last;
-    std::string address = _img_folder + "Tracks/ConvergedTracks/";
+    std::string address = _img_folder + "Track/ConvergedTrack/";
     // Track frame by frame using Wiener / polynomial predictor along with shaking
-    for (int currframe = _first+3; currframe < endframe-1; currframe ++)
+    for (int currframe = _first+3; currframe < endframe; currframe ++)
     {
         // Initialize some variables
         int c1 = _active_short_track.size();
@@ -333,8 +340,7 @@ void STB<T>::ConvergencePhase ()
         t_start = clock();
 
         std::vector<Matrix<double>> est_pos;
-        Prediction(nextframe, est_pos); 
-        std::vector<int> est_int(est_pos.size(), 1);
+        Prediction(nextframe, est_pos); // from back to front
 
         t_end = clock();
         std::cout << (t_end-t_start)/CLOCKS_PER_SEC << "s" << std::endl;
@@ -380,6 +386,9 @@ void STB<T>::ConvergencePhase ()
             t_end = clock();
             std::cout << "\tShaking time: " << (t_end-t_start)/CLOCKS_PER_SEC << "s" << std::endl;
 
+            // for debug
+            // SavePtList(obj_info_match_list, address+"Shaking_"+std::to_string(currframe)+".csv");
+
             // Add the corrected particle position in nextFrame to its respective track
             std::vector<int> tr_id_keep_back = s.GetKeepID_BackWards();
             
@@ -390,11 +399,11 @@ void STB<T>::ConvergencePhase ()
                           << "n_obj_shake=" << n_obj_shake << "\n"
                           << "obj_info_match_list.size=" << obj_info_match_list.size() << std::endl;
                 throw error_size;
-            }          
+            }                      
             for (int i = 0; i < n_obj_shake; i ++)
             {
-                int id = tr_id_keep_back[n_obj_shake-i-1];
-                _active_long_track[id].AddNext(obj_info_match_list[i], nextframe);
+                int id = tr_id_keep_back[i];
+                _active_long_track[n_obj-1-id].AddNext(obj_info_match_list[n_obj_shake-1-i], nextframe);
             }
 
             // Update track list status
@@ -493,6 +502,7 @@ void STB<T>::ConvergencePhase ()
 
             // Add all the untracked candidates to a new short track
             n_obj = obj_list.size();
+            _a_as += n_obj;
             for (int i = 0; i < n_obj; i ++)
             {
                 _active_short_track.push_back(Track<T> (obj_list[i], nextframe));
@@ -506,7 +516,8 @@ void STB<T>::ConvergencePhase ()
         t_start = clock();
 
         int n_long_tr = _active_long_track.size();
-        std::cout << "debug:n_long_tr=" << n_long_tr << std::endl;
+        // std::cout << "debug:n_long_tr=" << n_long_tr << std::endl;
+        // SaveTrack(_active_long_track, address + "BefLiFit_ActiveLongTrack" + std::to_string(currframe) + ".csv");
         is_erase = std::vector<int> (n_long_tr, 0);
         #pragma omp parallel
         {
@@ -560,7 +571,7 @@ void STB<T>::ConvergencePhase ()
         // Save data
         //  Save the inacitve long tracks for every 500 frames 
         //  and empty it to avoid endless expansion of this variable
-        if (nextframe % 10 == 0)
+        if (nextframe % 1 == 0)
         {
             // save the inactive long tracks
             std::string s = std::to_string(nextframe);
@@ -642,11 +653,8 @@ void STB<T>::Run ()
 template<class T>
 void STB<T>::MakeLink(int nextframe, const Matrix<double>& vel_curr, double radius, Track<T>& track, bool& active)
 {
-    Matrix<double> pt_last(3,1);
     Matrix<double> pt_estimate(3,1);
-
-    pt_last = track.Last().GetCenterPos();
-    pt_estimate = pt_last + vel_curr;
+    pt_estimate = track.Last().GetCenterPos() + vel_curr;
 
     int obj_id = _UNLINKED;
     int m = nextframe-_first;
@@ -669,7 +677,7 @@ void STB<T>::MakeLink(int nextframe, const Matrix<double>& vel_curr, double radi
 template<class T>
 void STB<T>::NearestNeighbor(std::vector<T>& obj_list, double radius, const Matrix<double>& pt_estimate, int& obj_id)
 {
-    obj_id = -1;
+    obj_id = _UNLINKED;
     double min2 = radius * radius;
     double dis2 = 0;
 
@@ -682,7 +690,6 @@ void STB<T>::NearestNeighbor(std::vector<T>& obj_list, double radius, const Matr
         }
 
         pt = obj_list[i].GetCenterPos();
-        // dis2 = pt_estimate.DistSqr(pt);
         dis2 = pt.DistSqr(pt_estimate);
 
         if (dis2 < min2)
@@ -697,7 +704,7 @@ void STB<T>::NearestNeighbor(std::vector<T>& obj_list, double radius, const Matr
 template<class T>
 void STB<T>::NearestNeighbor(std::vector<T>& obj_list, double radius, const Matrix<double>& pt_estimate, int& obj_id, std::vector<int>& candidate_used)
 {
-    obj_id = -1;
+    obj_id = _UNLINKED;
     double min2 = radius * radius;
     double dis2 = 0;
 
@@ -710,7 +717,6 @@ void STB<T>::NearestNeighbor(std::vector<T>& obj_list, double radius, const Matr
         }
         
         pt = obj_list[i].GetCenterPos();
-        // dis2 = pt_estimate.DistSqr(pt);
         dis2 = pt.DistSqr(pt_estimate);
 
         if (dis2 < min2)
@@ -840,7 +846,7 @@ double STB<T>::LMSWienerPred(Track<T>& track, std::string direction, int order)
         shift_label = true;
         for (int i = 0; i < order+1; i ++)
         {
-            series[i] = series[i] + shift;
+            series[i] += shift;
         }
     }
 
@@ -850,7 +856,7 @@ double STB<T>::LMSWienerPred(Track<T>& track, std::string direction, int order)
     double sum = 0;
     for (int i = 0; i < order; i ++)
     {
-        sum += series[i] * series[i];
+        sum += (series[i] * series[i]);
     }
     double step = 1 / sum;
 
@@ -873,7 +879,7 @@ double STB<T>::LMSWienerPred(Track<T>& track, std::string direction, int order)
         prediction = 0;
         for (int i = 0; i < order; i ++)
         {
-            prediction += filter_param[i] * series[i];
+            prediction += (filter_param[i] * series[i]);
         }
         error = series[order] - prediction;
     }
@@ -999,7 +1005,7 @@ bool STB<T>::CheckLinearFit(Track<T>& tr)
     }
 
     double y0,y1,y2,y3;
-    Matrix<double> coeff(3,2);
+    Matrix<double> coeff(3,2,0);
     Matrix<double> est(3,1,0);
     for (int i = 0; i < 3; i ++)
     {
@@ -1016,7 +1022,7 @@ bool STB<T>::CheckLinearFit(Track<T>& tr)
     double dist[4];
     dist[3] = est.Dist(pt_list[3]);
 
-    std::cout << dist[3] << std::endl;
+    // std::cout << dist[3] << std::endl;
 
     double err = 0.05; // 0.05 mm
     if (dist[3] > err) 
@@ -1056,7 +1062,7 @@ bool STB<T>::CheckLinearFit(Track<T>& tr)
 template<class T>
 void STB<T>::CreateFolder(std::string folder)
 {
-    int ret = mkdir(folder.c_str());
+    int ret = _mkdir(folder.c_str());
     if (ret && errno==EEXIST)
     {
         std::cout << "DIR: " << folder << " already exists!" << std::endl;
@@ -1073,7 +1079,7 @@ void STB<T>::CreateFolder(std::string folder)
 }
 
 template<class T>
-void STB<T>::SaveTrack(std::deque<Track<T>> tracks, std::string address)
+void STB<T>::SaveTrack(std::deque<Track<T>>& tracks, std::string address)
 {
     int n_tr = tracks.size();
 
@@ -1103,6 +1109,31 @@ void STB<T>::SaveTrack(std::deque<Track<T>> tracks, std::string address)
     outfile.close();
 }
 
+template<class T>
+void STB<T>::SavePtList(std::vector<T>& obj_list, std::string address)
+{
+    std::ofstream outfile(address, std::ios::out);
+
+    int n_obj = obj_list.size();
+    Matrix<double> pt(3,1,0);
+    std::vector<Matrix<double>> match_info(_n_cam, Matrix<double> (3,1,0));
+    for (int i = 0; i < n_obj; i ++)
+    {
+        obj_list[i].SetMatchPosInfo(_cam_list);
+
+        pt = obj_list[i].GetCenterPos();
+        match_info = obj_list[i].GetMatchPosInfo();
+        
+        outfile << pt(0,0) << "," << pt(1,0) << "," << pt(2,0);
+        for (int j = 0; j < _n_cam; j ++)
+        {
+            outfile << "," << match_info[j](0,0) << "," << match_info[j](1,0) << "," << match_info[j](2,0);
+        }
+        outfile << "\n";
+    }
+
+    outfile.close();
+}
 
 // PENDING
 template<class T> 

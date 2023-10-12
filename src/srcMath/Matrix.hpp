@@ -513,7 +513,7 @@ void Matrix<T>::WriteMatrix (std::string file_name)
     std::cout << "\nStart writing!" << std::endl;
 
     std::ofstream outfile(file_name, std::ios::out);
-
+    outfile.precision(8);
     // outfile << "Matrix: " << "(row,col)=" 
     //         << "(" << _dim_x << "," 
     //         << _dim_y << ")" << "\n";
