@@ -340,7 +340,7 @@ void STB<T>::ConvergencePhase ()
         t_start = clock();
 
         std::vector<Matrix<double>> est_pos;
-        Prediction(nextframe, est_pos); // from back to front
+        Prediction(nextframe, est_pos); // from front to back
 
         t_end = clock();
         std::cout << (t_end-t_start)/CLOCKS_PER_SEC << "s" << std::endl;
@@ -356,6 +356,7 @@ void STB<T>::ConvergencePhase ()
 
         // Shaking prediction
         int n_obj = est_pos.size();
+        int n_fail_shaking = 0;
         if (n_obj)
         {
             // Create obj_list based on est_pos
@@ -403,7 +404,7 @@ void STB<T>::ConvergencePhase ()
             for (int i = 0; i < n_obj_shake; i ++)
             {
                 int id = tr_id_keep_back[i];
-                _active_long_track[n_obj-1-id].AddNext(obj_info_match_list[n_obj_shake-1-i], nextframe);
+                _active_long_track[id].AddNext(obj_info_match_list[n_obj_shake-1-i], nextframe);
             }
 
             // Update track list status
@@ -416,6 +417,7 @@ void STB<T>::ConvergencePhase ()
                 {
                     _inactive_long_track.push_back(_active_long_track[id]);
                     _a_il ++;
+                    n_fail_shaking ++;
                 }
                 else
                 {               
@@ -533,6 +535,7 @@ void STB<T>::ConvergencePhase ()
 
         // Delete unstatisfied long tr
         //  from back to front
+        int n_fail_lf = 0;
         for (int i = n_long_tr-1; i > -1; i --)
         {
             if (is_erase[i])
@@ -540,7 +543,7 @@ void STB<T>::ConvergencePhase ()
                 if (_active_long_track[i].Length() > 6)
                 {
                     _inactive_long_track.push_back(_active_long_track[i]);
-                        
+                    n_fail_lf ++; 
                     _a_il ++;
                 }
                 else
@@ -567,11 +570,13 @@ void STB<T>::ConvergencePhase ()
 
         std::cout << "\t\tNo. of inactive Long tracks:	" << c4 << " + " << _a_il << " = " << _inactive_long_track.size() << std::endl;
 
+        std::cout << "\t\t No. of fail shaking intensity: " << n_fail_shaking << std::endl;
+        std::cout << "\t\t No. of fail linear fit: " << n_fail_lf << std::endl;
 
         // Save data
         //  Save the inacitve long tracks for every 500 frames 
         //  and empty it to avoid endless expansion of this variable
-        if (nextframe % 1 == 0)
+        if (nextframe % 500 == 0 && nextframe != endframe)
         {
             // save the inactive long tracks
             std::string s = std::to_string(nextframe);
@@ -596,7 +601,7 @@ void STB<T>::ConvergencePhase ()
 
 
     // Save all the data
-    std::string s = std::to_string(endframe-1);
+    std::string s = std::to_string(endframe);
     std::string file;
 
     // save the active long tracks
@@ -769,9 +774,10 @@ void STB<T>::Prediction(int frame, std::vector<Matrix<double>>& est_pos)
     std::vector<std::string> direction = {"X", "Y", "Z"};
     Matrix<double> est(3,1);
 
-    for (int k = _active_long_track.size()-1; k > -1; k --)
+    int k = 0;
+    for (typename std::deque<Track<T>>::iterator tr = _active_long_track.begin(); tr != _active_long_track.end();)
     {
-        int size = _active_long_track[k].Length();
+        int size = tr->Length();
         for (int i = 0; i < 3; i ++)
         {
             if (size < 4)
@@ -793,12 +799,14 @@ void STB<T>::Prediction(int frame, std::vector<Matrix<double>>& est_pos)
         if (_xyz_limit.Check(est(0,0), est(1,0), est(2,0)))
         {
             est_pos.push_back(est);  
+            tr ++;
+            k ++;
         }
         else
         {
             // the track should be put into exit tracks since it is outside the boundary
             _exit_track.push_back(_active_long_track[k]);
-            _active_long_track.erase(_active_long_track.begin()+k);
+            tr = _active_long_track.erase(tr);
             _s_al ++;
         }
     }

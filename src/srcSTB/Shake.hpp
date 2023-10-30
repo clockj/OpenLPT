@@ -85,13 +85,11 @@ double Shake<T>::CalPointResidue (Matrix<double>& pos_new, std::vector<PixelRang
             {
                 residue += std::pow(
                     aug_img_list[m](i,j)
-                    - std::round(
-                        GaussianProjection(
+                    - GaussianProjection(
                             pos_2d_pixel,
                             otf_param,
                             col_id, row_id
-                        )
-                    ),
+                        ),
                     2
                 );
                 j ++;
@@ -184,13 +182,13 @@ Matrix<double> Shake<T>::UpdatePos3D (Matrix<double> const& pos_old, std::vector
             }
             else
             {
-                residue_list[3] = 1e4;
+                residue_list[3] = residue_list[0] + residue_list[1] + residue_list[2] + 1; // set a maximum residue value
             }
 
             pos_new(i,0) = array_list[myMATH::MinID<double>(residue_list)];
         }
         
-        // TODO: update Augemented image according to new position?
+        // TODO: update Augemented image according to old position but new range?
     }
 
     return pos_new;
@@ -208,6 +206,7 @@ double Shake<T>::CalObjectIntensity (TracerInfo& tracer, std::vector<PixelRange>
     Matrix<double> tracer_center_pixel(3,1,0);
     std::vector<PixelRange> search_range_list_new(_n_cam_use);
 
+    int n_outrange = 0;
     for (int m = 0; m < _n_cam_use; m ++)
     {
         tracer_center_pixel = _cam_use[m].ImgMMToPixel(
@@ -215,12 +214,29 @@ double Shake<T>::CalObjectIntensity (TracerInfo& tracer, std::vector<PixelRange>
                 pos_new
             )
         );
+
+        int row_id = tracer_center_pixel(1,0);
+        int col_id = tracer_center_pixel(0,0);
+        int n_row = _cam_use[m].GetHpix();
+        int n_col = _cam_use[m].GetWpix();
+
         search_range_list_new[m] = FindSearchRegion(
             m, 
-            tracer_center_pixel(1,0), 
-            tracer_center_pixel(0,0), 
+            row_id, 
+            col_id, 
             tracer.GetRadiusPixel()
-        );      
+        );    
+        
+        // TODO: if new range is not complete => intensity=low
+        if (row_id > n_row || row_id < 0 || 
+            col_id > n_col || col_id < 0)
+        {
+            n_outrange ++;
+        }
+    }
+    if (n_outrange == _n_cam_use)
+    {
+        return SMALLNUMBER;
     }
 
     // TODO: how to calculate ratio?
@@ -277,11 +293,21 @@ double Shake<T>::CalObjectIntensity (TracerInfo& tracer, std::vector<PixelRange>
                     numerator_list[m] += _res_img_list[_cam_id[m]](row_id, col_id);   
                 }
                 
-                denominator_list[m] += GaussianProjection(
+                double value = GaussianProjection(
                     tracer.GetMatchPosInfo()[m], // how to store Match pos info?
                     otf_param_list[m],
                     col_id, row_id
                 );
+                denominator_list[m] += value;
+
+                // debug
+                if (value == 0)
+                {
+                    std::cout << "GaussianProjection: " << value << std::endl;
+                    std::cout << _n_cam << "," << _n_cam_use << ",";
+                    std::cout << col_id << "," << row_id << ",";
+                    std::cout << tracer_center_pixel(0,0) << "," << tracer_center_pixel(1,0) << "\n"; 
+                }
             }
         }
     }
@@ -310,7 +336,7 @@ double Shake<T>::CalObjectIntensity (TracerInfo& tracer, std::vector<PixelRange>
         {
             int cam_id = cam_id_list[i];
             numerator += numerator_list[cam_id];
-            denominator += denominator_list_new[cam_id];
+            denominator += denominator_list[cam_id];
             n_normal ++;
         }
     }
@@ -367,6 +393,7 @@ double Shake<T>::ShakingTracer (TracerInfo& tracer, double delta, double intensi
         // std::cout << "qhh debug 0.1" << std::endl;
 
         #pragma region AugmentedImage 
+        // TODO: if 2d search range is not full => directly set intensity as 0
         // Creating a particle reproj image (I_p) matrix in the pixel range
         if (search_range.GetNumOfRow() <= 0 || 
             search_range.GetNumOfCol() <= 0)
@@ -403,6 +430,7 @@ double Shake<T>::ShakingTracer (TracerInfo& tracer, double delta, double intensi
                 );
 
                 // Creating a particle augmented residual image: (I_(res+p))
+                // TODO: try 1.5 search range
                 // aug_img(i, j) = std::max(
                 //     0.0,
                 //     std::min(
@@ -410,9 +438,11 @@ double Shake<T>::ShakingTracer (TracerInfo& tracer, double delta, double intensi
                 //         _res_img_list[cam_id](row_id, col_id) + value
                 //     )
                 // );
-                aug_img(i, j) = std::min(
-                    double(_max_intensity[_cam_id[m]]),
-                    _res_img_list[_cam_id[m]](row_id, col_id) + value
+                aug_img(i, j) = std::max( 0.0,
+                    std::min(
+                        double(_max_intensity[_cam_id[m]]),
+                        _res_img_list[_cam_id[m]](row_id, col_id) + value
+                    )
                 );
                 j++;
             }
@@ -495,7 +525,7 @@ void Shake<T>::TracerResImg ()
             {
                 for (int col_id = col_min; col_id < col_max; col_id ++)
                 {
-                    // _res_img_list[cam_id](row_id, col_id) -= 
+                    // _res_img_list[id](row_id, col_id) -= 
                     //     GaussianProjection(
                     //         pt_img,
                     //         otf_para,
