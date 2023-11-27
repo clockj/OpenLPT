@@ -106,6 +106,7 @@ int main()
 
     // STB<TracerInfo> stb("./Data/stbConfig.txt");
     STB<TracerInfo> stb("D:/SD00125_New/stbConfig.txt");
+    // STB<TracerInfo> stb("D:/SD00125_New_updatesearch/stbConfig.txt");
     stb.Run();
 
     // //Holo data analysis

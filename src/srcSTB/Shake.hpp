@@ -125,7 +125,7 @@ void Shake<T>::FitQuadratic (std::vector<double>& coeff, double* array, std::vec
 
 
 template<class T>
-Matrix<double> Shake<T>::UpdatePos3D (Matrix<double> const& pos_old, std::vector<PixelRange>& search_range_list, std::vector<Matrix<double>>& aug_img_list, double delta)
+Matrix<double> Shake<T>::UpdatePos3D (Matrix<double> const& pos_old, std::vector<PixelRange>& search_range_list, std::vector<Matrix<double>>& aug_img_list, double delta, int half_width)
 {
     Matrix<double> pos_new(pos_old);
 
@@ -189,6 +189,70 @@ Matrix<double> Shake<T>::UpdatePos3D (Matrix<double> const& pos_old, std::vector
         }
         
         // TODO: update Augemented image according to old position but new range?
+        for (int m = 0; m < _n_cam_use; m ++)
+        {
+            Matrix<double> pos_2d_pixel(3,1,0);
+            int id;
+            for (int m = 0; m < _n_cam_use; m ++)
+            {
+                pos_2d_pixel = _cam_use[m].ImgMMToPixel(
+                    _cam_use[m].WorldToImgMM(pos_new)
+                );
+                PixelRange search_range = FindSearchRegion(m, pos_2d_pixel(1,0), pos_2d_pixel(0,0), half_width);
+
+                Matrix<double> aug_img(aug_img_list[m]);
+                int n_col_new = search_range.GetNumOfCol();
+                int n_row_new = search_range.GetNumOfRow();
+                int n_col_old = search_range_list[m].GetNumOfCol();
+                int n_row_old = search_range_list[m].GetNumOfRow();
+                if (n_col_new < n_col_old || 
+                    n_row_new < n_row_old)
+                {
+                    continue;
+                }
+                else if (n_col_new != n_col_old || 
+                         n_row_new != n_row_old)
+                {
+                    aug_img_list[m] = Matrix<double> (n_row_new, n_col_new, 0);
+                }
+                
+                // Get otf param
+                id = _cam_id[m];
+                std::vector<double> otf_param = _otf.GetOTFParam(id, pos_new);
+
+                // update aug_img based on new range
+                int row_min_old = search_range_list[m]._row_min;
+                int row_max_old = search_range_list[m]._row_max;
+                int col_min_old = search_range_list[m]._col_min;
+                int col_max_old = search_range_list[m]._col_max;
+
+                int i = 0; 
+                for (int row_id = search_range._row_min; row_id < search_range._row_max; row_id ++)
+                {
+                    int j = 0; 
+                    for (int col_id = search_range._col_min; col_id < search_range._col_max; col_id ++)
+                    {
+                        bool judge = row_id <  row_max_old && 
+                                     col_id <  col_max_old &&
+                                     row_id >= row_min_old &&
+                                     col_id >= col_min_old;
+                        if (judge)
+                        {
+                            aug_img_list[m](i,j) = aug_img(row_id-row_min_old, col_id-col_min_old);
+                        }
+                        else
+                        {
+                            aug_img_list[m](i,j) = _res_img_list[id](row_id, col_id);
+                        }
+                        j ++;
+                    }
+                    i ++;
+                }
+
+                // update search range
+                search_range_list[m] = search_range;
+            }
+        }
     }
 
     return pos_new;
@@ -431,13 +495,6 @@ double Shake<T>::ShakingTracer (TracerInfo& tracer, double delta, double intensi
 
                 // Creating a particle augmented residual image: (I_(res+p))
                 // TODO: try 1.5 search range
-                // aug_img(i, j) = std::max(
-                //     0.0,
-                //     std::min(
-                //         double(_max_intensity[cam_id]),
-                //         _res_img_list[cam_id](row_id, col_id) + value
-                //     )
-                // );
                 aug_img(i, j) = std::max( 0.0,
                     std::min(
                         double(_max_intensity[_cam_id[m]]),
@@ -465,7 +522,8 @@ double Shake<T>::ShakingTracer (TracerInfo& tracer, double delta, double intensi
             tracer.GetCenterPos(), 
             search_range_list, 
             aug_img_list, 
-            delta
+            delta,
+            tracer.GetRadiusPixel()
         )
     );
     tracer.SetCenterPos(pos_new);

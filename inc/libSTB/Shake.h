@@ -57,7 +57,7 @@ protected:
     void FitQuadratic (std::vector<double>& coeff, double* array, std::vector<double>& residue);
 
     // Shaking and refine 3D position
-    Matrix<double> UpdatePos3D (Matrix<double> const& pos_old, std::vector<PixelRange>& search_range_list, std::vector<Matrix<double>>& aug_img_list, double delta);
+    Matrix<double> UpdatePos3D (Matrix<double> const& pos_old, std::vector<PixelRange>& search_range_list, std::vector<Matrix<double>>& aug_img_list, double delta, int half_width);
 
     // Calculate intensity for shaken particles
     double CalObjectIntensity (TracerInfo& tracer, std::vector<PixelRange>& search_range_list, std::vector<Matrix<double>>& aug_img_list, double intensity, double min_ratio_of_median);
