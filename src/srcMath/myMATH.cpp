@@ -5,7 +5,7 @@ namespace myMATH
 
 // Linespace
 // n >= 2, including min and max, n_gap = n-1
-std::vector<double> Linspace (double min, double max, int n)
+std::vector<double> linspace (double min, double max, int n)
 {
     // both min and max are stored in the vector
     if (n < 2)
@@ -28,7 +28,8 @@ std::vector<double> Linspace (double min, double max, int n)
     return res;
 };
 
-double TriLinearInterp(AxisLimit& grid_limit, std::vector<double>& value, std::vector<double>& pt_vec)
+// Trilinear interpolation
+double triLinearInterp(AxisLimit const& grid_limit, std::vector<double> const& value, std::vector<double> const& pt_vec)
 {
     // [https://en.wikipedia.org/wiki/Trilinear_interpolation]
     // value: 8
@@ -43,7 +44,7 @@ double TriLinearInterp(AxisLimit& grid_limit, std::vector<double>& value, std::v
     // pt_world: 3 
     //           x, y, z
     
-    // Key behavior:
+    // Key requirement:
     // If pt_world is outside the limit:
     //  set it as the value on the boundary 
 
@@ -97,5 +98,106 @@ double TriLinearInterp(AxisLimit& grid_limit, std::vector<double>& value, std::v
     return c;
 };
 
+// Create unit vector
+Pt3D createUnitVector (Pt3D& pt1, Pt3D& pt2)
+{
+    Pt3D res = pt2 - pt1;
+    res /= res.norm();
+    return res;
+};
+
+// Create unit vector
+Pt2D createUnitVector (Pt2D& pt1, Pt2D& pt2)
+{
+    Pt2D res = pt2 - pt1;
+    res /= res.norm();
+    return res;
+};
+
+// Calculate dot product
+double dot (Pt3D const& pt1, Pt3D const& pt2)
+{
+    double res = 0;
+    for (int i = 0; i < 3; i ++)
+    {
+        res += pt1[i] * pt2[i];
+    }
+    return res;
+};
+
+// Calculate dot product
+double dot (Pt2D const& pt1, Pt2D const& pt2)
+{
+    double res = 0;
+    for (int i = 0; i < 2; i ++)
+    {
+        res += pt1[i] * pt2[i];
+    }
+    return res;
+};
+
+// Calculate the distance between two points
+double distance (Pt3D& pt1, Pt3D& pt2)
+{
+    Pt3D res = pt2 - pt1;
+    return res.norm();
+};
+
+// Calculate the distance between two points
+double distance (Pt2D& pt1, Pt2D& pt2)
+{
+    Pt2D res = pt2 - pt1;
+    return res.norm();
+};
+
+// Calculate the distance between point and line
+double distance (Pt3D& pt, Line3D& line)
+{
+    Pt3D diff = pt - line._pt;
+
+    double dist_proj = dot(diff, line._unit_vector);
+    double dist = std::pow(diff.norm(), 2) - dist_proj * dist_proj;
+    
+    if (dist >= 0)
+    {
+        dist = std::sqrt(dist);
+    }
+    else if (dist < 0 && dist > -SMALLNUMBER)
+    {
+        dist = 0;
+    }
+    else
+    {
+        std::cerr << "myMATH::Distance: negative distance" << std::endl;
+        throw error_range;
+    }
+
+    return dist;
+};
+
+// Calculate the distance between point and line
+double distance (Pt2D& pt, Line2D& line)
+{
+    Pt2D diff = pt - line._pt;
+
+    double dist_proj = dot(diff, line._unit_vector);
+    double dist = std::pow(diff.norm(), 2) - dist_proj * dist_proj;
+    
+    if (dist >= 0)
+    {
+        dist = std::sqrt(dist);
+    }
+    else if (dist < 0 && dist > -SMALLNUMBER)
+    {
+        dist = 0;
+    }
+    else
+    {
+        std::cerr << "myMATH::Distance: negative distance" << std::endl;
+        throw error_range;
+    }
+
+    return dist;
+};
 
 }

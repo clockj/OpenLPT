@@ -5,20 +5,18 @@
 #include <ctime>
 
 #include "myMATH.h"
-#include "Matrix_bool.h"
 #include "Matrix.h"
-#include "myIO.h"
-#include "Camera.h"
-#include "ObjectInfo.h"
-#include "ImageIO.h"
-#include "ObjectFinder.h"
-#include "StereoMatch.h"
-#include "OTF.h"
-#include "Shake.h"
-#include "IPR.h"
-#include "PredField.h"
-#include "Track.h"
-#include "STB.h"
+// #include "Camera.h"
+// #include "ObjectInfo.h"
+// #include "ImageIO.h"
+// #include "ObjectFinder.h"
+// #include "StereoMatch.h"
+// #include "OTF.h"
+// #include "Shake.h"
+// #include "IPR.h"
+// #include "PredField.h"
+// #include "Track.h"
+// #include "STB.h"
 
 void LoadPtList(std::vector<Matrix<double>>& pt_list, std::string file_name)
 {
@@ -105,9 +103,9 @@ int main()
     // disp_pred.Print();
 
     // STB<TracerInfo> stb("./Data/stbConfig.txt");
-    STB<TracerInfo> stb("D:/SD00125_New/stbConfig.txt");
-    // STB<TracerInfo> stb("D:/SD00125_New_updatesearch/stbConfig.txt");
-    stb.Run();
+    // // STB<TracerInfo> stb("D:/SD00125_New/stbConfig.txt");
+    // // STB<TracerInfo> stb("D:/SD00125_New_updatesearch/stbConfig.txt");
+    // stb.Run();
 
     // //Holo data analysis
     // int n_frame = 100;

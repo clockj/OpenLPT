@@ -2,9 +2,7 @@
 #define STB_H
 
 #include "myMATH.h"
-#include "Matrix_bool.h"
 #include "Matrix.h"
-#include "myIO.h"
 #include "Camera.h"
 #include "ObjectInfo.h"
 #include "ImageIO.h"

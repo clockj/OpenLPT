@@ -24,41 +24,37 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -Wall         ")
 # set(CMAKE_C_FLAGS_RELEASE   "${CMAKE_C_FLAGS_RELEASE}   -Ofast -Wall         ")
 # set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -Wall         ")
 
-set(HEADER_FILES
+set(HEADERFILES
     ${CMAKE_HOME_DIRECTORY}/inc/libMath/myMATH.h
-    ${CMAKE_HOME_DIRECTORY}/inc/libIO/myIO.h
     ${CMAKE_HOME_DIRECTORY}/inc/libMath/STBCommons.h
     ${CMAKE_HOME_DIRECTORY}/inc/libMath/Matrix.h
-    ${CMAKE_HOME_DIRECTORY}/inc/libMath/Matrix_bool.h
-    ${CMAKE_HOME_DIRECTORY}/inc/libSTB/Camera.h
-    ${CMAKE_HOME_DIRECTORY}/inc/libSTB/ObjectInfo.h
-    ${CMAKE_HOME_DIRECTORY}/inc/libSTB/ImageIO.h
-    ${CMAKE_HOME_DIRECTORY}/inc/libSTB/ObjectFinder.h
-    ${CMAKE_HOME_DIRECTORY}/inc/libSTB/StereoMatch.h
-    ${CMAKE_HOME_DIRECTORY}/inc/libSTB/OTF.h
-    ${CMAKE_HOME_DIRECTORY}/inc/libSTB/Shake.h
-    ${CMAKE_HOME_DIRECTORY}/inc/libSTB/IPR.h
-    ${CMAKE_HOME_DIRECTORY}/inc/libSTB/PredField.h
-    ${CMAKE_HOME_DIRECTORY}/inc/libSTB/Track.h
-    ${CMAKE_HOME_DIRECTORY}/inc/libSTB/STB.h
+    # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/Camera.h
+    # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/ObjectInfo.h
+    # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/ImageIO.h
+    # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/ObjectFinder.h
+    # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/StereoMatch.h
+    # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/OTF.h
+    # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/Shake.h
+    # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/IPR.h
+    # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/PredField.h
+    # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/Track.h
+    # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/STB.h
 )
 
-set(SOURCE_FILES main.cpp
-    ${CMAKE_HOME_DIRECTORY}/src/srcIO/myIO.cpp
+set(SOURCEFILES main.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcMath/myMATH.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcMath/Matrix.hpp
-    ${CMAKE_HOME_DIRECTORY}/src/srcMath/Matrix_bool.hpp
-    ${CMAKE_HOME_DIRECTORY}/src/srcSTB/Camera.cpp
-    ${CMAKE_HOME_DIRECTORY}/src/srcSTB/ObjectInfo.cpp
-    ${CMAKE_HOME_DIRECTORY}/src/srcSTB/ImageIO.cpp
-    ${CMAKE_HOME_DIRECTORY}/src/srcSTB/ObjectFinder.hpp
-    ${CMAKE_HOME_DIRECTORY}/src/srcSTB/StereoMatch.hpp
-    ${CMAKE_HOME_DIRECTORY}/src/srcSTB/OTF.cpp
-    ${CMAKE_HOME_DIRECTORY}/src/srcSTB/Shake.hpp
-    ${CMAKE_HOME_DIRECTORY}/src/srcSTB/IPR.hpp
-    ${CMAKE_HOME_DIRECTORY}/src/srcSTB/PredField.hpp
-    ${CMAKE_HOME_DIRECTORY}/src/srcSTB/Track.hpp
-    ${CMAKE_HOME_DIRECTORY}/src/srcSTB/STB.hpp
+    # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/Camera.cpp
+    # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/ObjectInfo.cpp
+    # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/ImageIO.cpp
+    # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/ObjectFinder.hpp
+    # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/StereoMatch.hpp
+    # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/OTF.cpp
+    # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/Shake.hpp
+    # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/IPR.hpp
+    # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/PredField.hpp
+    # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/Track.hpp
+    # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/STB.hpp
 )
 
 # Add executable target with source files listed in SOURCE_FILES variable
@@ -70,7 +66,7 @@ include_directories("${CMAKE_HOME_DIRECTORY}/src/srcMath")
 include_directories("${CMAKE_HOME_DIRECTORY}/inc/libSTB")
 include_directories("${CMAKE_HOME_DIRECTORY}/src/srcSTB")
 
-add_executable(OpenLPT ${SOURCE_FILES} ${HEADER_FILES})
+add_executable(OpenLPT ${SOURCEFILES} ${HEADERFILES})
 
 add_subdirectory("${CMAKE_HOME_DIRECTORY}/inc/libtiff")
 target_link_libraries(OpenLPT PUBLIC tiff)
@@ -87,3 +83,40 @@ if (OPENMP_FOUND)
     set_property(TARGET OpenLPT PROPERTY
         MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 endif()
+
+
+
+# Enable testing with CTest
+enable_testing()
+
+# test
+set(TESTHEADERFILES
+    ${CMAKE_HOME_DIRECTORY}/test/test.h
+)
+
+# test Matrix
+add_executable(test_Matrix ${CMAKE_HOME_DIRECTORY}/test/test_Matrix.cpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcMath/Matrix.hpp
+    ${TESTHEADERFILES}
+    ${CMAKE_HOME_DIRECTORY}/inc/libMath/Matrix.h
+    ${CMAKE_HOME_DIRECTORY}/inc/libMath/STBCommons.h
+)
+
+# Add the test to CTest
+add_test(test_Matrix test_Matrix)
+set_tests_properties(test_Matrix
+                     PROPERTIES FAIL_REGULAR_EXPRESSION "failed on line")
+# add_test(test_Matrix_compare ${CMAKE_COMMAND} -E compare_files ${CMAKE_HOME_DIRECTORY}/test/results/test_Matrix/test_function_5.csv ${CMAKE_HOME_DIRECTORY}/test/solutions/test_Matrix/test_function_5.csv)
+
+
+# test myMATH
+add_executable(test_myMATH ${CMAKE_HOME_DIRECTORY}/test/test_myMATH.cpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcMath/myMATH.cpp
+    ${TESTHEADERFILES}
+    ${CMAKE_HOME_DIRECTORY}/inc/libMath/myMATH.h
+    ${CMAKE_HOME_DIRECTORY}/inc/libMath/STBCommons.h
+)
+
+add_test(test_myMATH test_myMATH)
+set_tests_properties(test_myMATH
+                     PROPERTIES FAIL_REGULAR_EXPRESSION "failed on line")

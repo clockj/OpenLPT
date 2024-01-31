@@ -2139,7 +2139,6 @@ void StereoMatch<T>::DeleteGohstTracerMatchNew (std::vector<std::vector<TracerIn
             object_id_match_num[j][id] += 1;
         }  
     }
-    // myIO::WriteMatrix<int>("Result/object_id_match_num.csv", object_id_match_num);
 
     // calculate rank of each match pair (might be parallel)
     // if (_n_thread != 0)
