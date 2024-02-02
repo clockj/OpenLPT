@@ -17,9 +17,9 @@ bool test_function_1 ()
                                                 {1,2,3},
                                                 {4,5,6},
                                                 {7,8,9}};
-    for (int i = 0; i < ans.getDimX(); i ++)
+    for (int i = 0; i < ans.getDimRow(); i ++)
     {
-        for (int j = 0; j < ans.getDimY(); j ++)
+        for (int j = 0; j < ans.getDimCol(); j ++)
         {
             if (ans(i,j) != ans_vec[i][j])
             {
@@ -31,9 +31,9 @@ bool test_function_1 ()
     int row_id = 0;
 
     Matrix<double> mtx_1(3, 3, 1);
-    for (int i = 0; i < mtx_1.getDimX(); i ++)
+    for (int i = 0; i < mtx_1.getDimRow(); i ++)
     {
-        for (int j = 0; j < mtx_1.getDimY(); j ++)
+        for (int j = 0; j < mtx_1.getDimCol(); j ++)
         {
             if (mtx_1(i,j) != ans(row_id,j))
             {
@@ -45,9 +45,9 @@ bool test_function_1 ()
     }
 
     Matrix<double> mtx_2(3, 3, {{1,2,3},{4,5,6},{7,8,9}});
-    for (int i = 0; i < mtx_2.getDimX(); i ++)
+    for (int i = 0; i < mtx_2.getDimRow(); i ++)
     {
-        for (int j = 0; j < mtx_2.getDimY(); j ++)
+        for (int j = 0; j < mtx_2.getDimCol(); j ++)
         {
             if (mtx_2(i,j) != ans(row_id,j))
             {
@@ -59,9 +59,9 @@ bool test_function_1 ()
     }
 
     Matrix<double> mtx_3(mtx_2);
-    for (int i = 0; i < mtx_3.getDimX(); i ++)
+    for (int i = 0; i < mtx_3.getDimRow(); i ++)
     {
-        for (int j = 0; j < mtx_3.getDimY(); j ++)
+        for (int j = 0; j < mtx_3.getDimCol(); j ++)
         {
             if (mtx_3(i,j) != ans(row_id,j))
             {
@@ -74,9 +74,9 @@ bool test_function_1 ()
 
     // test for large matrix
     Matrix<int> mtx_4(1024, 1024, 255);
-    for (int i = 0; i < mtx_4.getDimX(); i ++)
+    for (int i = 0; i < mtx_4.getDimRow(); i ++)
     {
-        for (int j = 0; j < mtx_4.getDimY(); j ++)
+        for (int j = 0; j < mtx_4.getDimCol(); j ++)
         {
             if (mtx_4(i,j) != 255)
             {
@@ -166,14 +166,14 @@ bool test_function_3 ()
 bool test_function_4 ()
 {
     Matrix<double> mtx_1(100,500, 10);
-    if (mtx_1.getDimX() != 100)
+    if (mtx_1.getDimRow() != 100)
     {
-        std::cout << "mtx_1.getDimX() = " << mtx_1.getDimX() << ", ans = " << 100 << std::endl;
+        std::cout << "mtx_1.getDimRow() = " << mtx_1.getDimRow() << ", ans = " << 100 << std::endl;
         return false;
     }
-    if (mtx_1.getDimY() != 500)
+    if (mtx_1.getDimCol() != 500)
     {
-        std::cout << "mtx_1.getDimY() = " << mtx_1.getDimY() << ", ans = " << 500 << std::endl;
+        std::cout << "mtx_1.getDimCol() = " << mtx_1.getDimCol() << ", ans = " << 500 << std::endl;
         return false;
     }
 
@@ -203,9 +203,9 @@ bool test_function_6 ()
     Matrix<double> mtx_1(3,3, {{1,2,3},{4,5,6},{7,8,9}});
 
     Matrix<double> mtx_2 = mtx_1;
-    for (int i = 0; i < mtx_2.getDimX(); i ++)
+    for (int i = 0; i < mtx_2.getDimRow(); i ++)
     {
-        for (int j = 0; j < mtx_2.getDimY(); j ++)
+        for (int j = 0; j < mtx_2.getDimCol(); j ++)
         {
             if (mtx_2(i,j) != mtx_1(i,j))
             {
@@ -216,9 +216,9 @@ bool test_function_6 ()
     }
 
     Matrix<double> mtx_3 = mtx_1 + mtx_2;
-    for (int i = 0; i < mtx_3.getDimX(); i ++)
+    for (int i = 0; i < mtx_3.getDimRow(); i ++)
     {
-        for (int j = 0; j < mtx_3.getDimY(); j ++)
+        for (int j = 0; j < mtx_3.getDimCol(); j ++)
         {
             if (mtx_3(i,j) != 2*mtx_1(i,j))
             {
@@ -229,9 +229,9 @@ bool test_function_6 ()
     }
 
     Matrix<double> mtx_4 = mtx_1 - mtx_2;
-    for (int i = 0; i < mtx_4.getDimX(); i ++)
+    for (int i = 0; i < mtx_4.getDimRow(); i ++)
     {
-        for (int j = 0; j < mtx_4.getDimY(); j ++)
+        for (int j = 0; j < mtx_4.getDimCol(); j ++)
         {
             if (mtx_4(i,j) != 0)
             {
@@ -243,9 +243,9 @@ bool test_function_6 ()
 
     Matrix<double> mtx_5 = mtx_1 * mtx_2;
     Matrix<double> ans_5(3, 3, {{30,36,42},{66,81,96},{102,126,150}});
-    for (int i = 0; i < mtx_5.getDimX(); i ++)
+    for (int i = 0; i < mtx_5.getDimRow(); i ++)
     {
-        for (int j = 0; j < mtx_5.getDimY(); j ++)
+        for (int j = 0; j < mtx_5.getDimCol(); j ++)
         {
             if (mtx_5(i,j) != ans_5(i,j))
             {
@@ -256,9 +256,9 @@ bool test_function_6 ()
     }
 
     Matrix<double> mtx_6 = mtx_1 * 2;
-    for (int i = 0; i < mtx_6.getDimX(); i ++)
+    for (int i = 0; i < mtx_6.getDimRow(); i ++)
     {
-        for (int j = 0; j < mtx_6.getDimY(); j ++)
+        for (int j = 0; j < mtx_6.getDimCol(); j ++)
         {
             if (mtx_6(i,j) != 2*mtx_1(i,j))
             {
@@ -269,9 +269,9 @@ bool test_function_6 ()
     }
 
     Matrix<double> mtx_7 = mtx_1 / 2;
-    for (int i = 0; i < mtx_7.getDimX(); i ++)
+    for (int i = 0; i < mtx_7.getDimRow(); i ++)
     {
-        for (int j = 0; j < mtx_7.getDimY(); j ++)
+        for (int j = 0; j < mtx_7.getDimCol(); j ++)
         {
             if (mtx_7(i,j) != mtx_1(i,j)/2)
             {
@@ -283,9 +283,9 @@ bool test_function_6 ()
 
     Matrix<double> mtx_8 = mtx_1;
     mtx_8 += mtx_2;
-    for (int i = 0; i < mtx_8.getDimX(); i ++)
+    for (int i = 0; i < mtx_8.getDimRow(); i ++)
     {
-        for (int j = 0; j < mtx_8.getDimY(); j ++)
+        for (int j = 0; j < mtx_8.getDimCol(); j ++)
         {
             if (mtx_8(i,j) != mtx_1(i,j) + mtx_2(i,j))
             {
@@ -297,9 +297,9 @@ bool test_function_6 ()
 
     Matrix<double> mtx_9 = mtx_1;
     mtx_9 -= mtx_2;
-    for (int i = 0; i < mtx_9.getDimX(); i ++)
+    for (int i = 0; i < mtx_9.getDimRow(); i ++)
     {
-        for (int j = 0; j < mtx_9.getDimY(); j ++)
+        for (int j = 0; j < mtx_9.getDimCol(); j ++)
         {
             if (mtx_9(i,j) != 0)
             {
@@ -311,9 +311,9 @@ bool test_function_6 ()
 
     Matrix<double> mtx_10 = mtx_1;
     mtx_10 *= mtx_2;
-    for (int i = 0; i < mtx_10.getDimX(); i ++)
+    for (int i = 0; i < mtx_10.getDimRow(); i ++)
     {
-        for (int j = 0; j < mtx_10.getDimY(); j ++)
+        for (int j = 0; j < mtx_10.getDimCol(); j ++)
         {
             if (mtx_10(i,j) != ans_5(i,j))
             {
@@ -325,9 +325,9 @@ bool test_function_6 ()
 
     Matrix<double> mtx_11 = mtx_1;
     mtx_11 *= 2;
-    for (int i = 0; i < mtx_11.getDimX(); i ++)
+    for (int i = 0; i < mtx_11.getDimRow(); i ++)
     {
-        for (int j = 0; j < mtx_11.getDimY(); j ++)
+        for (int j = 0; j < mtx_11.getDimCol(); j ++)
         {
             if (mtx_11(i,j) != 2*mtx_1(i,j))
             {
@@ -339,9 +339,9 @@ bool test_function_6 ()
 
     Matrix<double> mtx_12 = mtx_1;
     mtx_12 /= 2;
-    for (int i = 0; i < mtx_12.getDimX(); i ++)
+    for (int i = 0; i < mtx_12.getDimRow(); i ++)
     {
-        for (int j = 0; j < mtx_12.getDimY(); j ++)
+        for (int j = 0; j < mtx_12.getDimCol(); j ++)
         {
             if (mtx_12(i,j) != mtx_1(i,j)/2)
             {
@@ -355,9 +355,9 @@ bool test_function_6 ()
     Matrix<double> mtx_14(4,3, {{1,2,3},{4,5,6},{7,8,9},{10,11,12}});
     Matrix<double> mtx_15 = mtx_13 * mtx_14;
     Matrix<double> ans_15(3,3, {{70,80,90},{158,184,210},{246,288,330}});
-    for (int i = 0; i < mtx_15.getDimX(); i ++)
+    for (int i = 0; i < mtx_15.getDimRow(); i ++)
     {
-        for (int j = 0; j < mtx_15.getDimY(); j ++)
+        for (int j = 0; j < mtx_15.getDimCol(); j ++)
         {
             if (mtx_15(i,j) != ans_15(i,j))
             {
@@ -370,9 +370,9 @@ bool test_function_6 ()
     Matrix<double> mtx_16(3,3, {{1,2,3},{4,5,6},{7,8,9}});
     Matrix<double> mtx_17 = mtx_16.transpose();
     Matrix<double> ans_17(3,3, {{1,4,7},{2,5,8},{3,6,9}});
-    for (int i = 0; i < mtx_17.getDimX(); i ++)
+    for (int i = 0; i < mtx_17.getDimRow(); i ++)
     {
-        for (int j = 0; j < mtx_17.getDimY(); j ++)
+        for (int j = 0; j < mtx_17.getDimCol(); j ++)
         {
             if (mtx_17(i,j) != ans_17(i,j))
             {
@@ -471,9 +471,9 @@ bool test_function_7 ()
     }
 
     Image img_1(1024,1024, 255);
-    for (int i = 0; i < img_1.getDimX(); i ++)
+    for (int i = 0; i < img_1.getDimRow(); i ++)
     {
-        for (int j = 0; j < img_1.getDimY(); j ++)
+        for (int j = 0; j < img_1.getDimCol(); j ++)
         {
             if (img_1(i,j) != 255)
             {
@@ -485,9 +485,9 @@ bool test_function_7 ()
 
     Matrix<double> mtx_3(1024,1024, 1);
     img_1 = mtx_3;
-    for (int i = 0; i < img_1.getDimX(); i ++)
+    for (int i = 0; i < img_1.getDimRow(); i ++)
     {
-        for (int j = 0; j < img_1.getDimY(); j ++)
+        for (int j = 0; j < img_1.getDimCol(); j ++)
         {
             if (img_1(i,j) != 1)
             {

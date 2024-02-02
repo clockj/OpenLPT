@@ -154,16 +154,16 @@ Matrix<T> eye (int n)
 template<class T>
 Matrix<T> piecewiseProduct (Matrix<T> const& mtx1, Matrix<T> const& mtx2)
 {
-    if ((mtx1.getDimX() != mtx2.getDimX()) || (mtx1.getDimY() != mtx2.getDimY()))
+    if ((mtx1.getDimRow() != mtx2.getDimRow()) || (mtx1.getDimCol() != mtx2.getDimCol()))
     {
         std::cerr << "myMATH::PiecewiseProduct: size unequal" << std::endl;
         throw error_size;
     }
 
     Matrix<T> res(mtx1);
-    for (int i = 0; i < mtx1.getDimX(); i ++)
+    for (int i = 0; i < mtx1.getDimRow(); i ++)
     {
-        for (int j = 0; j < mtx1.getDimY(); j ++)
+        for (int j = 0; j < mtx1.getDimCol(); j ++)
         {
             res(i,j) *= mtx2(i,j);
         }
@@ -187,7 +187,7 @@ namespace internal
         //  the lower triangle part of u_mtx (multipliers),
         //  and the sortedRowIndex.
 
-        int n = u_mtx.getDimX(); // dimension of the matrix: n * n
+        int n = u_mtx.getDimRow(); // dimension of the matrix: n * n
 
         std::vector<T> row(n, 0.0);
         std::vector<T> maxOfrow(n, 0.0);
@@ -247,7 +247,7 @@ namespace internal
         // In GaussBackward, we are trying to solve for Xmat,
         //  where Xmat = u_mtx^(-1) * Lmat^(-1) * Bmat
 
-        int n = u_mtx.getDimX(); // dimension of the matrix: n * n
+        int n = u_mtx.getDimRow(); // dimension of the matrix: n * n
         Matrix<T> res(b_mtx);
         T z; // right-hand-side variable 
 
@@ -285,7 +285,7 @@ namespace internal
     Matrix<T> gaussInverse (Matrix<T> const& mtx)
     {
         // Gaussian Elimination
-        int n = mtx.getDimX();
+        int n = mtx.getDimRow();
         std::vector<int> sortedRowIndex(n);
         Matrix<T> u_mtx (mtx); // deep copy
         Matrix<T> b_mtx(eye<T>(n)); // generate identity matrix
@@ -299,7 +299,7 @@ namespace internal
     template<class T> 
     Matrix<T> detInverse (Matrix<T> const& mtx)
     {
-        if (mtx.getDimX() != mtx.getDimY())
+        if (mtx.getDimRow() != mtx.getDimCol())
         {
             std::cerr << "The matrix is not a square matrix!"
                     << "There is no inverse."
@@ -307,7 +307,7 @@ namespace internal
             throw error_size;
         }
 
-        int n = mtx.getDimX();
+        int n = mtx.getDimRow();
         if (n != 3)
         {
             std::cerr << "DetInverse only supports for 3x3 matrix!"
@@ -352,7 +352,7 @@ Matrix<T> inverse (Matrix<T> const& mtx, std::string method="gauss")
         std::cerr << "myMATH::Inverse: not supported for int" << std::endl;
         throw error_type;
     }
-    if (mtx.getDimX() != mtx.getDimY())
+    if (mtx.getDimRow() != mtx.getDimCol())
     {
         std::cerr << "myMATH::Inverse: not a square matrix" << std::endl;
         throw error_size;

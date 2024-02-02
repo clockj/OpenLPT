@@ -30,7 +30,7 @@ set(HEADERFILES
     ${CMAKE_HOME_DIRECTORY}/inc/libMath/Matrix.h
     # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/Camera.h
     # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/ObjectInfo.h
-    # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/ImageIO.h
+    ${CMAKE_HOME_DIRECTORY}/inc/libSTB/ImageIO.h
     # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/ObjectFinder.h
     # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/StereoMatch.h
     # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/OTF.h
@@ -46,7 +46,7 @@ set(SOURCEFILES main.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcMath/Matrix.hpp
     # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/Camera.cpp
     # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/ObjectInfo.cpp
-    # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/ImageIO.cpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcSTB/ImageIO.cpp
     # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/ObjectFinder.hpp
     # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/StereoMatch.hpp
     # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/OTF.cpp
@@ -114,9 +114,20 @@ add_executable(test_myMATH ${CMAKE_HOME_DIRECTORY}/test/test_myMATH.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcMath/myMATH.cpp
     ${TESTHEADERFILES}
     ${CMAKE_HOME_DIRECTORY}/inc/libMath/myMATH.h
-    ${CMAKE_HOME_DIRECTORY}/inc/libMath/STBCommons.h
 )
 
 add_test(test_myMATH test_myMATH)
 set_tests_properties(test_myMATH
+                     PROPERTIES FAIL_REGULAR_EXPRESSION "failed on line")
+
+
+# test ImageIO
+add_executable(test_ImageIO ${CMAKE_HOME_DIRECTORY}/test/test_ImageIO.cpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcSTB/ImageIO.cpp
+    ${TESTHEADERFILES}
+    ${CMAKE_HOME_DIRECTORY}/inc/libSTB/ImageIO.h
+)
+target_link_libraries(test_ImageIO PUBLIC tiff)
+add_test(test_ImageIO test_ImageIO)
+set_tests_properties(test_ImageIO
                      PROPERTIES FAIL_REGULAR_EXPRESSION "failed on line")

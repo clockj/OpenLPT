@@ -112,18 +112,18 @@ bool test_function_5 ()
 {
     AxisLimit grid_limit;
 
-    grid_limit._x_min = 0;
-    grid_limit._x_max = 1;
-    grid_limit._y_min = 0;
-    grid_limit._y_max = 1;
-    grid_limit._z_min = 0;
-    grid_limit._z_max = 1;
+    grid_limit.x_min = 0;
+    grid_limit.x_max = 1;
+    grid_limit.y_min = 0;
+    grid_limit.y_max = 1;
+    grid_limit.z_min = 0;
+    grid_limit.z_max = 1;
 
     std::vector<double> value = {0,1,2,3,4,5,6,7};
     
     Matrix<double> inputs ("../test/inputs/test_myMATH/test_function_5.csv");
-    Matrix<double> results (inputs.getDimX(), 1, 0);
-    for (int i = 0; i < inputs.getDimX(); i ++)
+    Matrix<double> results (inputs.getDimRow(), 1, 0);
+    for (int i = 0; i < inputs.getDimRow(); i ++)
     {
         std::vector<double> pt_vec = inputs.getRow(i);
         results[i] = myMATH::triLinearInterp(grid_limit, value, pt_vec);

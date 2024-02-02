@@ -493,14 +493,14 @@ Matrix<double> PredField<T>::PtInterp(Matrix<double> const& pt)
 
     AxisLimit grid_limit;
 
-    grid_limit._x_min = _grid_x[index_x];
-    grid_limit._x_max = _grid_x[index_x + 1];
+    grid_limit.x_min = _grid_x[index_x];
+    grid_limit.x_max = _grid_x[index_x + 1];
 
-    grid_limit._y_min = _grid_y[index_y];
-    grid_limit._y_max = _grid_y[index_y + 1];
+    grid_limit.y_min = _grid_y[index_y];
+    grid_limit.y_max = _grid_y[index_y + 1];
 
-    grid_limit._z_min = _grid_z[index_z];
-    grid_limit._z_max = _grid_z[index_z + 1];
+    grid_limit.z_min = _grid_z[index_z];
+    grid_limit.z_max = _grid_z[index_z + 1];
 
     int i_000 = MapGridIndexToID(index_x  , index_y  , index_z  );
     int i_100 = MapGridIndexToID(index_x+1, index_y  , index_z  );

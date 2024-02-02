@@ -48,12 +48,12 @@ double triLinearInterp(AxisLimit const& grid_limit, std::vector<double> const& v
     // If pt_world is outside the limit:
     //  set it as the value on the boundary 
 
-    double x_0 = grid_limit._x_min;
-    double x_1 = grid_limit._x_max;
-    double y_0 = grid_limit._y_min;
-    double y_1 = grid_limit._y_max;
-    double z_0 = grid_limit._z_min;
-    double z_1 = grid_limit._z_max;
+    double x_0 = grid_limit.x_min;
+    double x_1 = grid_limit.x_max;
+    double y_0 = grid_limit.y_min;
+    double y_1 = grid_limit.y_max;
+    double z_0 = grid_limit.z_min;
+    double z_1 = grid_limit.z_max;
 
     double c_000 = value[0];
     double c_100 = value[1];

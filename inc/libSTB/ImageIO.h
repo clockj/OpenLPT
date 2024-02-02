@@ -16,65 +16,82 @@
 #include <string>
 #include <fstream>
 #include <sstream>
-#include <deque> 
+#include <vector>
+#include <cstring> 
 
+#include <tiff.h>
 #include <tiffio.h>
 
 #include "Matrix.h"
 #include "STBCommons.h"
 
 
+#define IMAGEIO_CHECK_CALL(call) \
+    {if (call==false) {std::cerr << "ImageIO Error (line: " << __LINE__  << ")" << std::endl; throw error_io;}} 
+#define IMAGEIO_CHECK_CALL_DEBUG(call) \
+    {if (call==false) {std::cerr << "ImageIO Optional Call Fail (line: " << __LINE__ << ")" << std::endl;}}
+
+#define TILE_MAX_WIDTH  (1 << 24)
+#define TILE_MAX_HEIGHT (1 << 24)
+#define MAX_TILE_SIZE   (1 << 30)
+#define BITS_PER_BYTE    8
+
+#ifndef __IPL_H__
+   typedef unsigned char uchar;
+   typedef unsigned short ushort;
+#endif
+
+struct ImageParam
+{
+    int n_row;
+    int n_col;
+    int bits_per_sample;
+    int n_channel;
+};
+
 class ImageIO
 {
-protected:
+private:
     // tiff image properties: used when saved image 
-    int _n_row = 0;            
-    int _n_col = 0;            
-    int _bit_per_sample = 0;   // maximum intensity of the image [bit]
-    int _sample_per_pixel = 0; // number of component per pixel
-    int _strip_size = 0;       // one strip size, used in compressed tiff image  
-    int _strip_max = 0;        // number of strips, used in compressed tiff image 
+    int _n_row = 0;            // image height       
+    int _n_col = 0;            // image width       
+    int _bits_per_sample = 0;  // maximum intensity of the image [bit]
+    int _n_channel = 0;        // number of channels
+
+    int _is_tiled = 0;         // 1 for tiled; 0 for stripped
+    int _tile_height0 = 0;     // tile height (length)
+    int _tile_width0 = 0;      // tile width
+    int _img_orientation = ORIENTATION_TOPLEFT; // image orientation
 
     int _img_id = -1;          // current image index
-    std::deque<std::string> _img_path; // path to all images of one camera
+    std::vector<std::string> _img_path; // path to all images of one camera
 
 public:
     ImageIO () {};
     ImageIO (const ImageIO& img_io); // deep copy
-    ImageIO (int n_row, int n_col);
     ~ImageIO () {};
 
     // Load path
     //  every filename should end with ';'
     // input: a main folder path, a file storing all the img paths 
-    void LoadImgPath (std::string folder_path, std::string file_img_path);
+    void loadImgPath (std::string folder_path, std::string file_img_path);
 
     // Load Image
     // input: id_img (image index)
     // output: intensity matrix
-    Matrix<double> LoadImg (int img_id);
+    Image loadImg (int img_id);
 
     // Save Image
-    void SaveImage (std::string save_path, Matrix<int>& intensity_mtx);
+    void saveImg (std::string save_path, Image const& image);
 
     // Set image info 
-    void SetImgNumOfRow (int n_row) {_n_row = n_row;};
-    void SetImgNumOfCol (int n_col) {_n_col = n_col;};
-    void SetBitPerSample (int bit_per_sample) {_bit_per_sample = bit_per_sample;};
-    void SetSamplePerPixel (int sample_per_pixel) {_sample_per_pixel = sample_per_pixel;};
-    void SetStripSize (int strip_size) {_strip_size = strip_size;};
-    void SetStripMax  (int strip_max)  {_strip_max = strip_max;};   
+    void setImgParam (ImageParam const& img_param);
 
     // Get image info
-    int GetNumOfImg ()     {return _img_path.size();};
-    int GetImgNumOfRow ()  {return _n_row;};
-    int GetImgNumOfCol ()  {return _n_col;};
-    int GetBitPerSample () {return _bit_per_sample;};
-    int GetSamplePerPixel () {return _sample_per_pixel;};
-    int GetStripSize () {return _strip_size;};
-    int GetStripMax  () {return _strip_max;};   
-
-    int GetCurrentImgID () {return _img_id;};
+    ImageParam getImgParam ();
+      
+    // Get current image index
+    int getCurrImgID () {return _img_id;};
 };
 
 #endif

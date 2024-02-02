@@ -16,22 +16,22 @@ struct PixelRange
 {
     // left is closed, right is open 
     // [min, max)
-    int _row_min = 0;
-    int _row_max = 0;
-    int _col_min = 0;
-    int _col_max = 0;
+    int row_min = 0;
+    int row_max = 0;
+    int col_min = 0;
+    int col_max = 0;
 
     // Note: before using SetRowRange or SetColRange
     //       make sure it has been initialized!!!
     void SetRowRange (int row)
     {
-        if (row > _row_max)
+        if (row > row_max)
         {
-            _row_max = row;
+            row_max = row;
         }
-        else if (row < _row_min)
+        else if (row < row_min)
         {
-            _row_min = row;
+            row_min = row;
         }
     }; // TODO: we can add a choice to increase search area
 
@@ -39,13 +39,13 @@ struct PixelRange
     //       make sure it has been initialized!!!
     void SetColRange (int col)
     {
-        if (col > _col_max)
+        if (col > col_max)
         {
-            _col_max = col;
+            col_max = col;
         }
-        else if (col < _col_min)
+        else if (col < col_min)
         {
-            _col_min = col;
+            col_min = col;
         }
     }; // TODO: we can add a choice to increase search area
 
@@ -58,38 +58,38 @@ struct PixelRange
     };
     int GetNumOfRow ()
     {
-        return _row_max - _row_min;
+        return row_max - row_min;
     }
     int GetNumOfCol()
     {
-        return _col_max - _col_min;
+        return col_max - col_min;
     }
 };
 
 struct AxisLimit 
 {
-    double _x_min = 0;
-    double _x_max = 0;
-    double _y_min = 0;
-    double _y_max = 0;
-    double _z_min = 0;
-    double _z_max = 0;
+    double x_min = 0;
+    double x_max = 0;
+    double y_min = 0;
+    double y_max = 0;
+    double z_min = 0;
+    double z_max = 0;
 
     void operator= (AxisLimit const& limit)
     {
-        _x_min = limit._x_min;
-        _x_max = limit._x_max;
-        _y_min = limit._y_min;
-        _y_max = limit._y_max;
-        _z_min = limit._z_min;
-        _z_max = limit._z_max;
+        x_min = limit.x_min;
+        x_max = limit.x_max;
+        y_min = limit.y_min;
+        y_max = limit.y_max;
+        z_min = limit.z_min;
+        z_max = limit.z_max;
     };
 
     bool check (double x, double y, double z)
     {
-        if (x > _x_max || x < _x_min || 
-            y > _y_max || y < _y_min || 
-            z > _z_max || z < _z_min)
+        if (x > x_max || x < x_min || 
+            y > y_max || y < y_min || 
+            z > z_max || z < z_min)
         {
             return false;
         }

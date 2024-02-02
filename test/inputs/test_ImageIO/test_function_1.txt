@@ -1,0 +1,2 @@
+test_8bits.tif
+test_16bits.tif

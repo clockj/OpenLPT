@@ -26,23 +26,23 @@
 template <class T>
 class Matrix
 {
-    int _dim_x; int _dim_y;
+    int _dim_row; int _dim_col;
     int _n; // tot number of elem
     int _is_space = 0; // 0 for nothing installed; 1 for already claim space
-    int mapID (int id_x, int id_y) const; // id_x*_dim_y + id_y
+    int mapID (int id_x, int id_y) const; // id_x*_dim_col + id_y
     T* _mtx;
     
     // Create/Clear space 
     void clear  ();
-    // void ReCreateCol (int dim_y);
-    void create (int dim_x, int dim_y);
+    // void ReCreateCol (int dim_col);
+    void create (int dim_row, int dim_col);
 
 public:
     // Constructor
     Matrix () : Matrix(1,1,0) {};
-    Matrix (int dim_x, int dim_y, T val);
-    // dim_x, dim_y must be compatible with mtx
-    Matrix (int dim_x, int dim_y, std::initializer_list<std::initializer_list<T>> mtx); 
+    Matrix (int dim_row, int dim_col, T val);
+    // dim_row, dim_col must be compatible with mtx
+    Matrix (int dim_row, int dim_col, std::initializer_list<std::initializer_list<T>> mtx); 
     Matrix (const Matrix<T>& mtx);
     // Load matrix from .csv file
     explicit Matrix (std::string file_name); 
@@ -60,7 +60,7 @@ public:
     // Get/Assign value
     T  operator() (int i, int j) const;
     T& operator() (int i, int j);
-    // Return _mtx[i], i = id_x*_dim_y + id_y
+    // Return _mtx[i], i = id_x*_dim_col + id_y
     // 0,1,2
     // 3,4,5 ...
     T  operator[] (int vec_i) const; 
@@ -72,8 +72,8 @@ public:
     std::vector<T> getCol(int col_j) const;
 
     // Get matrix info
-    int  getDimX () const;
-    int  getDimY () const;
+    int  getDimRow () const;
+    int  getDimCol () const;
     void print   ();
 
     // Matrix output 
@@ -147,8 +147,8 @@ class Image : public Matrix<double>
 {
 public:
     Image () : Matrix<double>(1,1,0) {};
-    Image (int dim_x, int dim_y, double val) : Matrix<double>(dim_x, dim_y, val) {};
-    Image (int dim_x, int dim_y, std::initializer_list<std::initializer_list<double>> mtx) : Matrix<double>(dim_x, dim_y, mtx) {};
+    Image (int dim_row, int dim_col, double val) : Matrix<double>(dim_row, dim_col, val) {};
+    Image (int dim_row, int dim_col, std::initializer_list<std::initializer_list<double>> mtx) : Matrix<double>(dim_row, dim_col, mtx) {};
     Image (const Image& mtx) : Matrix<double>(mtx) {};
     Image (const Matrix<double>& mtx) : Matrix<double>(mtx) {};
     explicit Image (std::string file_name) : Matrix<double>(file_name) {};

@@ -3,12 +3,13 @@
 #include <typeinfo>
 #include <omp.h>
 #include <ctime>
+#include <cstring>
 
 #include "myMATH.h"
 #include "Matrix.h"
 // #include "Camera.h"
 // #include "ObjectInfo.h"
-// #include "ImageIO.h"
+#include "ImageIO.h"
 // #include "ObjectFinder.h"
 // #include "StereoMatch.h"
 // #include "OTF.h"
@@ -61,9 +62,9 @@ int main()
     // // for debug
     // // OTF 
     // AxisLimit limit;
-    // limit._x_min = -20; limit._x_max = 20;
-    // limit._y_min = -20; limit._y_max = 20;
-    // limit._z_min = -20; limit._z_max = 20;
+    // limit.x_min = -20; limit.x_max = 20;
+    // limit.y_min = -20; limit.y_max = 20;
+    // limit.z_min = -20; limit.z_max = 20;
     // OTF otf(4, 3, limit);
 
     // // Predicted field

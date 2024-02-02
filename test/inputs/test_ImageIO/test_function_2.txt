@@ -1,0 +1,2 @@
+results/test_ImageIO/test_8bits_save.tif
+results/test_ImageIO/test_16bits_save.tif
