@@ -112,6 +112,27 @@ Matrix<T>::Matrix (std::string file_name)
     }
 }
 
+template<class T>
+Matrix<T>::Matrix (int dim_row, int dim_col, std::istream& is)
+{
+    create(dim_row, dim_col);
+
+    T value;
+    for (int i = 0; i < _dim_row; i ++)
+    {
+        for (int j = 0; j < _dim_col; j ++)
+        {
+            is >> value;
+            _mtx[mapID(i,j)] = value;
+
+            if (is.peek() == ',')
+            {
+                is.ignore();
+            }            
+        }
+    }
+}
+
 // Deconstructor 
 template<class T>
 Matrix<T>::~Matrix ()
@@ -235,7 +256,7 @@ inline int Matrix<T>::getDimCol() const
 }
 
 template<class T> 
-void Matrix<T>::print()
+void Matrix<T>::print(int precision)
 {
     std::cout << std::endl;
     std::cout << "Matrix = " << std::endl;
@@ -251,7 +272,7 @@ void Matrix<T>::print()
         for (int iter_y = 0; iter_y < _dim_col; iter_y ++)
         {
             std::cout << std::scientific 
-                      << std::setprecision(2)  
+                      << std::setprecision(precision)  
                       << std::setfill(' ') 
                       << std::left 
                       << _mtx[id_start + iter_y] << " ";
@@ -297,6 +318,22 @@ void Matrix<T>::write (std::string file_name)
     std::cout << "Finish writing!" << std::endl;
 }
 
+template<class T>
+void Matrix<T>::write (std::ostream& os)
+{
+    os.setf(std::ios_base::scientific);
+    os.precision(8);
+    // os.precision(std::numeric_limits<double>::max_digits10);
+
+    for (int i = 0; i < _dim_row; i ++)
+    {
+        for (int j = 0; j < _dim_col-1; j ++)
+        {
+            os << _mtx[mapID(i,j)] << ",";
+        }
+        os << _mtx[mapID(i,_dim_col-1)] << "\n";
+    }
+}
 
 //
 // Matrix calculation

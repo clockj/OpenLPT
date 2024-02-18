@@ -14,6 +14,7 @@
 #include <vector>
 #include <iomanip>
 #include <math.h>
+#include <limits>
 
 #include <iostream>
 #include <string>
@@ -26,8 +27,8 @@
 template <class T>
 class Matrix
 {
-    int _dim_row; int _dim_col;
-    int _n; // tot number of elem
+    int _dim_row = 0; int _dim_col = 0;
+    int _n = 0; // tot number of elem
     int _is_space = 0; // 0 for nothing installed; 1 for already claim space
     int mapID (int id_x, int id_y) const; // id_x*_dim_col + id_y
     T* _mtx;
@@ -39,16 +40,18 @@ class Matrix
 
 public:
     // Constructor
-    Matrix () : Matrix(1,1,0) {};
+    Matrix () {};
+    Matrix (const Matrix<T>& mtx); // deep copy
     Matrix (int dim_row, int dim_col, T val);
+
     // dim_row, dim_col must be compatible with mtx
     Matrix (int dim_row, int dim_col, std::initializer_list<std::initializer_list<T>> mtx); 
-    Matrix (const Matrix<T>& mtx);
+
     // Load matrix from .csv file
     explicit Matrix (std::string file_name); 
 
-    // Matrix (const Matrix<T>& vec_1, const Matrix<T>& vec_2); // generate a unit vector: v = (v_1-v_2)/|v_1-v_2|
-    //                                                          // not applicable for int 
+    // Load matrix from input stream
+    explicit Matrix (int dim_row, int dim_col, std::istream& is);
     
     // Destructor
     ~Matrix();
@@ -74,10 +77,11 @@ public:
     // Get matrix info
     int  getDimRow () const;
     int  getDimCol () const;
-    void print   ();
+    void print   (int precision = 3);
 
     // Matrix output 
     void write (std::string file_name);
+    void write (std::ostream& os);
 
     // Scalar operations
     double norm (); // sqrt(sum( xi^2 )) for all i
@@ -100,14 +104,7 @@ public:
     // Matrix manipulation
     Matrix<T> transpose ();
 
-    // // Matrix manipulation
-    // Matrix<double> inverse ();
-
-    // Matrix<double> gaussInverse ();
-    // void gaussForward (Matrix<double>& u_mtx, std::vector<int>& sorted_row_index);
-    // Matrix<double> gaussBackward (Matrix<double> b_mtx, Matrix<double> u_mtx, std::vector<int> sorted_row_index);
-
-    // Matrix<double> detInverse  ();
+    
 };
 
 class Pt3D : public Matrix<double>
@@ -118,6 +115,7 @@ public:
     Pt3D (const Pt3D& pt) : Matrix<double>(pt) {};
     Pt3D (const Matrix<double>& mtx) : Matrix<double>(mtx) {};
     explicit Pt3D (std::string file_name) : Matrix<double>(file_name) {};
+    explicit Pt3D (std::istream& is) : Matrix<double>(3,1,is) {};
 };
 
 class Pt2D : public Matrix<double>
@@ -128,19 +126,20 @@ public:
     Pt2D (const Pt2D& pt) : Matrix<double>(pt) {};
     Pt2D (const Matrix<double>& mtx) : Matrix<double>(mtx) {};
     explicit Pt2D (std::string file_name) : Matrix<double>(file_name) {};
+    explicit Pt2D (std::istream& is) : Matrix<double>(2,1,is) {};
 };
 
 // Structure to store line
 struct Line3D
 {
-    Pt3D _pt;
-    Pt3D _unit_vector;
+    Pt3D pt;
+    Pt3D unit_vector;
 };
 
 struct Line2D
 {
-    Pt2D _pt;
-    Pt2D _unit_vector;
+    Pt2D pt;
+    Pt2D unit_vector;
 };
 
 class Image : public Matrix<double>

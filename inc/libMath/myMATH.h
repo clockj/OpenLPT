@@ -374,6 +374,27 @@ Matrix<T> inverse (Matrix<T> const& mtx, std::string method="gauss")
 };
 
 
+// Calculate trace of a matrix
+template<class T>
+T trace (Matrix<T> const& mtx)
+{
+    int dim_row = mtx.getDimRow();
+    int dim_col = mtx.getDimCol();
+
+    if (dim_row != dim_col)
+    {
+        std::cerr << "myMATH::trace: matrix is not square" << std::endl;
+        throw error_size;
+    }
+
+    T res = 0;   
+    for (int i = 0; i < dim_row; i ++)
+    {
+        res += mtx(i,i);
+    }
+    return res;
+};
+
 }
 
 

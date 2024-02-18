@@ -251,8 +251,8 @@ bool test_function_9 ()
     Pt3D pt1(1,2,3);
     Pt3D pt2(4,5,6);
     Line3D line;
-    line._pt = pt1;
-    line._unit_vector = myMATH::createUnitVector (pt1, pt2);
+    line.pt = pt1;
+    line.unit_vector = myMATH::createUnitVector (pt1, pt2);
     Pt3D pt3(2,3,4);
     double distance_3D = myMATH::distance (pt3, line);
     double distance_3D_ans = 0;
@@ -268,8 +268,8 @@ bool test_function_9 ()
     Pt2D pt4(1,2);
     Pt2D pt5(4,5);
     Line2D line_2D;
-    line_2D._pt = pt4;
-    line_2D._unit_vector = myMATH::createUnitVector (pt4, pt5);
+    line_2D.pt = pt4;
+    line_2D.unit_vector = myMATH::createUnitVector (pt4, pt5);
     Pt2D pt6(10,13);
     double distance_2D = myMATH::distance (pt6, line_2D);
     double distance_2D_ans = std::fabs(pt6[0] - pt6[1] + 1) / std::sqrt(2);
@@ -372,6 +372,24 @@ bool test_function_12 ()
     return true;
 }
 
+// test matrix trace
+bool test_function_13 ()
+{
+    Matrix<double> mtx(3,3,{{1,2,3},{4,5,6},{7,8,9}});
+    double trace = myMATH::trace (mtx);
+    double trace_ans = 15;
+
+    if (std::fabs(trace - trace_ans) > SMALLNUMBER)
+    {
+        std::cout << "test_function_13: matrix trace failed" << std::endl;
+        std::cout << "trace: " << trace << std::endl;
+        std::cout << "trace_ans: " << trace_ans << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
 
 int main()
 {
@@ -387,6 +405,7 @@ int main()
     IS_TRUE(test_function_10());
     IS_TRUE(test_function_11());
     IS_TRUE(test_function_12());
-
+    IS_TRUE(test_function_13());
+    
     return 0;
 }

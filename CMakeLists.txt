@@ -29,7 +29,7 @@ set(HEADERFILES
     ${CMAKE_HOME_DIRECTORY}/inc/libMath/STBCommons.h
     ${CMAKE_HOME_DIRECTORY}/inc/libMath/Matrix.h
     ${CMAKE_HOME_DIRECTORY}/inc/libMath/ImageIO.h
-    # ${CMAKE_HOME_DIRECTORY}/inc/libMath/Camera.h
+    ${CMAKE_HOME_DIRECTORY}/inc/libMath/Camera.h
     # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/ObjectInfo.h
     # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/ObjectFinder.h
     # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/StereoMatch.h
@@ -45,7 +45,7 @@ set(SOURCEFILES main.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcMath/myMATH.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcMath/Matrix.hpp
     ${CMAKE_HOME_DIRECTORY}/src/srcMath/ImageIO.cpp
-    # ${CMAKE_HOME_DIRECTORY}/src/srcMath/Camera.cpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcMath/Camera.cpp
     # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/ObjectInfo.cpp
     # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/ObjectFinder.hpp
     # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/StereoMatch.hpp
@@ -130,4 +130,17 @@ add_executable(test_ImageIO ${CMAKE_HOME_DIRECTORY}/test/test_ImageIO.cpp
 target_link_libraries(test_ImageIO PUBLIC tiff)
 add_test(test_ImageIO test_ImageIO)
 set_tests_properties(test_ImageIO
+                     PROPERTIES FAIL_REGULAR_EXPRESSION "failed on line")
+
+# test Camera
+add_executable(test_Camera ${CMAKE_HOME_DIRECTORY}/test/test_Camera.cpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcMath/Camera.cpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcMath/myMATH.cpp
+    ${TESTHEADERFILES}
+    ${CMAKE_HOME_DIRECTORY}/inc/libMath/Camera.h
+    ${CMAKE_HOME_DIRECTORY}/inc/libMath/myMATH.h
+)
+
+add_test(test_Camera test_Camera)
+set_tests_properties(test_Camera
                      PROPERTIES FAIL_REGULAR_EXPRESSION "failed on line")

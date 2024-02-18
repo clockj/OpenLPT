@@ -9,6 +9,10 @@
 // #define SMALLNUMBER 2e-6
 #define MAGSMALLNUMBER 1e-8
 
+// undistort
+#define UNDISTORT_MAX_ITER 50
+#define UNDISTORT_EPS 1e-5
+
 // intensity
 #define INTSMALLNUMBER 1e-6
 

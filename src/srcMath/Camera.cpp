@@ -3,66 +3,110 @@
 Camera::Camera () {};
 
 Camera::Camera (const Camera& c)
-    : _n_off_h(c._n_off_h), _n_off_w(c._n_off_w), _n_pix_w(c._n_pix_w), 
-      _n_pix_h(c._n_pix_h), _w_pix(c._w_pix), _h_pix(c._h_pix), 
-      _f_eff(c._f_eff), _kr(c._kr), _kx(c._kx), _r_mtx(c._r_mtx), 
-      _t_vec(c._t_vec), _r_mtx_inv(c._r_mtx_inv), _t_vec_inv(c._t_vec_inv) {}
+    : _type(c._type), _pinhole_param(c._pinhole_param), _poly_param(c._poly_param) {}
 
 Camera::Camera(std::istream& is)
-    : _r_mtx(3), _r_mtx_inv(3), _t_vec(3,1), _t_vec_inv(3,1)
 {
-    LoadParameters (is);
+    loadParameters(is);
 }
 
 Camera::Camera(std::string file_name)
-    : _r_mtx(3), _r_mtx_inv(3), _t_vec(3,1), _t_vec_inv(3,1)
 {
-    LoadParametersFromFile(file_name);
+    loadParameters(file_name);
 }
 
-void Camera::LoadParameters (std::istream& is)
+void Camera::loadParameters (std::istream& is)
 {
-    is >> _n_off_h;
-    is >> _n_off_w;
-    is >> _n_pix_w;
-    is >> _n_pix_h;
-    is >> _w_pix;
-    is >> _h_pix;
-    is >> _f_eff;
-    is >> _kr;
-    is >> _kx;
-
-    _kr = std::fabs(_kr);
-    _kx = std::fabs(_kx);
-
-    double val = 0.0;
-    for (int i = 0; i < 3; i ++)
+    std::string type_name;
+    is >> type_name;
+    if (type_name == "PINHOLE")
     {
-        for (int j = 0; j < 3; j ++)
+        _type = PINHOLE;
+
+        // // initialize pinhole parameters
+        // _pinhole_param.cam_mtx = Matrix<double>(3,3,0);
+        // _pinhole_param.r_mtx = Matrix<double>(3,3,0);
+        // _pinhole_param.t_vec = Pt3D(0,0,0);
+        // _pinhole_param.r_mtx_inv = Matrix<double>(3,3,0);
+        // _pinhole_param.t_vec_inv = Pt3D(0,0,0);
+
+        // do not read errors
+        std::string useless;
+        is >> useless;
+        is >> useless;
+        
+        // read camera matrix
+        _pinhole_param.cam_mtx = Matrix<double>(3,3,is);
+
+        // initialize distortion parameters
+        _pinhole_param.dist_coeff.clear();
+        _pinhole_param.is_distorted = false;
+        _pinhole_param.n_dist_coeff = 0;
+
+        // read distortion coefficients
+        std::string dist_coeff_str;
+        is >> dist_coeff_str;
+        std::istringstream dist_coeff_stream(dist_coeff_str);
+        double dist_coeff;
+        int id = 0;
+        while (dist_coeff_stream >> dist_coeff)
         {
-            is >> val;
-            _r_mtx(i,j) = val;
+            _pinhole_param.dist_coeff.push_back(dist_coeff);
+            id ++;
+
+            if (dist_coeff > SMALLNUMBER)
+            {
+                _pinhole_param.is_distorted = true;
+            }
+
+            if (dist_coeff_stream.peek() == ',')
+            {
+                dist_coeff_stream.ignore();
+            } 
         }
+        if (_pinhole_param.is_distorted)
+        {
+            _pinhole_param.n_dist_coeff = id;
+            if (id != 4 && id != 5 && id != 8 && id != 12)
+            {
+                // Note: id == 14
+                // additional distortion by projecting onto a tilt plane
+                // not supported yet
+
+                std::cerr << "Camera::LoadParameters line " << __LINE__ << " : Error: number of distortion coefficients is wrong: " << id << std::endl;
+                throw error_type;
+            }
+        }
+
+        // do not read rotation vector
+        is >> useless;
+
+        // read rotation matrix
+        _pinhole_param.r_mtx = Matrix<double>(3,3,is);
+
+        // read inverse rotation matrix
+        _pinhole_param.r_mtx_inv = Matrix<double>(3,3,is);
+
+        // read translation vector
+        _pinhole_param.t_vec = Pt3D(is);
+
+        // read inverse translation vector
+        _pinhole_param.t_vec_inv = Pt3D(is);
     }
-    for (int i = 0; i < 3; i ++) {
-        is >> val;
-        _t_vec(i,0) = val;
-    }
-    for (int i = 0; i < 3; i ++)
+    else if (type_name == "POLYNOMIAL")
     {
-        for (int j = 0; j < 3; j ++)
-        {
-            is >> val;
-            _r_mtx_inv(i,j) = val;
-        }
+        _type = POLYNOMIAL;
+        
+        // TODO: implement polynomial camera
     }
-    for (int i = 0; i < 3; i ++) {
-        is >> val;
-        _t_vec_inv(i,0) = val;
+    else 
+    {
+        std::cerr << "Camera::LoadParameters line " << __LINE__ << " : Error: unknown camera type: " << type_name << std::endl;
+        throw error_type;
     }
 }
 
-void Camera::LoadParametersFromFile (std::string file_name)
+void Camera::loadParameters (std::string file_name)
 {
     std::ifstream infile(file_name.c_str(), std::ios::in);
     std::string line;
@@ -75,204 +119,305 @@ void Camera::LoadParametersFromFile (std::string file_name)
             {
                 line.erase(comment_pos);
     		}
-            file_content << line << '\t';
     	}
+        else if (comment_pos == 0)
+        {
+            continue;
+        }
+
+        file_content << line << '\t';
     }
     infile.close();
 
-    LoadParameters(file_content);
+    loadParameters(file_content);
 }
 
-//
-// Projection
-//
-
-Matrix<double> Camera::ImgPixelToMM (Matrix<double> const& pt_img_pix)
+Pt3D Camera::rmtxTorvec (Matrix<double> const& r_mtx)
 {
-    // Position centered (p);
-    //  shift origin to the center of the image
-    //  centered -= Position(Npixw/2, Npixh/2, 0);
+    Pt3D r_vec;
 
-    // account for left-handed coordinate system 
-    Matrix<double> pt_img_mm (pt_img_pix); 
-    // Tsai's model: xf,yf start from 1
-    // But here, xf,yf start from 0
-    pt_img_mm(0,0) += 1;
-    pt_img_mm(1,0) += 1;
-    pt_img_mm(0,0) = _kx*_w_pix * (  pt_img_mm(0,0) - _n_pix_w/2 - _n_off_w);
-    pt_img_mm(1,0) = _h_pix     * (- pt_img_mm(1,0) + _n_pix_h/2 - _n_off_h);
-    pt_img_mm(2,0) = 0;
+    double tr = (myMATH::trace<double>(r_mtx) - 1) / 2;
+    tr = tr > 1 ? 1 : tr < -1 ? -1 : tr;
+    double theta = std::acos(tr);
+    double s = std::sin(theta);
 
-    if (_kr > SMALLNUMBER) 
+    if (s > SMALLNUMBER)
     {
-        // Tsai's model 
-        // (the original code is wrong) 
-        double x = pt_img_mm(0,0);
-        double y = pt_img_mm(1,0);
-        double r_square = x*x + y*y;
-    
-        x = x * (1 + _kr * r_square); // Xu=Xd+Dx, Dx=Xd(1+k_r*r^2), r=sqrt(Xd^2+Yd^2)
-        y = y * (1 + _kr * r_square); // Yu=Yd+Dy, Dy=Yd(1+k_r*r^2), r=sqrt(Xd^2+Yd^2)
-        
-        pt_img_mm(0,0) = x;
-        pt_img_mm(1,0) = y;
-        return pt_img_mm;
+        double ratio = theta / (2 * s);
+        r_vec[0] = (r_mtx(2,1) - r_mtx(1,2)) * ratio;
+        r_vec[1] = (r_mtx(0,2) - r_mtx(2,0)) * ratio;
+        r_vec[2] = (r_mtx(1,0) - r_mtx(0,1)) * ratio;
+    }
+    else if (tr > 0)
+    {
+        r_vec[0] = 0;
+        r_vec[1] = 0;
+        r_vec[2] = 0;
     }
     else
     {
-        return pt_img_mm;
+        r_vec[0] = theta * std::sqrt((r_mtx(0,0) + 1) / 2);
+        r_vec[1] = theta * std::sqrt((r_mtx(1,1) + 1) / 2) * (r_mtx(0,1) > 0 ? 1 : -1);
+        r_vec[2] = theta * std::sqrt((r_mtx(2,2) + 1) / 2) * (r_mtx(0,2) > 0 ? 1 : -1);
     }
+
+    return r_vec;
 }
 
-Matrix<double> Camera::ImgMMToPixel (Matrix<double> const& pt_img_mm)
+void Camera::saveParameters (std::string file_name)
 {
-    // Tsai's model 
-    // Xu=Xd+Dx, Dx=Xd(1+k_r*r^2), r=sqrt(Xd^2+Yd^2)
-    // Yu=Yd+Dy, Dy=Yd(1+k_r*r^2), r=sqrt(Xd^2+Yd^2) 
-    // r_u_2 = xu^2 + yu^2
-    // compute Xd
-    // Xd_1_num = - (2/3)^(1/3) * Xu^2 
-    // Xd_1_den = ( 9 * k1^2 * Xu^3 * (r_u_2)^2 + sqrt(3) * sqrt( k1^3*Xu^6(r_u_2)^3 * (4 + 27 * k1 * r_u_2) ) )^(1/3)
-    // Xd_2_num = Xd_1_den
-    // Xd_2_den = 2^(1/3) * 3^(2/3) * k1 * r_u_2
-    // Xd = Xd_1_num / Xd_1_den + Xd_2_num / Xd_2_den
-    // Compute Yd 
-    // Yd_1_num = - (2/3)^(1/3) * Xu * Yu 
-    // Yd_1_den = Xd_1_den
-    // Yd_2_num = Yu * Xd_1_den
-    // Yd_2_den = Xu * Xd_2_den
-    // Yd = Yd_1_num / Yd_1_den + Yd_2_num / Yd_2_den 
-    // Note: 
-    // we need to make extra cases for Xu = 0 or Yu = 0
-
-    double x_u = pt_img_mm[0];
-    double y_u = pt_img_mm[1];
-
-    double x_d = x_u;
-    double y_d = y_u;
-
-    // remove potential cylindrical distortion
-    if (_kr > SMALLNUMBER)
+    std::ofstream outfile(file_name.c_str(), std::ios::out);
+    if (_type == PINHOLE)
     {
-        // for solve x_d
-        double x_d_1_num = 0.0;
-        double x_d_1_den = 0.0;
-        double x_d_2_num = 0.0;
-        double x_d_2_den = 0.0;
-        // for solve y_d
-        double y_d_1_num = 0.0;
-        double y_d_1_den = 0.0;
-        double y_d_2_num = 0.0;
-        double y_d_2_den = 0.0;
-
-        if (std::fabs(x_u) < SMALLNUMBER || std::fabs(y_u) < SMALLNUMBER)
+        outfile << "# Camera Model: (PINHOLE/POLYNOMIAL)" << std::endl;
+        outfile << "PINHOLE" << std::endl;
+        outfile << "# Camera Calibration Error: \nNone\n# Pose Calibration Error: \nNone" << std::endl;
+        
+        outfile << "# Camera Matrix: " << std::endl;
+        _pinhole_param.cam_mtx.write(outfile);
+        
+        outfile << "# Distortion Coefficients: " << std::endl;
+        int size = _pinhole_param.dist_coeff.size();
+        for (int i = 0; i < size-1; i ++)
         {
-            // x_u is very small 
-            // or both x_u and y_u are very small 
-            if (std::fabs(x_u) < SMALLNUMBER)
-            {
-                x_d = 0.0;
-                if (std::fabs(y_u) < SMALLNUMBER)
-                {
-                    // both x_u, y_u are small 
-                    y_d = 0.0;
-                }
-                else 
-                {
-                    // x_u is small
-                    // y_u is large enough
-                    y_d_1_num = - std::pow(2./3., 1./3.);
-                    y_d_1_den = std::pow( 9 * _kr*_kr * y_u + std::sqrt(3) * std::sqrt( 4 * std::pow(_kr, 3) + 27 * std::pow(_kr, 4) * y_u*y_u ), 1./3.);
-
-                    y_d_2_num = y_d_1_den;
-                    y_d_2_den = std::pow(2, 1./3.) * std::pow(3, 2./3.) * _kr;
-
-                    y_d = y_d_1_num / y_d_1_den + y_d_2_num / y_d_2_den;
-                }
-            }
-            else 
-            {
-                // x_u is large enough 
-                // y_u is small 
-                y_d = 0.0;
-
-                x_d_1_num = - std::pow(2./3., 1./3.);
-                x_d_1_den = std::pow( 9 * _kr*_kr * x_u + std::sqrt(3) * std::sqrt( 4 * std::pow(_kr, 3) + 27 * std::pow(_kr, 4) * x_u*x_u ), 1./3.);
-
-                x_d_2_num = x_d_1_den;
-                x_d_2_den = std::pow(2, 1./3.) * std::pow(3, 2./3.) * _kr;
-
-                x_d = x_d_1_num / x_d_1_den + x_d_2_num / x_d_2_den;
-            }
+            outfile << _pinhole_param.dist_coeff[i] << ",";
         }
-        else
-        {
-            double r_u_2 = x_u * x_u + y_u * y_u;
+        outfile << _pinhole_param.dist_coeff[size-1] << std::endl;
 
-            x_d_1_num = std::pow(2./3., 1./3.) * x_u*x_u;
-            x_d_1_den = std::pow( 
-                            9 * _kr*_kr * std::pow(x_u,3) * r_u_2*r_u_2 
-                            + std::sqrt(3)
-                            * std::sqrt( 
-                                std::pow(_kr,3)*std::pow(x_u,6)*std::pow(r_u_2,3) 
-                                * (4 + 27 * _kr * r_u_2) 
-                              ), 
-                            1./3. );
-            x_d_2_num = x_d_1_den;
-            x_d_2_den = std::pow(2, 1./3.) * std::pow(3, 2./3.) * _kr * r_u_2;
-            x_d = - x_d_1_num / x_d_1_den + x_d_2_num / x_d_2_den;
+        outfile << "# Rotation Vector: " << std::endl;
+        Pt3D r_vec = rmtxTorvec(_pinhole_param.r_mtx);
+        r_vec.transpose().write(outfile);
 
-            y_d_1_num = std::pow(2./3., 1./3.) * x_u * y_u;
-            y_d_1_den = x_d_1_den;
-            y_d_2_num = y_u * x_d_2_num;
-            y_d_2_den = x_u * x_d_2_den;
-            y_d = - y_d_1_num / y_d_1_den + y_d_2_num / y_d_2_den;
-        }
+        outfile << "# Rotation Matrix: " << std::endl;
+        _pinhole_param.r_mtx.write(outfile);
+
+        outfile << "# Inverse of Rotation Matrix: " << std::endl;
+        _pinhole_param.r_mtx_inv.write(outfile);
+
+        outfile << "# Translation Vector: " << std::endl;
+        _pinhole_param.t_vec.transpose().write(outfile);
+
+        outfile << "# Inverse of Translation Vector: " << std::endl;
+        _pinhole_param.t_vec_inv.transpose().write(outfile);
+
+        outfile.close();
     }
-    
-    
-    // remove Sx: uncertainty along x direction
-    // scale into pixel units
-    double xf = x_d/_kx / _w_pix;
-    double yf = y_d     / _h_pix;
-
-    // shift origin
-    // origin is on the top left corner
-    // ----> x direction (rightwards)
-    // | 
-    // |
-    // \/ y direction (downwards)
-    // Tsai's model: xf,yf start from 1
-    xf = xf + _n_pix_w/2.0 + _n_off_w;
-    yf = -1.0 * (yf - _n_pix_h/2.0) - _n_off_h;
-    // But here, xf,yf start from 0
-    xf -= 1;
-    yf -= 1;
-    return Matrix<double> ( 
-        3,1,
-        xf, yf, 0
-    );
+    else if (_type == POLYNOMIAL)
+    {
+        // TODO: implement polynomial camera
+    }
+    else
+    {
+        std::cerr << "Camera::SaveParameters line " << __LINE__ << " : Error: unknown camera type: " << _type << std::endl;
+        throw error_type;
+    }
 }
 
-Matrix<double> Camera::ImgMMToWorld (Matrix<double> const& pt_img_mm)
+//                                                 
+// Project world coordinate [mm] to image points [px] 
+//
+Pt2D Camera::project (Pt3D const& pt_world)
 {
-    //Xu = f * x / z, Yu = f * y / z; (x, y, z): pt_cam (scaled), (Xu, Yu, 0): pt_img_mm (unscaled)
-    Matrix<double> pt_cam(pt_img_mm);
-    pt_cam *= _t_vec(2,0) / _f_eff;
-    pt_cam(2,0) = _t_vec(2,0);
-
-    // R^-1 * (pt_cam - T): pt_cam in world coordinate
-    pt_cam -= _t_vec; 
-    return _r_mtx_inv * pt_cam;
+    if (_type == PINHOLE)
+    {
+        return distort(worldToUndistImg(pt_world));
+    }
+    else if (_type == POLYNOMIAL)
+    {
+        // TODO: implement polynomial camera
+        return Pt2D(0,0);
+    }
+    else
+    {
+        std::cerr << "Camera::Project line " << __LINE__ << " : Error: unknown camera type: " << _type << std::endl;
+        throw error_type;
+    }
 }
 
-Matrix<double> Camera::WorldToImgMM (Matrix<double> const& pt_world)
+// Pinhole  model
+Pt2D Camera::worldToUndistImg (Pt3D const& pt_world)
 {
-    // TODO: add comments 
-    Matrix<double> pt_img_mm = _r_mtx * pt_world + _t_vec;
-    pt_img_mm *= _f_eff / pt_img_mm(2,0);
-    pt_img_mm(2,0) = 0.0;
+    Pt3D temp = _pinhole_param.r_mtx * pt_world + _pinhole_param.t_vec;
+
+    Pt2D pt_img_mm;
+    pt_img_mm[0] = temp[2] ? (temp[0]/temp[2]) : temp[0];
+    pt_img_mm[1] = temp[2] ? (temp[1]/temp[2]) : temp[1];
+
     return pt_img_mm;
 }
 
+Pt2D Camera::distort (Pt2D const& pt_img_undist)
+{
+    // opencv distortion model
+    double x = pt_img_undist[0];
+    double y = pt_img_undist[1];
+    double xd, yd;
 
+    // judge if distortion is needed
+    if (_pinhole_param.is_distorted)
+    {
+        double r2 = x*x + y*y;
+        double r4 = r2*r2;
+        double r6 = r4*r2;
+
+        double a1 = 2 * x*y;
+        double a2 = r2 + 2 * x*x;
+        double a3 = r2 + 2 * y*y;
+
+        double cdist = 1 + _pinhole_param.dist_coeff[0]*r2 + _pinhole_param.dist_coeff[1]*r4;
+        if (_pinhole_param.n_dist_coeff > 4)
+        {
+            cdist += _pinhole_param.dist_coeff[4]*r6;
+        }         
+
+        double icdist2 = 1.0;
+        if (_pinhole_param.n_dist_coeff > 5)
+        {
+            icdist2 = 1.0 / (1 + _pinhole_param.dist_coeff[5]*r2 + _pinhole_param.dist_coeff[6]*r4 + _pinhole_param.dist_coeff[7]*r6);
+        }
+        // double icdist2 = 1.0 / (1 + _pinhole_param.dist_coeff[5]*r2 + _pinhole_param.dist_coeff[6]*r4 + _pinhole_param.dist_coeff[7]*r6);
+
+        xd = x*cdist*icdist2 + _pinhole_param.dist_coeff[2]*a1 + _pinhole_param.dist_coeff[3]*a2;
+        yd = y*cdist*icdist2 + _pinhole_param.dist_coeff[2]*a3 + _pinhole_param.dist_coeff[3]*a1;
+        if (_pinhole_param.n_dist_coeff > 8)
+        {
+            // additional distortion by projecting onto a tilt plane (14)
+            // not supported yet
+            xd += _pinhole_param.dist_coeff[8] *r2 + _pinhole_param.dist_coeff[9] *r4;
+            yd += _pinhole_param.dist_coeff[10]*r2 + _pinhole_param.dist_coeff[11]*r4;
+        }
+    }
+    else
+    {
+        xd = x;
+        yd = y;
+    }
+    
+    Pt2D pt_img_dist(
+        xd * _pinhole_param.cam_mtx(0,0) + _pinhole_param.cam_mtx(0,2),
+        yd * _pinhole_param.cam_mtx(1,1) + _pinhole_param.cam_mtx(1,2)
+    );
+
+    return pt_img_dist;
+}
+
+// Polynomial model
+
+
+
+//
+// Calculate line of sight
+//
+Line3D Camera::lineOfSight (Pt2D const& pt_img_dist)
+{
+    if (_type == PINHOLE)
+    {
+        return pinholeLine(undistort(pt_img_dist));
+    }
+    else if (_type == POLYNOMIAL)
+    {
+        // TODO: implement polynomial camera
+        Line3D line;
+        return line;
+    }
+    else
+    {
+        std::cerr << "Camera::LineOfSight line " << __LINE__ << " : Error: unknown camera type: " << _type << std::endl;
+        throw error_type;
+    }
+}
+
+// Pinhole  model
+Pt2D Camera::undistort (Pt2D const& pt_img_dist)
+{
+    double fx = _pinhole_param.cam_mtx(0,0);
+    double fy = _pinhole_param.cam_mtx(1,1);
+    double cx = _pinhole_param.cam_mtx(0,2);
+    double cy = _pinhole_param.cam_mtx(1,2);
+
+    double u = pt_img_dist[0];
+    double v = pt_img_dist[1];
+    double x = (u - cx) / fx;
+    double y = (v - cy) / fy;
+    Pt2D img_undist(x,y);
+    Pt2D img_dist(0,0);
+
+    if (_pinhole_param.is_distorted)
+    {
+        double x0 = x;
+        double y0 = y;
+        double error = std::numeric_limits<double>::max();
+
+        // undistort iteratively
+        int iter = 0;
+        while (error > UNDISTORT_EPS && iter < UNDISTORT_MAX_ITER)
+        {   
+            double r2 = x*x + y*y;
+            double a1 = 2 * x*y;
+            double a2 = r2 + 2 * x*x;
+            double a3 = r2 + 2 * y*y;
+
+            // double icdist = (1 + ( (k[7]*r2+k[6])*r2 + k[5] )*r2)
+            //                /(1 + ( (k[4]*r2+k[1])*r2 + k[0] )*r2);
+            double icdist;
+            if (_pinhole_param.n_dist_coeff == 4)
+            {
+                icdist = 1 / (1 + (_pinhole_param.dist_coeff[1]*r2 + _pinhole_param.dist_coeff[0])*r2);
+            }
+            else if (_pinhole_param.n_dist_coeff == 5)
+            {
+                icdist = 1 / (1 + ((_pinhole_param.dist_coeff[4]*r2 + _pinhole_param.dist_coeff[1])*r2 + _pinhole_param.dist_coeff[0])*r2);
+            }
+            else
+            {
+                icdist = (1 + ((_pinhole_param.dist_coeff[7]*r2 + _pinhole_param.dist_coeff[6])*r2 + _pinhole_param.dist_coeff[5])*r2)/(1 + ((_pinhole_param.dist_coeff[4]*r2 + _pinhole_param.dist_coeff[1])*r2 + _pinhole_param.dist_coeff[0])*r2);
+            }
+
+            if (icdist < 0)
+            {
+                img_undist[0] = (u - cx) / fx;
+                img_undist[1] = (v - cy) / fy;
+                break;
+            }
+
+            // update x, y
+            double deltaX = _pinhole_param.dist_coeff[2] * a1 + _pinhole_param.dist_coeff[3] * a2;
+            double deltaY = _pinhole_param.dist_coeff[2] * a3 + _pinhole_param.dist_coeff[3] * a1;
+            if (_pinhole_param.n_dist_coeff > 8)
+            {
+                deltaX += _pinhole_param.dist_coeff[8] * r2 + _pinhole_param.dist_coeff[9] * r2 * r2;
+                deltaY += _pinhole_param.dist_coeff[10] * r2 + _pinhole_param.dist_coeff[11] * r2 * r2;
+            }
+            x = (x0 - deltaX) * icdist;
+            y = (y0 - deltaY) * icdist;
+
+            // calculate distorted xd, yd
+            img_undist[0] = x;
+            img_undist[1] = y;
+            img_dist = distort(img_undist);
+
+            // update error
+            error = std::sqrt(std::pow(img_dist[0]-u, 2) + std::pow(img_dist[1]-v, 2));
+
+            iter ++;
+        }
+    }
+
+    return img_undist;
+}
+
+Line3D Camera::pinholeLine (Pt2D const& pt_img_undist)
+{
+    Pt3D pt_world(pt_img_undist[0], pt_img_undist[1], 1.0);
+
+    // calculate line of sight
+    pt_world = _pinhole_param.r_mtx_inv * pt_world + _pinhole_param.t_vec_inv;
+    
+    Pt3D unit_vec = myMATH::createUnitVector(_pinhole_param.t_vec_inv, pt_world);
+
+    Line3D line = {_pinhole_param.t_vec_inv, unit_vec};
+
+    return line;
+}
+
+// Polynomial model

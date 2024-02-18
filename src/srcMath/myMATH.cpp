@@ -26,7 +26,7 @@ std::vector<double> linspace (double min, double max, int n)
     }
 
     return res;
-};
+}
 
 // Trilinear interpolation
 double triLinearInterp(AxisLimit const& grid_limit, std::vector<double> const& value, std::vector<double> const& pt_vec)
@@ -96,23 +96,25 @@ double triLinearInterp(AxisLimit const& grid_limit, std::vector<double> const& v
     double c = c_0 * (1 - z_d) + c_1 * z_d;
 
     return c;
-};
+}
 
 // Create unit vector
+// unit_vec = (pt2 - pt1) / norm(pt2 - pt1)
 Pt3D createUnitVector (Pt3D& pt1, Pt3D& pt2)
 {
     Pt3D res = pt2 - pt1;
     res /= res.norm();
     return res;
-};
+}
 
 // Create unit vector
+// unit_vec = (pt2 - pt1) / norm(pt2 - pt1)
 Pt2D createUnitVector (Pt2D& pt1, Pt2D& pt2)
 {
     Pt2D res = pt2 - pt1;
     res /= res.norm();
     return res;
-};
+}
 
 // Calculate dot product
 double dot (Pt3D const& pt1, Pt3D const& pt2)
@@ -123,7 +125,7 @@ double dot (Pt3D const& pt1, Pt3D const& pt2)
         res += pt1[i] * pt2[i];
     }
     return res;
-};
+}
 
 // Calculate dot product
 double dot (Pt2D const& pt1, Pt2D const& pt2)
@@ -134,28 +136,28 @@ double dot (Pt2D const& pt1, Pt2D const& pt2)
         res += pt1[i] * pt2[i];
     }
     return res;
-};
+}
 
 // Calculate the distance between two points
 double distance (Pt3D& pt1, Pt3D& pt2)
 {
     Pt3D res = pt2 - pt1;
     return res.norm();
-};
+}
 
 // Calculate the distance between two points
 double distance (Pt2D& pt1, Pt2D& pt2)
 {
     Pt2D res = pt2 - pt1;
     return res.norm();
-};
+}
 
 // Calculate the distance between point and line
 double distance (Pt3D& pt, Line3D& line)
 {
-    Pt3D diff = pt - line._pt;
+    Pt3D diff = pt - line.pt;
 
-    double dist_proj = dot(diff, line._unit_vector);
+    double dist_proj = dot(diff, line.unit_vector);
     double dist = std::pow(diff.norm(), 2) - dist_proj * dist_proj;
     
     if (dist >= 0)
@@ -173,14 +175,14 @@ double distance (Pt3D& pt, Line3D& line)
     }
 
     return dist;
-};
+}
 
 // Calculate the distance between point and line
 double distance (Pt2D& pt, Line2D& line)
 {
-    Pt2D diff = pt - line._pt;
+    Pt2D diff = pt - line.pt;
 
-    double dist_proj = dot(diff, line._unit_vector);
+    double dist_proj = dot(diff, line.unit_vector);
     double dist = std::pow(diff.norm(), 2) - dist_proj * dist_proj;
     
     if (dist >= 0)
@@ -198,6 +200,6 @@ double distance (Pt2D& pt, Line2D& line)
     }
 
     return dist;
-};
+}
 
 }
