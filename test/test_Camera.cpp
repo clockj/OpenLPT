@@ -32,7 +32,8 @@ bool test_function_1 ()
                 double a, b;
                 while (ss1 >> a && ss2 >> b)
                 {
-                    if (std::abs(a - b) > 1e-5)
+                    // std::cout << a << "," << b << std::endl;
+                    if (std::fabs(a - b) > 1e-5)
                     {
                         std::cout << "test_function_1: failed at cam" << i+1 << std::endl;
                         return false;

@@ -1,6 +1,8 @@
 #%%
 import numpy as np
 #%%
+ncam = 5
+
 camcalibErrList = []
 posecalibErrList = []
 camMatList = []
@@ -12,7 +14,8 @@ transVecList = []
 transVecInvList = []
 
 # Load camera parameters
-for file in ['cam1.txt', 'cam2.txt', 'cam3.txt', 'cam4.txt']:
+for i in range(ncam):
+    file = 'cam' + str(i+1) + '.txt'
     with open(file, 'r') as f:
         lines = f.readlines()[2:]
         
@@ -59,7 +62,7 @@ for file in ['cam1.txt', 'cam2.txt', 'cam3.txt', 'cam4.txt']:
         transVecInvList.append(transVecInv)
 #%%
 digit = "{:.8e}"
-for i in range(4):
+for i in range(ncam):
     file = '../../solutions/test_Camera/'+'cam'+str(i+1)+'.txt'
     camMat = camMatList[i]
     distCoeff = distCoeffList[i]
