@@ -31,10 +31,23 @@ struct PinholeParam
     Pt3D t_vec_inv; // - inv(R) @ T: center of camera in world coordinate   
 };
 
+enum RefPlane
+{
+    REF_X = 1,
+    REF_Y,
+    REF_Z
+};
 struct PolyParam
 {
-    std::vector<double> coeff;
-    Matrix<double> order; // order of polynomial in x, y, z
+    RefPlane ref_plane; // reference plane
+    double plane[2]; // plane locations
+    int n_coeff; // number of coefficients
+    Matrix<double> u_coeffs; // coeff,x_power, y_power, z_power
+    Matrix<double> du_coeffs; // du/dvar1 coeff,x_power, y_power, z_power
+                              // du/dvar2 coeff,x_power, y_power, z_power
+    Matrix<double> v_coeffs; // coeff,x_power, y_power, z_power 
+    Matrix<double> dv_coeffs; // dv/dvar1 coeff,x_power, y_power, z_power
+                              // dv/dvar2 coeff,x_power, y_power, z_power
 };
 
 enum CameraType
@@ -92,6 +105,11 @@ public:
     // \/ y direction (downwards)
     Pt2D distort (Pt2D const& pt_img_undist);
 
+    // Polynomial model 
+    // Project world coordinate [mm] to distorted image [px]:
+    //  (xw,yw,zw) -> (xd,yd)
+    Pt2D polyProject (Pt3D const& pt_world);
+
 
     //               //
     // Line of sight //
@@ -111,7 +129,10 @@ public:
     // output: line of sight
     Line3D pinholeLine (Pt2D const& pt_img_undist);
 
+    // Polynomial Model
+    Pt3D polyImgToWorld (Pt2D const& pt_img_dist, double plane_world);
 
+    Line3D polyLineOfSight (Pt2D const& pt_img_dist);
 
 };
 

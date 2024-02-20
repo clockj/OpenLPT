@@ -78,7 +78,6 @@ def writeSol(file, pt_list, mode='w'):
             f.write(digit.format(pt[i,0]) + ',')
         f.write(digit.format(pt[size-1,0]) + '\n')
 
-
 #%%
 fileSol = '../../solutions/test_Camera/test_function_2.txt'
 
@@ -141,5 +140,70 @@ for i in range(ncam):
 writeSol(fileSol, pt_line_list, 'a')
 
 writeSol(fileSol, pt_line_list, 'a')
+
+
+
+#%%
+# Polynomial model
+ncam = 2
+
+err_list = []
+ref_plane_list = []
+n_coeff_list = []
+u_coeff_list = []
+v_coeff_list = []
+
+for i in range(ncam):
+    file = 'cam' + str(i+1) + '_poly' + '.txt'
+    with open(file, 'r') as f:
+        lines = f.readlines()[2:]
+        if 'None' in lines[1] or 'none' in lines[1]:
+            err_list.append(None)
+        else:
+            err_list.append(float(lines[1]))
+
+        ref_plane = []
+        content = lines[3].split(',')
+        ref_plane.append(content[0])
+        ref_plane.append(np.double(content[1]))
+        ref_plane.append(np.double(content[2]))
+        ref_plane_list.append(ref_plane)
+        
+        n_coeff = int(lines[5])
+        n_coeff_list.append(n_coeff)
+        
+        u_coeff = np.zeros((n_coeff,4))
+        for i in range(n_coeff):
+            u_coeff[i,:] = np.array(lines[7+i].split(',')).astype(np.double)
+        u_coeff_list.append(u_coeff)
+        
+        v_coeff = np.zeros((n_coeff,4))
+        for i in range(n_coeff):
+            v_coeff[i,:] = np.array(lines[7+n_coeff+1+i].split(',')).astype(np.double)
+        v_coeff_list.append(v_coeff)
+
+
+# %%
+fileSol = '../../solutions/test_Camera/test_function_5.txt'
+
+pt_world = np.array([1,0,3]).reshape(3,1)
+# pt_world = np.array([1,0,3]).reshape(3,1)
+
+pt_img_list = []
+for camid in range(ncam):
+    u = 0
+    v = 0
+    for i in range(n_coeff_list[camid]):
+        u_coeff = u_coeff_list[camid][i, :]
+        v_coeff = v_coeff_list[camid][i, :]
+        u += u_coeff[0] * np.power(pt_world[0], int(u_coeff[1])) * np.power(pt_world[1], int(u_coeff[2])) * np.power(pt_world[2], int(u_coeff[3]))
+        v += v_coeff[0] * np.power(pt_world[0], int(v_coeff[1])) * np.power(pt_world[1], int(v_coeff[2])) * np.power(pt_world[2], int(v_coeff[3]))
+    pt_img = np.array([u,v]).reshape(2,1)
+    pt_img_list.append(pt_img)
+writeSol(fileSol, pt_img_list, 'w')
+
+writeSol(fileSol, pt_img_list, 'a')
+        
+        
 
 # %%

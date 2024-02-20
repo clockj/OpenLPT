@@ -308,35 +308,75 @@ namespace internal
         }
 
         int n = mtx.getDimRow();
-        if (n != 3)
+        if (n == 2)
         {
-            std::cerr << "DetInverse only supports for 3x3 matrix!"
+            Matrix<T> res(2,2,0);
+            //        [0]    [1]
+            // [0] res[0] res[1]
+            // [1] res[2] res[3]
+
+            T det = mtx[0] * mtx[3] - mtx[1] * mtx[2];
+            if (std::fabs(det) < SMALLNUMBER)
+            {
+                std::cout << "myMATH::detInverse warning at line " 
+                          << __LINE__ << ": "
+                          << "The determinant is too small, "
+                          << det << ". "
+                          << "Singular matrix!"
+                          << std::endl;
+                det = SMALLNUMBER;
+                mtx.print();
+            }
+
+            res[0] =   mtx[3] / det;
+            res[1] = - mtx[1] / det;
+            res[2] = - mtx[2] / det;
+            res[3] =   mtx[0] / det;
+
+            return res;
+        }
+        else if (n == 3)
+        {
+            Matrix<T> res(3,3,0);
+            //        [0]    [1]    [2]
+            // [0] res[0] res[1] res[2]
+            // [1] res[3] res[4] res[5]
+            // [2] res[6] res[7] res[8]
+
+            T det =   mtx[0] * ( mtx[4]*mtx[8] - mtx[5]*mtx[7] )
+                    - mtx[1] * ( mtx[3]*mtx[8] - mtx[5]*mtx[6] ) 
+                    + mtx[2] * ( mtx[3]*mtx[7] - mtx[4]*mtx[6] );
+            if (std::fabs(det) < SMALLNUMBER)
+            {
+                std::cout << "myMATH::detInverse warning at line " 
+                          << __LINE__ << ": "
+                          << "The determinant is too small, "
+                          << det << ". "
+                          << "Singular matrix!"
+                          << std::endl;
+            }
+            
+            res[0] =   (mtx[4]*mtx[8] - mtx[5]*mtx[7]) / det;
+            res[3] = - (mtx[3]*mtx[8] - mtx[5]*mtx[6]) / det;
+            res[6] =   (mtx[3]*mtx[7] - mtx[4]*mtx[6]) / det;
+
+            res[1] = - (mtx[1]*mtx[8] - mtx[2]*mtx[7]) / det;
+            res[4] =   (mtx[0]*mtx[8] - mtx[2]*mtx[6]) / det;
+            res[7] = - (mtx[0]*mtx[7] - mtx[1]*mtx[6]) / det;
+
+            res[2] =   (mtx[1]*mtx[5] - mtx[2]*mtx[4]) / det;
+            res[5] = - (mtx[0]*mtx[5] - mtx[2]*mtx[3]) / det;
+            res[8] =   (mtx[0]*mtx[4] - mtx[1]*mtx[3]) / det;
+
+            return res;
+        }
+        else
+        {
+            std::cerr << "DetInverse only supports for 2x2 or 3x3 matrix!"
                     << std::endl;
             throw error_size;
         }
         
-        Matrix<T> res(3,3,0);
-        //        [0]    [1]    [2]
-        // [0] res[0] res[1] res[2]
-        // [1] res[3] res[4] res[5]
-        // [2] res[6] res[7] res[8]
-
-        T det =   mtx[0] * ( mtx[4]*mtx[8] - mtx[5]*mtx[7] )
-                - mtx[1] * ( mtx[3]*mtx[8] - mtx[5]*mtx[6] ) 
-                + mtx[2] * ( mtx[3]*mtx[7] - mtx[4]*mtx[6] );
-        res[0] =   (mtx[4]*mtx[8] - mtx[5]*mtx[7]) / det;
-        res[3] = - (mtx[3]*mtx[8] - mtx[5]*mtx[6]) / det;
-        res[6] =   (mtx[3]*mtx[7] - mtx[4]*mtx[6]) / det;
-
-        res[1] = - (mtx[1]*mtx[8] - mtx[2]*mtx[7]) / det;
-        res[4] =   (mtx[0]*mtx[8] - mtx[2]*mtx[6]) / det;
-        res[7] = - (mtx[0]*mtx[7] - mtx[1]*mtx[6]) / det;
-
-        res[2] =   (mtx[1]*mtx[5] - mtx[2]*mtx[4]) / det;
-        res[5] = - (mtx[0]*mtx[5] - mtx[2]*mtx[3]) / det;
-        res[8] =   (mtx[0]*mtx[4] - mtx[1]*mtx[3]) / det;
-
-        return res;
     };
 
 };

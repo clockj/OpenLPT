@@ -256,7 +256,7 @@ inline int Matrix<T>::getDimCol() const
 }
 
 template<class T> 
-void Matrix<T>::print(int precision)
+void Matrix<T>::print(int precision) const
 {
     std::cout << std::endl;
     std::cout << "Matrix = " << std::endl;
@@ -322,7 +322,7 @@ template<class T>
 void Matrix<T>::write (std::ostream& os)
 {
     os.setf(std::ios_base::scientific);
-    os.precision(8);
+    os.precision(SAVEPRECISION);
     // os.precision(std::numeric_limits<double>::max_digits10);
 
     for (int i = 0; i < _dim_row; i ++)

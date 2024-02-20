@@ -368,6 +368,33 @@ bool test_function_12 ()
         std::cout << e.what() << std::endl;
         return false;
     }
+    
+    // test 2x2 matrix
+    Matrix<double> mtx_3(2,2,{{1,2},{3,4}});
+    mtx_inv_gauss = myMATH::inverse (mtx_3, "gauss");
+    mtx_inv_det = myMATH::inverse (mtx_3, "det");
+    mtx_inv_ans = Matrix<double>(2,2,{{-2,1},{1.5,-0.5}});
+
+    if (mtx_inv_gauss != mtx_inv_ans)
+    {
+        std::cout << "test_function_12 (line " << __LINE__ 
+                  << "): matrix inverse (gauss) failed" << std::endl;
+        std::cout << "mtx_inv: " << std::endl;
+        mtx_inv_gauss.print();
+        std::cout << "mtx_inv_ans: " << std::endl;
+        mtx_inv_ans.print();
+        return false;
+    }
+    if (mtx_inv_det != mtx_inv_ans)
+    {
+        std::cout << "test_function_12 (line " << __LINE__ 
+                  << "): matrix inverse (det) failed" << std::endl;
+        std::cout << "mtx_inv: " << std::endl;
+        mtx_inv_det.print();
+        std::cout << "mtx_inv_ans: " << std::endl;
+        mtx_inv_ans.print();
+        return false;
+    }
 
     return true;
 }

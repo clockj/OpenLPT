@@ -4,6 +4,8 @@
 #include <iostream>
 #include <string>
 
+#define SAVEPRECISION 8
+
 // calibration
 #define SMALLNUMBER 1e-8
 // #define SMALLNUMBER 2e-6

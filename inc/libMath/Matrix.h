@@ -77,7 +77,7 @@ public:
     // Get matrix info
     int  getDimRow () const;
     int  getDimCol () const;
-    void print   (int precision = 3);
+    void print   (int precision = 3) const;
 
     // Matrix output 
     void write (std::string file_name);
@@ -113,7 +113,7 @@ public:
     Pt3D () : Matrix<double>(3,1,0) {};
     Pt3D (double x, double y, double z) : Matrix<double>(3,1,{{x},{y},{z}}) {};
     Pt3D (const Pt3D& pt) : Matrix<double>(pt) {};
-    Pt3D (const Matrix<double>& mtx) : Matrix<double>(mtx) {};
+    Pt3D (const Matrix<double>& mtx) : Matrix<double>(3,1,{{mtx[0]},{mtx[1]},{mtx[2]}}) {};
     explicit Pt3D (std::string file_name) : Matrix<double>(file_name) {};
     explicit Pt3D (std::istream& is) : Matrix<double>(3,1,is) {};
 };
@@ -124,7 +124,7 @@ public:
     Pt2D () : Matrix<double>(2,1,0) {};
     Pt2D (double x, double y) : Matrix<double>(2,1,{{x},{y}}) {};
     Pt2D (const Pt2D& pt) : Matrix<double>(pt) {};
-    Pt2D (const Matrix<double>& mtx) : Matrix<double>(mtx) {};
+    Pt2D (const Matrix<double>& mtx) : Matrix<double>(2,1,{{mtx[0]},{mtx[1]}}) {};
     explicit Pt2D (std::string file_name) : Matrix<double>(file_name) {};
     explicit Pt2D (std::istream& is) : Matrix<double>(2,1,is) {};
 };
