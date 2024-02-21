@@ -315,9 +315,10 @@ bool test_function_6 ()
     Pt3D pt_world(1, 0, 3);
     Camera c;
 
-    for (int i = 0; i < 2; i ++)
+    for (int i = 0; i < 4; i ++)
     {
         c.loadParameters("../test/inputs/test_Camera/cam"+std::to_string(i+1)+"_poly"+".txt");
+        c.saveParameters("../test/results/test_Camera/cam"+std::to_string(i+1)+"_poly"+".txt");
 
         Pt2D pt_dist = c.polyProject(pt_world);
         Line3D line = c.polyLineOfSight(pt_dist);
@@ -338,7 +339,7 @@ bool test_function_6 ()
         }
     }
     
-    for (int i = 0; i < 2; i ++)
+    for (int i = 0; i < 4; i ++)
     {
         c.loadParameters("../test/inputs/test_Camera/cam"+std::to_string(i+1)+"_poly"+".txt");
 

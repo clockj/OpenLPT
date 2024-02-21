@@ -1,6 +1,7 @@
 #%%
 import numpy as np
 import cv2
+from scipy.io import loadmat
 
 #%%
 ncam = 5
@@ -205,5 +206,36 @@ writeSol(fileSol, pt_img_list, 'w')
 writeSol(fileSol, pt_img_list, 'a')
         
         
+
+
+# %%
+# load polynomial camera model from .mat
+file = loadmat('polynomial.mat')
+data = file['para_set']
+
+cam3 = data[0,0]
+cam3 = cam3[:int(cam3.shape[0]/2),:]
+
+cam4 = data[0,1]
+cam4 = cam4[:int(cam4.shape[0]/2),:]
+
+# save to file 
+def writePolyFile(path, cam):
+    with open(path, 'w') as f:
+        f.write('# Camera Model: (PINHOLE/POLYNOMIAL)\nPOLYNOMIAL\n')
+        f.write('# Calibration Error: \nNone\n')
+        f.write('# Reference Plane: (REF_X/REF_Y/REF_Z,coordinate,coordinate)\n')
+        f.write('REF_Z,' + str(0) + ',' + str(5) + '\n')
+        f.write('# Number of Coefficients: \n' + str(int(cam.shape[0]/2)) + '\n')
+        f.write('# U_Coeff,X_Power,Y_Power,Z_Power\n')
+        for i in range(int(cam.shape[0]/2)):
+            f.write(str(cam[i,0]) + ',' + str(cam[i,1]) + ',' + str(cam[i,2]) + ',' + str(cam[i,3]) + '\n')
+        f.write('# V_Coeff,X_Power,Y_Power,Z_Power\n')
+        for i in range(int(cam.shape[0]/2), cam.shape[0]):
+            f.write(str(cam[i,0]) + ',' + str(cam[i,1]) + ',' + str(cam[i,2]) + ',' + str(cam[i,3]) + '\n')
+
+writePolyFile('cam3_poly.txt', cam3)
+writePolyFile('cam4_poly.txt', cam4)
+
 
 # %%
