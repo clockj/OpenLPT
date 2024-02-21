@@ -417,6 +417,62 @@ bool test_function_13 ()
     return true;
 }
 
+// test triangulation 
+bool test_function_14 ()
+{
+    // CASE 1
+    std::vector<Line3D> line_of_sight_list;
+    Line3D line1;
+    line1.pt = Pt3D(0,0,0);
+    line1.unit_vector = Pt3D(1,0,0);
+    line_of_sight_list.push_back(line1);
+    Line3D line2;
+    line2.pt = Pt3D(0,0,0);
+    line2.unit_vector = Pt3D(0,1,0);
+    line_of_sight_list.push_back(line2);
+    Line3D line3;
+    line3.pt = Pt3D(0,0,0);
+    line3.unit_vector = Pt3D(0,0,1);
+    line_of_sight_list.push_back(line3);
+
+    Pt3D pt_world(1,2,3);
+    double error;
+
+    myMATH::triangulation (line_of_sight_list, pt_world, error);
+
+    if (pt_world != Pt3D(0,0,0) || error > SMALLNUMBER)
+    {
+        std::cout << "test_function_14: triangulation failed at line " << __LINE__ << std::endl;
+        std::cout << "pt_world: " << std::endl;
+        pt_world.print();
+        std::cout << "pt_world_ans: " << std::endl;
+        Pt3D(0,0,0).print();
+        return false;
+    }
+
+    // CASE 2
+    line_of_sight_list.clear();
+    line1.pt = Pt3D(0,0,0);
+    line1.unit_vector = Pt3D(1,1,1) / std::sqrt(3);
+    line_of_sight_list.push_back(line1);
+
+    line2.pt = Pt3D(1,0,0);
+    line2.unit_vector = Pt3D(1,-1,-1) / std::sqrt(3);
+    line_of_sight_list.push_back(line2);
+
+    myMATH::triangulation (line_of_sight_list, pt_world, error);
+
+    if (pt_world != Pt3D(0.5,0.5,0.5) || error > SMALLNUMBER)
+    {
+        std::cout << "test_function_14: triangulation failed at line " << __LINE__ << std::endl;
+        std::cout << "pt_world: " << std::endl;
+        pt_world.print();
+        return false;
+    }
+
+    return true;
+}
+
 
 int main()
 {
@@ -433,6 +489,7 @@ int main()
     IS_TRUE(test_function_11());
     IS_TRUE(test_function_12());
     IS_TRUE(test_function_13());
-    
+    IS_TRUE(test_function_14());
+
     return 0;
 }

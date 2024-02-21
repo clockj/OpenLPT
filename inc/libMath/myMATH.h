@@ -137,6 +137,11 @@ double distance (Pt3D& pt, Line3D& line);
 double distance (Pt2D& pt, Line2D& line);
 
 
+// Triangulation
+void triangulation (std::vector<Line3D> const& line_of_sight_list, 
+                    Pt3D& pt_world, double& error);
+
+
 // Create identity matrix 
 template<class T>
 Matrix<T> eye (int n)

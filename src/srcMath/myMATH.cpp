@@ -202,4 +202,74 @@ double distance (Pt2D& pt, Line2D& line)
     return dist;
 }
 
+// Triangulation
+void triangulation(std::vector<Line3D> const& line_of_sight_list, 
+                   Pt3D& pt_world, double& error)
+{
+    int n = line_of_sight_list.size();
+    if (n < 2)
+    {
+        std::cerr << "myMATH::Triangulation: "
+                  << "Cannot triangulate with less than 2 lines of sight!"
+                  << std::endl;
+        throw error_size;
+    }
+
+    Matrix<double> mtx(3, 3, 0);
+    Matrix<double> temp(3,3,0);
+    Pt3D pt_3d(0,0,0);
+    Pt3D pt_ref;
+    Pt3D unit_vector;
+
+    for (int i = 0; i < n; i ++)
+    {
+        pt_ref = line_of_sight_list[i].pt;
+        unit_vector = line_of_sight_list[i].unit_vector;
+
+        double nx = unit_vector[0];
+        double ny = unit_vector[1];
+        double nz = unit_vector[2];
+
+        temp(0,0) = 1-nx*nx; temp(0,1) = -nx*ny;  temp(0,2) = -nx*nz;
+        temp(1,0) = -nx*ny;  temp(1,1) = 1-ny*ny; temp(1,2) = -ny*nz;
+        temp(2,0) = -nx*nz;  temp(2,1) = -ny*nz;  temp(2,2) = 1-nz*nz;
+
+        pt_3d += temp * pt_ref;
+        mtx += temp;
+    }
+
+    pt_world = myMATH::inverse(mtx) * pt_3d;
+
+    // calculate errors 
+    error = 0;
+    Pt3D diff_vec;
+    for (int i = 0; i < n; i ++)
+    {
+        diff_vec = pt_world - line_of_sight_list[i].pt;
+        double h = std::pow(diff_vec.norm(),2)
+            - std::pow(myMATH::dot(diff_vec, line_of_sight_list[i].unit_vector),2);
+            
+        if (h < 0 && h >= - SMALLNUMBER)
+        {
+            h = 0;
+        }
+        else if (h < - SMALLNUMBER)
+        {
+            std::cerr << "myMATH::triangulation error: "
+                      << "the distance in triangulation is: "
+                      << "h = "
+                      << h
+                      << std::endl;
+            throw error_range;
+        }
+        else
+        {
+            h = std::sqrt(h);
+        }
+
+        error += h;
+    }
+    error /= n;
+}
+
 }
