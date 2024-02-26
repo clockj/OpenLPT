@@ -360,7 +360,6 @@ bool test_function_12 ()
     try
     {
         Matrix<int> mtx_inv = myMATH::inverse (mtx_2, "gauss");
-        mtx_inv.print();
     }
     catch (const std::exception& e)
     {
@@ -473,6 +472,47 @@ bool test_function_14 ()
     return true;
 }
 
+// test isLocalMax
+bool test_function_15 ()
+{
+    Matrix<double> img(5,5,{{1,0,0,0,0},
+                            {0,1,2,1,0},
+                            {0,2,3,2,0},
+                            {0,1,2,1,0},
+                            {0,0,0,0,0}});
+    bool is_localmax = myMATH::isLocalMax (img, 2, 2);
+    bool is_localmax_ans = true;
+    if (is_localmax != is_localmax_ans)
+    {
+        std::cout << "test_function_15: isLocalMax failed at line " << __LINE__ << std::endl;
+        std::cout << "is_localmax: " << is_localmax << std::endl;
+        std::cout << "is_localmax_ans: " << is_localmax_ans << std::endl;
+        return false;
+    }
+
+    is_localmax = myMATH::isLocalMax (img, 1, 1);
+    is_localmax_ans = false;
+    if (is_localmax != is_localmax_ans)
+    {
+        std::cout << "test_function_15: isLocalMax failed at line" << __LINE__ << std::endl;
+        std::cout << "is_localmax: " << is_localmax << std::endl;
+        std::cout << "is_localmax_ans: " << is_localmax_ans << std::endl;
+        return false;
+    }
+
+    is_localmax = myMATH::isLocalMax (img, 0, 0);
+    is_localmax_ans = true;
+    if (is_localmax != is_localmax_ans)
+    {
+        std::cout << "test_function_15: isLocalMax failed at line" << __LINE__ << std::endl;
+        std::cout << "is_localmax: " << is_localmax << std::endl;
+        std::cout << "is_localmax_ans: " << is_localmax_ans << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
 
 int main()
 {
@@ -490,6 +530,7 @@ int main()
     IS_TRUE(test_function_12());
     IS_TRUE(test_function_13());
     IS_TRUE(test_function_14());
+    IS_TRUE(test_function_15());
 
     return 0;
 }

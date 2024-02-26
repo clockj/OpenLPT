@@ -31,7 +31,7 @@ set(HEADERFILES
     ${CMAKE_HOME_DIRECTORY}/inc/libMath/ImageIO.h
     ${CMAKE_HOME_DIRECTORY}/inc/libMath/Camera.h
     ${CMAKE_HOME_DIRECTORY}/inc/libMath/ObjectInfo.h
-    # ${CMAKE_HOME_DIRECTORY}/inc/libMath/ObjectFinder.h
+    ${CMAKE_HOME_DIRECTORY}/inc/libMath/ObjectFinder.h
     # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/StereoMatch.h
     # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/OTF.h
     # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/Shake.h
@@ -47,7 +47,7 @@ set(SOURCEFILES main.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcMath/ImageIO.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcMath/Camera.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcMath/ObjectInfo.cpp
-    # ${CMAKE_HOME_DIRECTORY}/src/srcMath/ObjectFinder.hpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcMath/ObjectFinder.hpp
     # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/StereoMatch.hpp
     # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/OTF.cpp
     # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/Shake.hpp
@@ -94,6 +94,7 @@ set(TESTHEADERFILES
     ${CMAKE_HOME_DIRECTORY}/test/test.h
 )
 
+
 # test Matrix
 add_executable(test_Matrix ${CMAKE_HOME_DIRECTORY}/test/test_Matrix.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcMath/Matrix.hpp
@@ -101,8 +102,6 @@ add_executable(test_Matrix ${CMAKE_HOME_DIRECTORY}/test/test_Matrix.cpp
     ${CMAKE_HOME_DIRECTORY}/inc/libMath/Matrix.h
     ${CMAKE_HOME_DIRECTORY}/inc/libMath/STBCommons.h
 )
-
-# Add the test to CTest
 add_test(test_Matrix test_Matrix)
 set_tests_properties(test_Matrix
                      PROPERTIES FAIL_REGULAR_EXPRESSION "failed on line")
@@ -115,7 +114,6 @@ add_executable(test_myMATH ${CMAKE_HOME_DIRECTORY}/test/test_myMATH.cpp
     ${TESTHEADERFILES}
     ${CMAKE_HOME_DIRECTORY}/inc/libMath/myMATH.h
 )
-
 add_test(test_myMATH test_myMATH)
 set_tests_properties(test_myMATH
                      PROPERTIES FAIL_REGULAR_EXPRESSION "failed on line")
@@ -141,7 +139,6 @@ add_executable(test_Camera ${CMAKE_HOME_DIRECTORY}/test/test_Camera.cpp
     ${CMAKE_HOME_DIRECTORY}/inc/libMath/Camera.h
     ${CMAKE_HOME_DIRECTORY}/inc/libMath/myMATH.h
 )
-
 add_test(test_Camera test_Camera)
 set_tests_properties(test_Camera
                      PROPERTIES FAIL_REGULAR_EXPRESSION "failed on line")
@@ -157,7 +154,26 @@ add_executable(test_ObjectInfo ${CMAKE_HOME_DIRECTORY}/test/test_ObjectInfo.cpp
     ${CMAKE_HOME_DIRECTORY}/inc/libMath/Camera.h
     ${CMAKE_HOME_DIRECTORY}/inc/libMath/myMATH.h
 )
-
 add_test(test_ObjectInfo test_ObjectInfo)
 set_tests_properties(test_ObjectInfo
+                     PROPERTIES FAIL_REGULAR_EXPRESSION "failed on line")
+
+
+# test ObjectFinder
+add_executable(test_ObjectFinder ${CMAKE_HOME_DIRECTORY}/test/test_ObjectFinder.cpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcMath/ObjectFinder.hpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcMath/ObjectInfo.cpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcMath/Camera.cpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcMath/myMATH.cpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcMath/ImageIO.cpp
+    ${TESTHEADERFILES}
+    ${CMAKE_HOME_DIRECTORY}/inc/libMath/ObjectFinder.h
+    ${CMAKE_HOME_DIRECTORY}/inc/libMath/ObjectInfo.h
+    ${CMAKE_HOME_DIRECTORY}/inc/libMath/Camera.h
+    ${CMAKE_HOME_DIRECTORY}/inc/libMath/myMATH.h
+    ${CMAKE_HOME_DIRECTORY}/inc/libMath/ImageIO.h
+)
+target_link_libraries(test_ObjectFinder PUBLIC tiff)
+add_test(test_ObjectFinder test_ObjectFinder)
+set_tests_properties(test_ObjectFinder
                      PROPERTIES FAIL_REGULAR_EXPRESSION "failed on line")

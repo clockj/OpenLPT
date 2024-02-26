@@ -15,22 +15,23 @@
 #include "ObjectInfo.h"
 #include "Matrix.h"
 #include "STBCommons.h"
+#include "myMATH.h"
 
-// template<ObjectType T>
-template <class T> 
-class ObjectFinder
+
+class ObjectFinder2D
 {
-protected:
-    bool IsLocalMax (Matrix<double> const& mtx, int i, int j);
-    std::vector<TracerInfo> FindTracer(Matrix<double> const& img, int max_intensity, int min_intensity);
+private:
+    void findTracer2D(std::vector<Tracer2D>& tr2d_list, Image const& img, int max_intensity, int min_intensity);
+
 public:
-    ObjectFinder() {};
-    virtual ~ObjectFinder() {};
+    ObjectFinder2D() {};
+    ~ObjectFinder2D() {};
 
     // Find object position
     //  input: intensity matrix, maximum intensity (2^bit_per_sample-1)
     //  output: a vector with all the particles positions （x_pixel(col_id), y_pixel(row_id))
-    std::vector<T> FindObject(Matrix<double> const& img, int max_intensity, int min_intensity);
+    template <class T> 
+    void findObject2D(std::vector<T>& obj2d_list, Image const& img, std::vector<double> const& properties);
 
 };
 

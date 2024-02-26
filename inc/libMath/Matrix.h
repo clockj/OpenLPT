@@ -142,6 +142,9 @@ struct Line2D
     Pt2D unit_vector;
 };
 
+// Image: matrix with double type
+// Image(row_id, col_id) = intensity
+// row_id = img_y, col_id = img_x
 class Image : public Matrix<double>
 {
 public:

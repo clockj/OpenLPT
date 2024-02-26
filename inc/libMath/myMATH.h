@@ -440,6 +440,42 @@ T trace (Matrix<T> const& mtx)
     return res;
 };
 
+
+// Check local maximum
+template<class T>
+bool isLocalMax (Matrix<T> const& mtx, int row_id, int col_id)
+{
+    const int n_row = mtx.getDimRow();
+    const int n_col = mtx.getDimCol();
+    if (row_id < 0 || row_id >= n_row || col_id < 0 || col_id >= n_col)
+    {
+        std::cerr << "myMATH::IsLocalMax: index out of range" << std::endl;
+        std::cerr << "row_id: " << row_id << ", col_id: " << col_id << std::endl;
+        std::cerr << "n_row: " << n_row << ", n_col: " << n_col << std::endl;
+        throw error_range;
+    }
+
+    const int move_row[4] = {-1, 0, 1, 0};
+    const int move_col[4] = {0, -1, 0, 1};
+
+    T val = mtx(row_id, col_id);
+    for (int i = 0; i < 4; i ++)
+    {
+        if (row_id + move_row[i] < 0 || row_id + move_row[i] >= n_row ||
+            col_id + move_col[i] < 0 || col_id + move_col[i] >= n_col)
+        {
+            continue;
+        }
+
+        if (mtx(row_id+move_row[i], col_id+move_col[i]) > val)
+        {
+            return false;
+        }
+    }
+
+    return true;
+};
+
 }
 
 
