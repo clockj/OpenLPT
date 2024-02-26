@@ -30,8 +30,8 @@ set(HEADERFILES
     ${CMAKE_HOME_DIRECTORY}/inc/libMath/Matrix.h
     ${CMAKE_HOME_DIRECTORY}/inc/libMath/ImageIO.h
     ${CMAKE_HOME_DIRECTORY}/inc/libMath/Camera.h
-    ${CMAKE_HOME_DIRECTORY}/inc/libMath/ObjectInfo.h
-    ${CMAKE_HOME_DIRECTORY}/inc/libMath/ObjectFinder.h
+    ${CMAKE_HOME_DIRECTORY}/inc/libObject/ObjectInfo.h
+    ${CMAKE_HOME_DIRECTORY}/inc/libObject/ObjectFinder.h
     # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/StereoMatch.h
     # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/OTF.h
     # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/Shake.h
@@ -46,8 +46,8 @@ set(SOURCEFILES main.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcMath/Matrix.hpp
     ${CMAKE_HOME_DIRECTORY}/src/srcMath/ImageIO.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcMath/Camera.cpp
-    ${CMAKE_HOME_DIRECTORY}/src/srcMath/ObjectInfo.cpp
-    ${CMAKE_HOME_DIRECTORY}/src/srcMath/ObjectFinder.hpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcObject/ObjectInfo.cpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcObject/ObjectFinder.hpp
     # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/StereoMatch.hpp
     # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/OTF.cpp
     # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/Shake.hpp
@@ -58,11 +58,11 @@ set(SOURCEFILES main.cpp
 )
 
 # Add executable target with source files listed in SOURCE_FILES variable
-include_directories("${CMAKE_HOME_DIRECTORY}/inc/libIO")
-include_directories("${CMAKE_HOME_DIRECTORY}/src/srcIO")
 include_directories("${CMAKE_HOME_DIRECTORY}/inc/libtiff")
 include_directories("${CMAKE_HOME_DIRECTORY}/inc/libMath")
 include_directories("${CMAKE_HOME_DIRECTORY}/src/srcMath")
+include_directories("${CMAKE_HOME_DIRECTORY}/inc/libObject")
+include_directories("${CMAKE_HOME_DIRECTORY}/src/srcObject")
 include_directories("${CMAKE_HOME_DIRECTORY}/inc/libSTB")
 include_directories("${CMAKE_HOME_DIRECTORY}/src/srcSTB")
 
@@ -146,11 +146,11 @@ set_tests_properties(test_Camera
 
 # test ObjectInfo
 add_executable(test_ObjectInfo ${CMAKE_HOME_DIRECTORY}/test/test_ObjectInfo.cpp
-    ${CMAKE_HOME_DIRECTORY}/src/srcMath/ObjectInfo.cpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcObject/ObjectInfo.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcMath/Camera.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcMath/myMATH.cpp
     ${TESTHEADERFILES}
-    ${CMAKE_HOME_DIRECTORY}/inc/libMath/ObjectInfo.h
+    ${CMAKE_HOME_DIRECTORY}/inc/libObject/ObjectInfo.h
     ${CMAKE_HOME_DIRECTORY}/inc/libMath/Camera.h
     ${CMAKE_HOME_DIRECTORY}/inc/libMath/myMATH.h
 )
@@ -161,14 +161,14 @@ set_tests_properties(test_ObjectInfo
 
 # test ObjectFinder
 add_executable(test_ObjectFinder ${CMAKE_HOME_DIRECTORY}/test/test_ObjectFinder.cpp
-    ${CMAKE_HOME_DIRECTORY}/src/srcMath/ObjectFinder.hpp
-    ${CMAKE_HOME_DIRECTORY}/src/srcMath/ObjectInfo.cpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcObject/ObjectFinder.hpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcObject/ObjectInfo.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcMath/Camera.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcMath/myMATH.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcMath/ImageIO.cpp
     ${TESTHEADERFILES}
-    ${CMAKE_HOME_DIRECTORY}/inc/libMath/ObjectFinder.h
-    ${CMAKE_HOME_DIRECTORY}/inc/libMath/ObjectInfo.h
+    ${CMAKE_HOME_DIRECTORY}/inc/libObject/ObjectFinder.h
+    ${CMAKE_HOME_DIRECTORY}/inc/libObject/ObjectInfo.h
     ${CMAKE_HOME_DIRECTORY}/inc/libMath/Camera.h
     ${CMAKE_HOME_DIRECTORY}/inc/libMath/myMATH.h
     ${CMAKE_HOME_DIRECTORY}/inc/libMath/ImageIO.h
