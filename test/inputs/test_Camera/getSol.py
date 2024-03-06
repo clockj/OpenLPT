@@ -8,6 +8,7 @@ ncam = 5
 
 camcalibErrList = []
 posecalibErrList = []
+imgSizeList = []
 camMatList = []
 distCoeffList = []
 rotVecList = []
@@ -20,48 +21,65 @@ transVecInvList = []
 for i in range(ncam):
     file = 'cam' + str(i+1) + '.txt'
     with open(file, 'r') as f:
+        line_id = 0
+        
         lines = f.readlines()[2:]
         
-        if 'None' in lines[1] or 'none' in lines[1]:
+        line_id += 1
+        if 'None' in lines[line_id] or 'none' in lines[line_id]:
             camcalibErrList.append(None)
         else:
-            camcalibErrList.append(float(lines[1]))
-        if 'None' in lines[3] or 'none' in lines[3]:
+            camcalibErrList.append(float(lines[line_id]))
+        line_id += 2
+        if 'None' in lines[line_id] or 'none' in lines[line_id]:
             posecalibErrList.append(None)
         else:
-            posecalibErrList.append(float(lines[3]))
+            posecalibErrList.append(float(lines[line_id]))
         
+        line_id += 2
+        imgSize = np.array(lines[line_id].split(',')).astype(np.int32)
+        imgSizeList.append(imgSize)
+        
+        line_id += 2
         camMat = np.zeros((3,3))
-        camMat[0,:] = np.array(lines[5].split(',')).astype(np.double)
-        camMat[1,:] = np.array(lines[6].split(',')).astype(np.double)
-        camMat[2,:] = np.array(lines[7].split(',')).astype(np.double)
+        camMat[0,:] = np.array(lines[line_id].split(',')).astype(np.double)
+        camMat[1,:] = np.array(lines[line_id+1].split(',')).astype(np.double)
+        camMat[2,:] = np.array(lines[line_id+2].split(',')).astype(np.double)
         camMatList.append(camMat)
         
-        distCoeff = np.array([lines[9].split(',')]).astype(np.double)
+        line_id += 4
+        distCoeff = np.array([lines[line_id].split(',')]).astype(np.double)
         distCoeffList.append(distCoeff)
         
+        line_id += 2
         rotVec = np.zeros((3,1))
-        rotVec[:,0] = np.array(lines[11].split(',')).astype(np.double)
+        rotVec[:,0] = np.array(lines[line_id].split(',')).astype(np.double)
         rotVecList.append(rotVec)
         
+        line_id += 2
         rotMat = np.zeros((3,3))
-        rotMat[0,:] = np.array(lines[13].split(',')).astype(np.double)
-        rotMat[1,:] = np.array(lines[14].split(',')).astype(np.double)
-        rotMat[2,:] = np.array(lines[15].split(',')).astype(np.double)
+        rotMat[0,:] = np.array(lines[line_id].split(',')).astype(np.double)
+        rotMat[1,:] = np.array(lines[line_id+1].split(',')).astype(np.double)
+        rotMat[2,:] = np.array(lines[line_id+2].split(',')).astype(np.double)
         rotMatList.append(rotMat)
-        # line 17,18,19 are rotMatInv
+        
+        # rotMatInv
+        line_id += 4
         rotMatInv = np.zeros((3,3))
-        rotMatInv[0,:] = np.array(lines[17].split(',')).astype(np.double)
-        rotMatInv[1,:] = np.array(lines[18].split(',')).astype(np.double)
-        rotMatInv[2,:] = np.array(lines[19].split(',')).astype(np.double)
+        rotMatInv[0,:] = np.array(lines[line_id].split(',')).astype(np.double)
+        rotMatInv[1,:] = np.array(lines[line_id+1].split(',')).astype(np.double)
+        rotMatInv[2,:] = np.array(lines[line_id+2].split(',')).astype(np.double)
         rotMatInvList.append(rotMatInv)
         
+        line_id += 4
         transVec = np.zeros((3,1))
-        transVec[:,0] = np.array(lines[21].split(',')).astype(np.double)
+        transVec[:,0] = np.array(lines[line_id].split(',')).astype(np.double)
         transVecList.append(transVec)
-        # line 23 is transVecInv
+        
+        # transVecInv
+        line_id += 2
         transVecInv = np.zeros((3,1))
-        transVecInv[:,0] = np.array(lines[23].split(',')).astype(np.double)
+        transVecInv[:,0] = np.array(lines[line_id].split(',')).astype(np.double)
         transVecInvList.append(transVecInv)
 
 # %%

@@ -437,7 +437,7 @@ bool test_function_14 ()
     Pt3D pt_world(1,2,3);
     double error;
 
-    myMATH::triangulation (line_of_sight_list, pt_world, error);
+    myMATH::triangulation (pt_world, error, line_of_sight_list);
 
     if (pt_world != Pt3D(0,0,0) || error > SMALLNUMBER)
     {
@@ -459,7 +459,7 @@ bool test_function_14 ()
     line2.unit_vector = Pt3D(1,-1,-1) / std::sqrt(3);
     line_of_sight_list.push_back(line2);
 
-    myMATH::triangulation (line_of_sight_list, pt_world, error);
+    myMATH::triangulation (pt_world, error, line_of_sight_list);
 
     if (pt_world != Pt3D(0.5,0.5,0.5) || error > SMALLNUMBER)
     {
@@ -513,6 +513,37 @@ bool test_function_15 ()
     return true;
 }
 
+// test find cross point of two 2d lines
+bool test_function_16 ()
+{
+    Pt2D pt1(0,1);
+    Pt2D pt2(3,4);
+    Line2D line1;
+    line1.pt = pt1;
+    line1.unit_vector = myMATH::createUnitVector (pt1, pt2);
+    
+    Pt2D pt3(1,2);
+    Pt2D pt4(2,1);
+    Line2D line2;
+    line2.pt = pt3;
+    line2.unit_vector = myMATH::createUnitVector (pt3, pt4);
+
+    Pt2D cross_point = myMATH::crossPoint (line1, line2);
+
+    if (cross_point != Pt2D(1,2))
+    {
+        std::cout << "test_function_16: crossPoint failed" << std::endl;
+        std::cout << "cross_point: " << std::endl;
+        cross_point.print();
+        std::cout << "cross_point_ans: " << std::endl;
+        Pt2D(1,2).print();
+        return false;
+    }
+
+
+
+    return true;
+}
 
 int main()
 {
@@ -531,6 +562,7 @@ int main()
     IS_TRUE(test_function_13());
     IS_TRUE(test_function_14());
     IS_TRUE(test_function_15());
+    IS_TRUE(test_function_16());
 
     return 0;
 }

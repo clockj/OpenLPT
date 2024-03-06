@@ -21,6 +21,8 @@
 
 struct PinholeParam
 {
+    int n_row; // number of rows of the image
+    int n_col; // number of columns of the image
     Matrix<double> cam_mtx; // camera matrix (intrinsic parameters)
     bool is_distorted; // whether the image is distorted
     int n_dist_coeff; // number of distortion coefficients (4,5,8,12)
@@ -39,8 +41,10 @@ enum RefPlane
 };
 struct PolyParam
 {
+    int n_row; // number of rows of the image
+    int n_col; // number of columns of the image
     RefPlane ref_plane; // reference plane
-    double plane[2]; // plane locations
+    std::vector<double> plane = {0,0}; // plane locations
     int n_coeff; // number of coefficients
     Matrix<double> u_coeffs; // coeff,x_power, y_power, z_power
     Matrix<double> du_coeffs; // du/dvar1 coeff,x_power, y_power, z_power
@@ -79,6 +83,14 @@ public:
 
     // Save parameters to an output string
     void saveParameters (std::string file_name);
+
+
+    //                //
+    // Get image size //
+    //                //
+    int getNRow (); // get number of rows of the image
+    int getNCol (); // get number of columns of the image
+
 
     //            //
     // Projection //
@@ -136,4 +148,10 @@ public:
 
 };
 
-# endif
+struct CamList
+{
+    std::vector<Camera> cam_list; // id: 0,1,2,3,..
+    std::vector<int> useid_list; // cam_id to be used
+};
+
+#endif

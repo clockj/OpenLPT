@@ -2,6 +2,8 @@
 POLYNOMIAL
 # Calibration Error: 
 None
+# Image Size: (n_row,n_col)
+1024,1024
 # Reference Plane: (REF_X/REF_Y/REF_Z,coordinate,coordinate)
 REF_Z,1,5
 # Number of Coefficients: 

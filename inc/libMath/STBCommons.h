@@ -29,7 +29,7 @@ struct PixelRange
 
     // Note: before using SetRowRange or SetColRange
     //       make sure it has been initialized!!!
-    void SetRowRange (int row)
+    void setRowRange (int row)
     {
         if (row > row_max)
         {
@@ -43,7 +43,7 @@ struct PixelRange
 
     // Note: before using SetRowRange or SetColRange
     //       make sure it has been initialized!!!
-    void SetColRange (int col)
+    void setColRange (int col)
     {
         if (col > col_max)
         {
@@ -57,16 +57,16 @@ struct PixelRange
 
     // Note: before using SetRowRange or SetColRange
     //       make sure it has been initialized!!!
-    void SetRange (int row, int col)
+    void setRange (int row, int col)
     {
-        SetRowRange(row);
-        SetColRange(col);
+        setRowRange(row);
+        setColRange(col);
     };
-    int GetNumOfRow ()
+    int getNumOfRow ()
     {
         return row_max - row_min;
     }
-    int GetNumOfCol()
+    int getNumOfCol()
     {
         return col_max - col_min;
     }

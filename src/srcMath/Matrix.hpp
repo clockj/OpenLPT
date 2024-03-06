@@ -413,6 +413,24 @@ Matrix<T> Matrix<T>::operator+ (Matrix<T> const& mtx)
 }
 
 template<class T> 
+Matrix<T> Matrix<T>::operator+ (Matrix<T> const& mtx) const
+{
+    if ( (_dim_row != mtx._dim_row) || (_dim_col != mtx._dim_col) )
+    {
+        std::cerr << "The size of matrices do not match!" << std::endl;
+        throw error_size;
+    }
+
+    Matrix<T> res(mtx);
+    for (int i = 0; i < _n; i ++)
+    {
+        res._mtx[i] += _mtx[i];
+    }
+
+    return res;
+}
+
+template<class T> 
 Matrix<T>& Matrix<T>::operator+= (Matrix<T> const& mtx)
 {
     if ((_dim_row != mtx._dim_row) || (_dim_col != mtx._dim_col))
@@ -429,6 +447,25 @@ Matrix<T>& Matrix<T>::operator+= (Matrix<T> const& mtx)
 
 template<class T> 
 Matrix<T> Matrix<T>::operator- (Matrix<T> const& mtx)
+{
+    if ( (_dim_row != mtx._dim_row) || (_dim_col != mtx._dim_col) )
+    {
+        std::cerr << "The size of matrices do not match!" << std::endl;
+        throw error_size;
+    }
+
+    Matrix<T> res(_dim_row, _dim_col, 0);
+
+    for (int i = 0; i < _n; i ++)
+    {
+        res._mtx[i] = _mtx[i] - mtx._mtx[i];
+    }
+
+    return res;
+}
+
+template<class T>
+Matrix<T> Matrix<T>::operator- (Matrix<T> const& mtx) const
 {
     if ( (_dim_row != mtx._dim_row) || (_dim_col != mtx._dim_col) )
     {

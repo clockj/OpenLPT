@@ -118,8 +118,8 @@ double triLinearInterp(AxisLimit const& grid_limit, std::vector<double> const& v
 
 
 // Create unit vector 
-Pt3D createUnitVector (Pt3D& pt1, Pt3D& pt2);
-Pt2D createUnitVector (Pt2D& pt1, Pt2D& pt2);
+Pt3D createUnitVector (Pt3D const& pt1, Pt3D const& pt2);
+Pt2D createUnitVector (Pt2D const& pt1, Pt2D const& pt2);
 
 
 // Calculate dot product
@@ -128,18 +128,22 @@ double dot (Pt2D const& pt1, Pt2D const& pt2);
 
 
 // Calculate the distance between two points
-double distance (Pt3D& pt1, Pt3D& pt2);
-double distance (Pt2D& pt1, Pt2D& pt2);
+double distance (Pt3D const& pt1, Pt3D const& pt2);
+double distance (Pt2D const& pt1, Pt2D const& pt2);
 
 
 // Calculate the distance between point and line  
-double distance (Pt3D& pt, Line3D& line);
-double distance (Pt2D& pt, Line2D& line);
+double distance (Pt3D const& pt, Line3D const& line);
+double distance (Pt2D const& pt, Line2D const& line);
 
 
 // Triangulation
-void triangulation (std::vector<Line3D> const& line_of_sight_list, 
-                    Pt3D& pt_world, double& error);
+void triangulation (Pt3D& pt_world, double& error,
+                    std::vector<Line3D> const& line_of_sight_list);
+
+
+// Find cross points of two 2d lines
+Pt2D crossPoint (Line2D const& line1, Line2D const& line2);
 
 
 // Create identity matrix 

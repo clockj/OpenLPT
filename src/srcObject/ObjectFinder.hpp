@@ -6,11 +6,6 @@
 void ObjectFinder2D::findTracer2D
 (std::vector<Tracer2D>& tr2d_list, Image const& img, int max_intensity, int min_intensity)
 {
-    if (tr2d_list.size() > 0)
-    {
-        tr2d_list.clear();
-    }
-
     // Judge whether a given point is local maximum intensity or not
     //  skip first and last rows and columns   
     for (int row = 1; row < img.getDimRow()-1; row ++)
@@ -89,6 +84,11 @@ void ObjectFinder2D::findObject2D
 {
     if (typeid(T) == typeid(Tracer2D))
     {
+        if (obj2d_list.size() > 0)
+        {
+            obj2d_list.clear();
+        }
+
         findTracer2D(obj2d_list, img, properties[0], properties[1]);
     }
     else

@@ -27,6 +27,16 @@ void Camera::loadParameters (std::istream& is)
         std::string useless;
         is >> useless;
         is >> useless;
+
+        // read image size (n_row,n_col)
+        std::string img_size_str;
+        is >> img_size_str;
+        std::stringstream img_size_stream(img_size_str);
+        std::string temp;
+        std::getline(img_size_stream, temp, ',');
+        _pinhole_param.n_row = std::stoi(temp);
+        std::getline(img_size_stream, temp, ',');
+        _pinhole_param.n_col = std::stoi(temp);
         
         // read camera matrix
         _pinhole_param.cam_mtx = Matrix<double>(3,3,is);
@@ -94,11 +104,21 @@ void Camera::loadParameters (std::istream& is)
         std::string useless;
         is >> useless;
 
+        // read image size (n_row,n_col)
+        std::string img_size_str;
+        is >> img_size_str;
+        std::stringstream img_size_stream(img_size_str);
+        std::string temp;
+        std::getline(img_size_stream, temp, ',');
+        _poly_param.n_row = std::stoi(temp);
+        std::getline(img_size_stream, temp, ',');
+        _poly_param.n_col = std::stoi(temp);
+
         // read reference plane
         std::string ref_plane_str;
         is >> ref_plane_str;
         std::stringstream plane_stream(ref_plane_str);
-        std::string temp;
+        // std::string temp;
         std::getline(plane_stream, temp, ',');
         int derivative_id[2] = {1,2};
         if (temp == "REF_X")
@@ -241,6 +261,9 @@ void Camera::saveParameters (std::string file_name)
         outfile << "# Camera Model: (PINHOLE/POLYNOMIAL)" << std::endl;
         outfile << "PINHOLE" << std::endl;
         outfile << "# Camera Calibration Error: \nNone\n# Pose Calibration Error: \nNone" << std::endl;
+
+        outfile << "# Image Size: (n_row,n_col)" << std::endl;
+        outfile << _pinhole_param.n_row << "," << _pinhole_param.n_col << std::endl;
         
         outfile << "# Camera Matrix: " << std::endl;
         _pinhole_param.cam_mtx.write(outfile);
@@ -277,6 +300,9 @@ void Camera::saveParameters (std::string file_name)
         outfile << "POLYNOMIAL" << std::endl;
         outfile << "# Camera Calibration Error: \nNone" << std::endl;
 
+        outfile << "# Image Size: (n_row,n_col)" << std::endl;
+        outfile << _poly_param.n_row << "," << _poly_param.n_col << std::endl;
+
         outfile << "# Reference Plane: (REF_X/REF_Y/REF_Z,coordinate,coordinate)" << std::endl;
         if (_poly_param.ref_plane == REF_X)
         {
@@ -309,6 +335,45 @@ void Camera::saveParameters (std::string file_name)
         throw error_type;
     }
 }
+
+
+// 
+// Get image size
+//
+int Camera::getNRow ()
+{
+    if (_type == PINHOLE)
+    {
+        return _pinhole_param.n_row;
+    }
+    else if (_type == POLYNOMIAL)
+    {
+        return _poly_param.n_row;
+    }
+    else
+    {
+        std::cerr << "Camera::GetNRow line " << __LINE__ << " : Error: unknown camera type: " << _type << std::endl;
+        throw error_type;
+    }
+}
+
+int Camera::getNCol ()
+{
+    if (_type == PINHOLE)
+    {
+        return _pinhole_param.n_col;
+    }
+    else if (_type == POLYNOMIAL)
+    {
+        return _poly_param.n_col;
+    }
+    else
+    {
+        std::cerr << "Camera::GetNCol line " << __LINE__ << " : Error: unknown camera type: " << _type << std::endl;
+        throw error_type;
+    }
+}
+
 
 //                                                 
 // Project world coordinate [mm] to image points [px] 

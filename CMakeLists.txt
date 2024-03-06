@@ -32,7 +32,7 @@ set(HEADERFILES
     ${CMAKE_HOME_DIRECTORY}/inc/libMath/Camera.h
     ${CMAKE_HOME_DIRECTORY}/inc/libObject/ObjectInfo.h
     ${CMAKE_HOME_DIRECTORY}/inc/libObject/ObjectFinder.h
-    # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/StereoMatch.h
+    ${CMAKE_HOME_DIRECTORY}/inc/libSTB/StereoMatch.h
     # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/OTF.h
     # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/Shake.h
     # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/IPR.h
@@ -48,7 +48,7 @@ set(SOURCEFILES main.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcMath/Camera.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcObject/ObjectInfo.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcObject/ObjectFinder.hpp
-    # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/StereoMatch.hpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcSTB/StereoMatch.hpp
     # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/OTF.cpp
     # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/Shake.hpp
     # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/IPR.hpp
@@ -176,4 +176,28 @@ add_executable(test_ObjectFinder ${CMAKE_HOME_DIRECTORY}/test/test_ObjectFinder.
 target_link_libraries(test_ObjectFinder PUBLIC tiff)
 add_test(test_ObjectFinder test_ObjectFinder)
 set_tests_properties(test_ObjectFinder
+                     PROPERTIES FAIL_REGULAR_EXPRESSION "failed on line")
+
+
+# test StereoMatch
+add_executable(test_StereoMatch ${CMAKE_HOME_DIRECTORY}/test/test_StereoMatch.cpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcSTB/StereoMatch.hpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcMath/Matrix.hpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcMath/ImageIO.cpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcMath/Camera.cpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcMath/myMATH.cpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcObject/ObjectInfo.cpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcObject/ObjectFinder.hpp
+    ${TESTHEADERFILES}
+    ${CMAKE_HOME_DIRECTORY}/inc/libSTB/StereoMatch.h
+    ${CMAKE_HOME_DIRECTORY}/inc/libMath/Matrix.h
+    ${CMAKE_HOME_DIRECTORY}/inc/libMath/ImageIO.h
+    ${CMAKE_HOME_DIRECTORY}/inc/libMath/Camera.h
+    ${CMAKE_HOME_DIRECTORY}/inc/libMath/myMATH.h
+    ${CMAKE_HOME_DIRECTORY}/inc/libObject/ObjectInfo.h
+    ${CMAKE_HOME_DIRECTORY}/inc/libObject/ObjectFinder.h
+)
+target_link_libraries(test_StereoMatch PUBLIC tiff)
+add_test(test_StereoMatch test_StereoMatch)
+set_tests_properties(test_StereoMatch
                      PROPERTIES FAIL_REGULAR_EXPRESSION "failed on line")

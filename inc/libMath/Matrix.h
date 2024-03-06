@@ -91,8 +91,10 @@ public:
     bool       operator== (Matrix<T> const& mtx);
     bool       operator!= (Matrix<T> const& mtx);
     Matrix<T>  operator+  (Matrix<T> const& mtx);
+    Matrix<T>  operator+  (Matrix<T> const& mtx) const;
     Matrix<T>& operator+= (Matrix<T> const& mtx);
     Matrix<T>  operator-  (Matrix<T> const& mtx);
+    Matrix<T>  operator-  (Matrix<T> const& mtx) const;
     Matrix<T>& operator-= (Matrix<T> const& mtx);
     Matrix<T>  operator*  (Matrix<T> const& mtx);
     Matrix<T>& operator*= (Matrix<T> const& mtx);

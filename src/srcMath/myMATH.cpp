@@ -100,7 +100,7 @@ double triLinearInterp(AxisLimit const& grid_limit, std::vector<double> const& v
 
 // Create unit vector
 // unit_vec = (pt2 - pt1) / norm(pt2 - pt1)
-Pt3D createUnitVector (Pt3D& pt1, Pt3D& pt2)
+Pt3D createUnitVector (Pt3D const& pt1, Pt3D const& pt2)
 {
     Pt3D res = pt2 - pt1;
     res /= res.norm();
@@ -109,7 +109,7 @@ Pt3D createUnitVector (Pt3D& pt1, Pt3D& pt2)
 
 // Create unit vector
 // unit_vec = (pt2 - pt1) / norm(pt2 - pt1)
-Pt2D createUnitVector (Pt2D& pt1, Pt2D& pt2)
+Pt2D createUnitVector (Pt2D const& pt1, Pt2D const& pt2)
 {
     Pt2D res = pt2 - pt1;
     res /= res.norm();
@@ -139,21 +139,21 @@ double dot (Pt2D const& pt1, Pt2D const& pt2)
 }
 
 // Calculate the distance between two points
-double distance (Pt3D& pt1, Pt3D& pt2)
+double distance (Pt3D const& pt1, Pt3D const& pt2)
 {
     Pt3D res = pt2 - pt1;
     return res.norm();
 }
 
 // Calculate the distance between two points
-double distance (Pt2D& pt1, Pt2D& pt2)
+double distance (Pt2D const& pt1, Pt2D const& pt2)
 {
     Pt2D res = pt2 - pt1;
     return res.norm();
 }
 
 // Calculate the distance between point and line
-double distance (Pt3D& pt, Line3D& line)
+double distance (Pt3D const& pt, Line3D const& line)
 {
     Pt3D diff = pt - line.pt;
 
@@ -178,7 +178,7 @@ double distance (Pt3D& pt, Line3D& line)
 }
 
 // Calculate the distance between point and line
-double distance (Pt2D& pt, Line2D& line)
+double distance (Pt2D const& pt, Line2D const& line)
 {
     Pt2D diff = pt - line.pt;
 
@@ -203,8 +203,8 @@ double distance (Pt2D& pt, Line2D& line)
 }
 
 // Triangulation
-void triangulation(std::vector<Line3D> const& line_of_sight_list, 
-                   Pt3D& pt_world, double& error)
+void triangulation(Pt3D& pt_world, double& error,
+                   std::vector<Line3D> const& line_of_sight_list)
 {
     int n = line_of_sight_list.size();
     if (n < 2)
@@ -270,6 +270,27 @@ void triangulation(std::vector<Line3D> const& line_of_sight_list,
         error += h;
     }
     error /= n;
+}
+
+// Find the cross points of two 2d lines
+Pt2D crossPoint(Line2D const& line1, Line2D const& line2)
+{
+    double den = line1.unit_vector[0] * line2.unit_vector[1] - line1.unit_vector[1] * line2.unit_vector[0];
+    if (std::fabs(den) < SMALLNUMBER)
+    {
+        std::cerr << "myMATH::crossPoint: "
+                  << "The two lines are parallel!"
+                  << std::endl;
+        throw error_range;
+    }
+
+    double num = line2.unit_vector[1] * (line2.pt[0] - line1.pt[0]) - line2.unit_vector[0] * (line2.pt[1] - line1.pt[1]);
+
+    Pt2D res(line1.unit_vector);
+    res *= num / den;
+    res += line1.pt;
+
+    return res;
 }
 
 }

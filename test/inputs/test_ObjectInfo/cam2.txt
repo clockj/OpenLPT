@@ -4,6 +4,8 @@ PINHOLE
 None
 # Pose Calibration Error: 
 None
+# Image Size: (n_row,n_col)
+1024,1024
 # Camera Matrix: 
 10569.83775,0.0,511.5
 0.0,-10569.83775,511.5
