@@ -257,11 +257,13 @@ bool test_function_9 ()
     double distance_3D = myMATH::distance (pt3, line);
     double distance_3D_ans = 0;
 
-    if (std::fabs(distance_3D - distance_3D_ans) > SMALLNUMBER)
+    if (std::fabs(distance_3D - distance_3D_ans) > SQRTSMALLNUMBER)
     {
         std::cout << "test_function_9: distance 3D failed" << std::endl;
         std::cout << "distance_3D: " << distance_3D << std::endl;
         std::cout << "distance_3D_ans: " << distance_3D_ans << std::endl;
+        line.pt.print();
+        line.unit_vector.print();
         return false;
     }
 

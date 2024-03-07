@@ -6,48 +6,97 @@
 StereoMatch::StereoMatch(StereoMatchParam param, CamList& cam_list) 
     : _param(param), _cam_list(cam_list), _n_cam_use(cam_list.useid_list.size()) {}
 
-template<class T>
-void StereoMatch::match(std::vector<T>& obj3d_list, std::vector<std::vector<T>> const& obj2d_list)
-{
-    if (typeid(T) == typeid(Tracer2D))
-    {   
-        if (obj3d_list.size() > 0)
-        {
-            obj3d_list.clear();
-        }
-
-        tracerMatch(obj3d_list, obj2d_list);
-
-        if (_param.is_delete_ghost)
-        {   
-            // debug zsj 01/04/2023
-            // DeleteGohstTracerMatch(object_list_pixel);
-            // DeleteGohstTracerMatchNew(object_list_pixel);
-            deleteGohstTracerMatchOrig(obj2d_list);
-        }
-        else
-        {
-            fillObjectInfo(obj2d_list);
-        }
-    }
-    else 
-    {
-        std::cerr << "StereoMatch: " 
-                  << "class " << typeid(T).name()
-                  << "is not included in StereoMatch!"
-                  << std::endl;
-        throw;
-    }
-}
-
-template<class T>
-void StereoMatch::createObjIDMap (std::vector<std::vector<T>> const& obj2d_list)
+void StereoMatch::clearAll()
 {
     if (_objID_map_list.size() > 0)
     {
         _objID_map_list.clear();
     }
 
+    if (_error_list.size() > 0)
+    {
+        _error_list.clear();
+    }
+
+    if (_objID_match_list.size() > 0)
+    {
+        _objID_match_list.clear();
+    }
+
+    _n_before_del = 0;
+}
+
+template<class T3D, class T2D>
+void StereoMatch::match(std::vector<T3D>& obj3d_list, std::vector<std::vector<T2D>> const& obj2d_list)
+{
+    // clear all the lists
+    clearAll();
+    if (obj3d_list.size() > 0)
+    {
+        obj3d_list.clear();
+    }
+
+    if (typeid(T3D) == typeid(Tracer3D) && typeid(T2D) == typeid(Tracer2D))
+    {   
+        tracerMatch(obj2d_list);
+
+        if (_param.is_delete_ghost)
+        {   
+            removeGhostTracer(obj3d_list, obj2d_list);
+        }
+        else
+        {
+            fillTracerInfo(obj3d_list, obj2d_list);
+        }
+    }
+    else 
+    {
+        std::cerr << "StereoMatch: " 
+                  << "class " << typeid(T3D).name() << " and " << typeid(T2D).name()
+                  << "is not included in StereoMatch!"
+                  << std::endl;
+        throw;
+    }
+}
+
+template<class T3D>
+void StereoMatch::saveObjInfo (std::string path, std::vector<T3D> const& obj3d_list)
+{
+    if (typeid(T3D) == typeid(Tracer3D))
+    {
+        saveTracerInfo(path, obj3d_list);
+    }
+    else 
+    {
+        std::cerr << "StereoMatch::saveObjInfo error at line " << __LINE__ << ":\n"
+                  << "class " << typeid(T3D).name()
+                  << "is not included in StereoMatch!"
+                  << std::endl;
+        throw error_type;
+    }
+}
+
+// save obj ID match list
+void StereoMatch::saveObjIDMatchList (std::string path)
+{
+    std::ofstream file;
+    file.open(path, std::ios::out);
+
+    for (int i = 0; i < _objID_match_list.size(); i ++)
+    {
+        for (int j = 0; j < _n_cam_use-1; j ++)
+        {
+            file << _objID_match_list[i][j] << ",";
+        }
+        file << _objID_match_list[i][_n_cam_use-1] << "\n";
+    }
+
+    file.close();
+}
+
+template<class T2D>
+void StereoMatch::createObjIDMap (std::vector<std::vector<T2D>> const& obj2d_list)
+{
     int row_id, col_id;
     int cam_id;
     for (int i = 0; i < _n_cam_use; i ++)
@@ -84,8 +133,8 @@ void StereoMatch::createObjIDMap (std::vector<std::vector<T>> const& obj2d_list)
 // Tracer match //
 //              //
 
-// Return list of tracer_id
-void StereoMatch::tracerMatch (std::vector<Tracer3D>& tr3d_list, std::vector<std::vector<Tracer2D>> const& tr2d_list)
+// get list of matched tracer_id list
+void StereoMatch::tracerMatch (std::vector<std::vector<Tracer2D>> const& tr2d_list)
 {
     // std::cout << "\t Tracer match start!" << std::endl;
 
@@ -118,8 +167,8 @@ void StereoMatch::tracerMatch (std::vector<Tracer3D>& tr3d_list, std::vector<std
         // for 1st used camera, draw a line of sight through each particle on its image plane.
         // project these lines of sight onto the image planes of 2nd camera.
         // particles within mindist_2D of these lines are candidate matches between first 2 cams.
-        // then project 2 line of sights from each particle pair of 1st n 2nd cam onto 3rd cam.
-        // particles within mindist_1D of the intersection point are candidate matches from 3rd cam.
+        // then project 2 line of sights from each particle pair of 1st & 2nd cam onto 3rd cam.
+        // particles within torlerance are candidate matches from 3rd cam.
         // repeat similarly for subsequent cams
         #pragma omp for 
         for (int tr_id = 0; tr_id < tr2d_list[0].size(); tr_id ++)
@@ -194,7 +243,88 @@ void StereoMatch::tracerMatch (std::vector<Tracer3D>& tr3d_list, std::vector<std
               << std::endl;
 }
 
+// remove ghost tracer
+void StereoMatch::removeGhostTracer (std::vector<Tracer3D>& tr3d_list, std::vector<std::vector<Tracer2D>> const& tr2d_list)
+{
 
+}
+
+// fill tracer info
+void StereoMatch::fillTracerInfo (std::vector<Tracer3D>& tr3d_list, std::vector<std::vector<Tracer2D>> const& tr2d_list)
+{
+    Tracer3D tr3d;
+    tr3d._camid_list = _cam_list.useid_list;
+    tr3d._n_2d = _n_cam_use;
+    tr3d._tracer2d_list.resize(_n_cam_use);
+
+    std::vector<Line3D> sight3D_list(_n_cam_use);
+    
+    int tr_id;
+    int cam_id;
+    for (int i = 0; i < _objID_match_list.size(); i ++)
+    {
+        for (int id = 0; id < _n_cam_use; id ++)
+        {
+            tr_id = _objID_match_list[i][id];
+            cam_id = _cam_list.useid_list[id];
+
+            tr3d._tracer2d_list[id]._pt_center = tr2d_list[id][tr_id]._pt_center;
+            sight3D_list[id] = _cam_list.cam_list[cam_id].lineOfSight(tr3d._tracer2d_list[id]._pt_center);
+        }
+
+        myMATH::triangulation(tr3d._pt_center, tr3d._error, sight3D_list);
+
+        tr3d_list.push_back(tr3d);
+    }
+}
+
+// save tracer info
+void StereoMatch::saveTracerInfo (std::string path, std::vector<Tracer3D> const& tr3d_list)
+{
+    std::ofstream file;
+    file.open(path, std::ios::out);
+
+    file << "world_x,world_y,world_z,error";
+
+    int n_cam_all = _cam_list.cam_list.size();
+    for (int i = 0; i < n_cam_all; i ++)
+    {
+        file << "," << "cam" << i << "_" << "x(col)" 
+             << "," << "cam" << i << "_" << "y(row)";
+    }
+    file << "\n";
+
+    file.precision(SAVEPRECISION);
+    int cam_id;
+    std::vector<double> pt2d_list(n_cam_all * 2); 
+    for (int i = 0; i < tr3d_list.size(); i ++)
+    {
+        file << tr3d_list[i]._pt_center[0] << "," << tr3d_list[i]._pt_center[1] << "," << tr3d_list[i]._pt_center[2] << ",";
+        file << tr3d_list[i]._error;
+
+        std::fill(pt2d_list.begin(), pt2d_list.end(), -1);
+        for (int j = 0; j < tr3d_list[i]._n_2d; j ++)
+        {
+            cam_id = tr3d_list[i]._camid_list[j];
+
+            pt2d_list[cam_id*2] = tr3d_list[i]._tracer2d_list[j]._pt_center[0];
+            pt2d_list[cam_id*2+1] = tr3d_list[i]._tracer2d_list[j]._pt_center[1];
+        }
+
+        for (int j = 0; j < n_cam_all; j ++)
+        {
+            file << "," << pt2d_list[j*2] << "," << pt2d_list[j*2+1];
+        }
+        file << "\n";
+    }
+
+    file.close();
+
+}
+
+// auxiliary functions for tracerMatch //
+
+// recursively find matches for tracer
 void StereoMatch::findTracerMatch (
     int id, // id = 1 => 2nd used cam 
     std::vector<int> trID_match,
@@ -203,6 +333,14 @@ void StereoMatch::findTracerMatch (
     std::vector<std::vector<Tracer2D>> const& tr2d_list
 )
 {
+    if (id < 1)
+    {
+        std::cerr << "StereoMatch::findTracerMatch error at line " << __LINE__ << ":\n"
+                  << "id = " << id << " < 1"
+                  << std::endl;
+        throw error_size;
+    }
+
     int camID_curr = _cam_list.useid_list[id];
     int n_row = _cam_list.cam_list[camID_curr].getNRow();
     int n_col = _cam_list.cam_list[camID_curr].getNCol();
@@ -238,9 +376,6 @@ void StereoMatch::findTracerMatch (
     //                       //
     // id = 1 (2nd used cam) //
     //                       //
-    // tracer marker around the line of sight 
-    // intialize a 2D map with value 0
-    // optimization for cam_cur_id == 1
     Pt3D pt3d;
     if (id == 1)  
     {
@@ -369,20 +504,12 @@ void StereoMatch::findTracerMatch (
     else
     {
         // find search region
-        PixelRange search_region_all = findSearchRegion(id, sight2D_list);
-
-        int row_start = std::min(std::max(search_region_all.row_min, 0), n_row-1);
-        int row_end   = std::min(std::max(search_region_all.row_max, 1), n_row);
-        int col_start = std::min(std::max(search_region_all.col_min, 0), n_col-1);
-        int col_end   = std::min(std::max(search_region_all.col_max, 1), n_col);
-        // std::cout << "row:" << row_start << "," << row_end << ";"
-        //           << "col:" << col_start << "," << col_end
-        //           << "\n";
+        PixelRange search_region = findSearchRegion(id, sight2D_list);
 
         // iterate every pixel in the search region
-        for (int i = row_start; i < row_end; i ++)
+        for (int i = search_region.row_min; i < search_region.row_max; i ++)
         {
-            for (int j = col_start; j < col_end; j ++)
+            for (int j = search_region.col_min; j < search_region.col_max; j ++)
             {
                 // judge whether the distances between the candidate
                 // and all the lines are all within the range 
@@ -475,16 +602,17 @@ void StereoMatch::iterOnObjIDMap (
                 }
                 else 
                 {
-                    if (_param.check_id < _n_cam_use)
+                    if (id < _n_cam_use - 1)
                     {
                         int next_id = id + 1;
 
                         checkTracerMatch (
                             next_id,
-                            trID_match_list,
-                            trID_match, 
                             pt3d,
-                            error_list
+                            trID_match,
+                            trID_match_list,
+                            error_list,
+                            tr2d_list
                         );
 
                         trID_match.pop_back();
@@ -508,12 +636,14 @@ void StereoMatch::iterOnObjIDMap (
 PixelRange StereoMatch::findSearchRegion (int id, std::vector<Line2D> const& sight2D_list)
 {
     PixelRange search_region;
-    int search_region_state = 0;
+
+    int n_row = _cam_list.cam_list[_cam_list.useid_list[id]].getNRow();
+    int n_col = _cam_list.cam_list[_cam_list.useid_list[id]].getNCol();
 
     if (sight2D_list.size() == 1)
     {
-        search_region.row_max = _cam_list.cam_list[_cam_list.useid_list[id]].getNRow();
-        search_region.col_max = _cam_list.cam_list[_cam_list.useid_list[id]].getNCol();
+        search_region.row_max = n_row;
+        search_region.col_max = n_col;
         return search_region;
     }
 
@@ -524,6 +654,7 @@ PixelRange StereoMatch::findSearchRegion (int id, std::vector<Line2D> const& sig
     std::vector<Line2D> line_curr_list(2);
     std::vector<Line2D> line_test_list(2);
 
+    int search_region_state = 0;
     for (int i = 0; i < id-1; i ++)
     {
         perp_unit_curr[0] = sight2D_list[i].unit_vector[1];
@@ -570,155 +701,13 @@ PixelRange StereoMatch::findSearchRegion (int id, std::vector<Line2D> const& sig
         }
     }
 
+    search_region.row_min = std::min(std::max(search_region.row_min, 0), n_row-1);
+    search_region.row_max = std::min(std::max(search_region.row_max, 1), n_row);
+    search_region.col_min = std::min(std::max(search_region.col_min, 0), n_col-1);
+    search_region.col_max = std::min(std::max(search_region.col_max, 1), n_col);
+
     return search_region;
 }
-
-
-// PixelRange StereoMatch::findSearchRegionOrig (int id, std::vector<Line2D> const& sight2D_list)
-// {
-//     Camera cam = _cam_list[cam_id];
-//     PixelRange search_region;
-
-//     if (pt_list.size() == 1)
-//     {
-//         // cam_id = 1, 2nd cam
-//         search_region._row_max = cam.GetNpixh();
-//         search_region._col_max = cam.GetNpixw();
-//         return search_region;
-//     }
-//     else if (pt_list.size() == 2) 
-//     {
-//         // cam_id = 2, 3nd cam
-//         Matrix<double> pt_cross (
-//             FindCrossPoint (
-//                 pt_list[0], 
-//                 unit_list[0], 
-//                 pt_list[1], 
-//                 unit_list[1]
-//             )
-//         );
-
-//         double cos = std::max(std::fabs(unit_list[0].Dot(unit_list[1])), MAGSMALLNUMBER);
-//         double sin = std::max(std::sqrt(1-cos*cos), MAGSMALLNUMBER);
-
-//         double width = 1.0;
-//         if (cos < sin)
-//         {
-//             width = _tor_2d/cos;
-//         }
-//         else 
-//         {
-//             width = _tor_2d/sin;
-//         }
-//         width = std::min(width, 1.2*_fov_length_mm);
-
-//         Matrix<double> pt_upright(pt_cross);
-//         pt_upright(0,0) = pt_upright(0,0) + width;
-//         pt_upright(1,0) = pt_upright(1,0) + width;
-//         pt_upright = cam.ImgMMToPixel(pt_upright);
-
-//         Matrix<double> pt_lowleft(pt_cross);
-//         pt_lowleft(0,0) = pt_lowleft(0,0) - width;
-//         pt_lowleft(1,0) = pt_lowleft(1,0) - width;
-//         pt_lowleft = cam.ImgMMToPixel(pt_lowleft);
-
-//         search_region._row_min = std::floor(pt_upright(1,0));
-//         search_region._row_max = std::ceil(pt_lowleft(1,0))+1;
-//         search_region._col_min = std::floor(pt_lowleft(0,0));
-//         search_region._col_max = std::ceil(pt_upright(0,0))+1;
-
-//     }
-//     else if (pt_list.size() > 2)
-//     {
-//         // cam_id = 3, 4nd cam
-//         int n = pt_list.size();
-
-//         Matrix<double> pt_cross(3,1);
-//         Matrix<double> pt_upright(3,1);
-//         Matrix<double> pt_lowleft(3,1);
-//         double cos = 0;
-//         double sin = 0;
-//         int row_min = 0;
-//         int row_max = 0;
-//         int col_min = 0;
-//         int col_max = 0;
-//         bool is_initial = false;
-//         double width = 1.0;
-
-//         for (int i = 0; i < n-1; i ++)
-//         {
-//             for (int j = i+1; j < n; j ++)
-//             {
-//                 try
-//                 {
-//                     pt_cross = FindCrossPoint (
-//                         pt_list[i], 
-//                         unit_list[i], 
-//                         pt_list[j], 
-//                         unit_list[j]
-//                     );
-//                 }
-//                 catch(ErrorTypeID error)
-//                 {
-//                     if (error == error_parallel)
-//                     {
-//                         std::cout << cam_id << std::endl;
-//                         continue;
-//                     }
-//                 }
-
-//                 cos = std::max(std::fabs(unit_list[i].Dot(unit_list[j])), MAGSMALLNUMBER);
-//                 sin = std::max(std::sqrt(1-cos*cos), MAGSMALLNUMBER);
-//                 if (cos < sin)
-//                 {
-//                     width = _tor_2d/cos;
-//                 }
-//                 else 
-//                 {
-//                     width = _tor_2d/sin;
-//                 }
-//                 // width = std::min(width, 1.2*_fov_length_mm);
-
-//                 pt_upright(0,0) = pt_upright(0,0) + width;
-//                 pt_upright(1,0) = pt_upright(1,0) + width;
-//                 pt_upright = cam.ImgMMToPixel(pt_upright);
-
-//                 pt_lowleft(0,0) = pt_lowleft(0,0) - width;
-//                 pt_lowleft(1,0) = pt_lowleft(1,0) - width;
-//                 pt_lowleft = cam.ImgMMToPixel(pt_lowleft);
-
-//                 row_min = std::floor(pt_upright(1,0));
-//                 row_max = std::ceil(pt_lowleft(1,0))+1;
-//                 col_min = std::floor(pt_lowleft(0,0));
-//                 col_max = std::ceil(pt_upright(0,0))+1;
-
-//                 if (is_initial)
-//                 {
-//                     search_region.SetRange(row_min, col_min);
-//                     search_region.SetRange(row_max, col_max);
-//                 }
-//                 else
-//                 {
-//                     is_initial = true;
-//                     search_region._row_min = row_min;
-//                     search_region._row_max = row_max;
-//                     search_region._col_min = col_min;
-//                     search_region._col_max = col_max;
-//                 }
-//             }
-//         }
-    
-//         if (! is_initial)
-//         {
-//             search_region._row_min = 0;
-//             search_region._row_max = cam.GetNpixh();
-//             search_region._col_min = 0;
-//             search_region._col_max = cam.GetNpixw();
-//         }
-//     }
-
-//     return search_region;
-// }
 
 
 bool StereoMatch::checkReProject (
@@ -757,14 +746,90 @@ bool StereoMatch::checkReProject (
 
 
 void StereoMatch::checkTracerMatch(
-        int id, 
-        std::deque<std::vector<int>>& trID_match_list,
-        std::vector<int>& trID_match, 
-        Pt3D& pt3d,
-        std::deque<double>& error_list
-    )
+    int id, 
+    Pt3D const& pt3d,
+    std::vector<int> trID_match, 
+    std::deque<std::vector<int>>& trID_match_list,
+    std::deque<double>& error_list,
+    std::vector<std::vector<Tracer2D>> const& tr2d_list
+)
 {
+    if (id < 1)
+    {
+        std::cerr << "StereoMatch::checkTracerMatch error at line " << __LINE__ << ":\n"
+                  << "id = " << id << " < 1"
+                  << std::endl;
+        throw error_size;
+    }
 
+    int camID_curr = _cam_list.useid_list[id];
+    int n_row = _cam_list.cam_list[camID_curr].getNRow();
+    int n_col = _cam_list.cam_list[camID_curr].getNCol();
+
+    // Line of sight
+    std::vector<Line2D> sight2D_list;
+    std::vector<Line3D> sight3D_list;
+    Line2D sight2D;
+    Line3D sight3D;
+    Pt2D pt2d_1;
+    Pt2D pt2d_2;
+    Pt2D unit2d;
+    for (int i = 0; i < id; i ++)
+    {       
+        // project from cam_prev onto cam_curr
+        int camID_prev = _cam_list.useid_list[i];
+
+        // get 3d light of sight from cam_prev
+        sight3D = _cam_list.cam_list[camID_prev].lineOfSight(tr2d_list[i][trID_match[i]]._pt_center);
+        sight3D_list.push_back(sight3D);
+
+        // project 3d light of sight onto cam_curr (3d line => 2d line)
+        pt2d_1 = _cam_list.cam_list[camID_curr].project(sight3D.pt);
+        pt2d_2 = _cam_list.cam_list[camID_curr].project(sight3D.pt + sight3D.unit_vector);
+        unit2d = myMATH::createUnitVector(pt2d_1, pt2d_2);
+        sight2D.pt = pt2d_1;
+        sight2D.unit_vector = unit2d;
+        sight2D_list.push_back(sight2D);
+    }
+    sight3D_list.push_back(sight3D);
+
+    // find search region
+    //  directly project pt_world onto the image plane of the current camera
+    //  then find the search region
+    Pt2D pt2d = _cam_list.cam_list[camID_curr].project(pt3d);
+
+    int row_min = pt2d[1] - _param.check_radius;
+    int row_max = pt2d[1] + _param.check_radius + 1;
+    int col_min = pt2d[0] - _param.check_radius;
+    int col_max = pt2d[0] + _param.check_radius + 1;
+
+    row_min = std::max(0, row_min);
+    row_max = std::min(n_row, row_max);
+    col_min = std::max(0, col_min);
+    col_max = std::min(n_col, col_max);
+
+    // if the search region is out of the image plane, then return
+    if (row_min >= row_max || col_min >= col_max)
+    {
+        return;
+    }
+
+    for (int i = row_min; i < row_max; i ++)
+    {
+        for (int j = col_min; j < col_max; j ++)
+        {
+            iterOnObjIDMap (
+                id, 
+                i, j,
+                sight2D_list,
+                sight3D_list,
+                trID_match, 
+                trID_match_list,
+                error_list,
+                tr2d_list
+            );
+        }
+    }
 }
 
 #endif

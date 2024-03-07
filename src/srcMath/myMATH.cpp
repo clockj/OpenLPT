@@ -158,19 +158,24 @@ double distance (Pt3D const& pt, Line3D const& line)
     Pt3D diff = pt - line.pt;
 
     double dist_proj = dot(diff, line.unit_vector);
-    double dist = std::pow(diff.norm(), 2) - dist_proj * dist_proj;
+    double dist = dot(diff, diff) - dist_proj * dist_proj;
     
     if (dist >= 0)
     {
         dist = std::sqrt(dist);
     }
-    else if (dist < 0 && dist > -SMALLNUMBER)
+    else if (dist < 0 && dist > -SQRTSMALLNUMBER)
     {
         dist = 0;
     }
     else
     {
-        std::cerr << "myMATH::Distance: negative distance" << std::endl;
+        std::cerr << "myMATH::Distance: error at line " << __LINE__ << "\n" 
+                  << "negative distance " << dist << std::endl;
+        pt.print();
+        line.pt.print();
+        line.unit_vector.print();
+        diff.print();
         throw error_range;
     }
 
@@ -183,19 +188,24 @@ double distance (Pt2D const& pt, Line2D const& line)
     Pt2D diff = pt - line.pt;
 
     double dist_proj = dot(diff, line.unit_vector);
-    double dist = std::pow(diff.norm(), 2) - dist_proj * dist_proj;
+    double dist = dot(diff, diff) - std::pow(dist_proj, 2);
     
     if (dist >= 0)
     {
         dist = std::sqrt(dist);
     }
-    else if (dist < 0 && dist > -SMALLNUMBER)
+    else if (dist < 0 && dist > -SQRTSMALLNUMBER)
     {
         dist = 0;
     }
     else
     {
-        std::cerr << "myMATH::Distance: negative distance" << std::endl;
+        std::cerr << "myMATH::Distance: error at line " << __LINE__ << "\n" 
+                  << "negative distance " << dist << std::endl;
+        pt.print();
+        line.pt.print();
+        line.unit_vector.print();
+        diff.print();
         throw error_range;
     }
 

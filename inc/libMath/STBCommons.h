@@ -6,9 +6,8 @@
 
 #define SAVEPRECISION 8
 
-// calibration
 #define SMALLNUMBER 1e-8
-// #define SMALLNUMBER 2e-6
+#define SQRTSMALLNUMBER 1e-6
 #define MAGSMALLNUMBER 1e-8
 
 // undistort

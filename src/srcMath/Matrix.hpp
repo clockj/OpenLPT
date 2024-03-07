@@ -285,7 +285,7 @@ void Matrix<T>::print(int precision) const
 template<class T> 
 double Matrix<T>::norm()
 {
-    double res = 0.0;
+    double res = 0;
     for (int i = 0; i < _n; i ++)
     {
         res += (_mtx[i] * _mtx[i]);
@@ -303,7 +303,8 @@ void Matrix<T>::write (std::string file_name)
     std::cout << "\nStart writing!" << std::endl;
 
     std::ofstream outfile(file_name, std::ios::out);
-    outfile.precision(8);
+    outfile.setf(std::ios_base::scientific);
+    outfile.precision(SAVEPRECISION);
 
     for (int i = 0; i < _dim_row; i ++)
     {
@@ -395,24 +396,6 @@ bool Matrix<T>::operator!= (Matrix<T> const& mtx1)
 }
 
 template<class T> 
-Matrix<T> Matrix<T>::operator+ (Matrix<T> const& mtx)
-{
-    if ( (_dim_row != mtx._dim_row) || (_dim_col != mtx._dim_col) )
-    {
-        std::cerr << "The size of matrices do not match!" << std::endl;
-        throw error_size;
-    }
-
-    Matrix<T> res(mtx);
-    for (int i = 0; i < _n; i ++)
-    {
-        res._mtx[i] += _mtx[i];
-    }
-
-    return res;
-}
-
-template<class T> 
 Matrix<T> Matrix<T>::operator+ (Matrix<T> const& mtx) const
 {
     if ( (_dim_row != mtx._dim_row) || (_dim_col != mtx._dim_col) )
@@ -445,24 +428,6 @@ Matrix<T>& Matrix<T>::operator+= (Matrix<T> const& mtx)
     return *this;
 }
 
-template<class T> 
-Matrix<T> Matrix<T>::operator- (Matrix<T> const& mtx)
-{
-    if ( (_dim_row != mtx._dim_row) || (_dim_col != mtx._dim_col) )
-    {
-        std::cerr << "The size of matrices do not match!" << std::endl;
-        throw error_size;
-    }
-
-    Matrix<T> res(_dim_row, _dim_col, 0);
-
-    for (int i = 0; i < _n; i ++)
-    {
-        res._mtx[i] = _mtx[i] - mtx._mtx[i];
-    }
-
-    return res;
-}
 
 template<class T>
 Matrix<T> Matrix<T>::operator- (Matrix<T> const& mtx) const
@@ -499,7 +464,7 @@ Matrix<T>& Matrix<T>::operator-= (Matrix<T> const& mtx)
 }
 
 template<class T> 
-Matrix<T> Matrix<T>::operator* (Matrix<T> const& mtx)
+Matrix<T> Matrix<T>::operator* (Matrix<T> const& mtx) const
 {
     if ( _dim_col != mtx._dim_row )
     {

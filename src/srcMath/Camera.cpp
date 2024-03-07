@@ -378,7 +378,7 @@ int Camera::getNCol ()
 //                                                 
 // Project world coordinate [mm] to image points [px] 
 //
-Pt2D Camera::project (Pt3D const& pt_world)
+Pt2D Camera::project (Pt3D const& pt_world) const
 {
     if (_type == PINHOLE)
     {
@@ -396,7 +396,7 @@ Pt2D Camera::project (Pt3D const& pt_world)
 }
 
 // Pinhole  model
-Pt2D Camera::worldToUndistImg (Pt3D const& pt_world)
+Pt2D Camera::worldToUndistImg (Pt3D const& pt_world) const
 {
     Pt3D temp = _pinhole_param.r_mtx * pt_world + _pinhole_param.t_vec;
 
@@ -407,7 +407,7 @@ Pt2D Camera::worldToUndistImg (Pt3D const& pt_world)
     return pt_img_mm;
 }
 
-Pt2D Camera::distort (Pt2D const& pt_img_undist)
+Pt2D Camera::distort (Pt2D const& pt_img_undist) const
 {
     // opencv distortion model
     double x = pt_img_undist[0];
@@ -463,7 +463,7 @@ Pt2D Camera::distort (Pt2D const& pt_img_undist)
 }
 
 // Polynomial model
-Pt2D Camera::polyProject (Pt3D const& pt_world)
+Pt2D Camera::polyProject (Pt3D const& pt_world) const
 {
     double u = 0;
     double v = 0;
@@ -490,7 +490,7 @@ Pt2D Camera::polyProject (Pt3D const& pt_world)
 //
 // Calculate line of sight
 //
-Line3D Camera::lineOfSight (Pt2D const& pt_img_dist)
+Line3D Camera::lineOfSight (Pt2D const& pt_img_dist) const
 {
     if (_type == PINHOLE)
     {
@@ -508,7 +508,7 @@ Line3D Camera::lineOfSight (Pt2D const& pt_img_dist)
 }
 
 // Pinhole  model
-Pt2D Camera::undistort (Pt2D const& pt_img_dist)
+Pt2D Camera::undistort (Pt2D const& pt_img_dist) const
 {
     double fx = _pinhole_param.cam_mtx(0,0);
     double fy = _pinhole_param.cam_mtx(1,1);
@@ -586,7 +586,7 @@ Pt2D Camera::undistort (Pt2D const& pt_img_dist)
     return img_undist;
 }
 
-Line3D Camera::pinholeLine (Pt2D const& pt_img_undist)
+Line3D Camera::pinholeLine (Pt2D const& pt_img_undist) const
 {
     Pt3D pt_world(pt_img_undist[0], pt_img_undist[1], 1.0);
 
@@ -601,7 +601,7 @@ Line3D Camera::pinholeLine (Pt2D const& pt_img_undist)
 }
 
 // Polynomial model
-Pt3D Camera::polyImgToWorld (Pt2D const& pt_img_dist, double plane_world)
+Pt3D Camera::polyImgToWorld (Pt2D const& pt_img_dist, double plane_world) const
 {
     Pt3D pt_world(
         (double)rand() / RAND_MAX,
@@ -712,7 +712,7 @@ Pt3D Camera::polyImgToWorld (Pt2D const& pt_img_dist, double plane_world)
     return pt_world;
 }
 
-Line3D Camera::polyLineOfSight (Pt2D const& pt_img_dist)
+Line3D Camera::polyLineOfSight (Pt2D const& pt_img_dist) const
 {
     Pt3D pt_world_1 = polyImgToWorld(pt_img_dist, _poly_param.plane[0]);
     Pt3D pt_world_2 = polyImgToWorld(pt_img_dist, _poly_param.plane[1]);

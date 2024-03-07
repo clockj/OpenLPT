@@ -95,7 +95,7 @@ public:
     //            //
     // Projection //
     //            //
-    Pt2D project (Pt3D const& pt_world);
+    Pt2D project (Pt3D const& pt_world) const;
 
     // Project world coordinate [mm] to image coordinate [mm]: 
     //  (xw,yw,zw) -> (x,y,z) -> (Xu,Yu,0)
@@ -103,7 +103,7 @@ public:
     //  (Xu,Yu,0) = (fx*x/z + cx, fy*y/z + cy)
     // input: pt_world: point location in world coordinate 
     // output
-    Pt2D worldToUndistImg (Pt3D const& pt_world);
+    Pt2D worldToUndistImg (Pt3D const& pt_world) const;
 
     // Project Image in camera coordinate [mm] to pixel: 
     //  (Xu,Yu,0) -> (Xd,Yd,0) -> (Xf,Yf,0)
@@ -115,36 +115,36 @@ public:
     // | 
     // |
     // \/ y direction (downwards)
-    Pt2D distort (Pt2D const& pt_img_undist);
+    Pt2D distort (Pt2D const& pt_img_undist) const;
 
     // Polynomial model 
     // Project world coordinate [mm] to distorted image [px]:
     //  (xw,yw,zw) -> (xd,yd)
-    Pt2D polyProject (Pt3D const& pt_world);
+    Pt2D polyProject (Pt3D const& pt_world) const;
 
 
     //               //
     // Line of sight //
     //               //
-    Line3D lineOfSight (Pt2D const& pt_img_undist);
+    Line3D lineOfSight (Pt2D const& pt_img_undist) const;
 
     // Project Image pixel to camera coordinate [mm]: 
     //  (Xf,Yf,0) -> (Xd,Yd,0) -> (Xu,Yu,0)
     // input: pt_pix: point location in pixel unit on image 
     //        (no use of z coordinate of pt_pix)
     // output: Matrix (camera coordinate) (Xu,Yu,0)
-    Pt2D undistort (Pt2D const& pt_img_dist);
+    Pt2D undistort (Pt2D const& pt_img_dist) const;
 
     // Project image coordinate [mm] to world coordinate [mm]: 
     //  (Xu,Yu,0) -> (x,y,z) -> (xw,yw,zw)
     // input: pt_img_undist: undistorted image coordinate 
     // output: line of sight
-    Line3D pinholeLine (Pt2D const& pt_img_undist);
+    Line3D pinholeLine (Pt2D const& pt_img_undist) const;
 
     // Polynomial Model
-    Pt3D polyImgToWorld (Pt2D const& pt_img_dist, double plane_world);
+    Pt3D polyImgToWorld (Pt2D const& pt_img_dist, double plane_world) const;
 
-    Line3D polyLineOfSight (Pt2D const& pt_img_dist);
+    Line3D polyLineOfSight (Pt2D const& pt_img_dist) const;
 
 };
 

@@ -53,14 +53,14 @@ public:
 
 class Tracer3D : public Object3D
 {
-private:
+public:
     int _n_2d = 0;
+    double _error = 0; // [mm]
     std::vector<int> _camid_list; // min id = 0
     std::vector<Tracer2D> _tracer2d_list;
 
-public:
     Tracer3D () {};
-    Tracer3D (Tracer3D const& tracer3d) : Object3D(tracer3d), _camid_list(tracer3d._camid_list), _tracer2d_list(tracer3d._tracer2d_list) {};
+    Tracer3D (Tracer3D const& tracer3d) : Object3D(tracer3d), _n_2d(tracer3d._n_2d), _error(tracer3d._error), _camid_list(tracer3d._camid_list), _tracer2d_list(tracer3d._tracer2d_list) {};
     Tracer3D (Pt3D const& pt_center) : Object3D(pt_center) {};
     ~Tracer3D () {};
 
@@ -83,11 +83,9 @@ public:
     // input:
     //  camid_list: camera id list (set _camid_list = camid_list)
     //  cam_list_all: all camera parameters, camid = 0, 1, 2, ...
-    void projectTracer2D (std::vector<int> const& camid_list, std::vector<Camera>& cam_list_all);
+    void projectTracer2D (std::vector<int> const& camid_list, std::vector<Camera> const& cam_list_all);
 
     void getTracer2D (Tracer2D& tracer2d, int cam_id);
-    void getTracer2D (std::vector<Tracer2D>& tracer2d_list);
-    void getCamID (std::vector<int>& camid_list);
 };
 
 #endif

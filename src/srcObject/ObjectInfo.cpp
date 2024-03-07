@@ -74,7 +74,7 @@ void Tracer3D::updateTracer2D(std::vector<Tracer2D> const& tracer2d_list, std::v
     _n_2d = camid_list.size();
 }
 
-void Tracer3D::projectTracer2D(std::vector<int> const& camid_list, std::vector<Camera>& cam_list_all)
+void Tracer3D::projectTracer2D(std::vector<int> const& camid_list, std::vector<Camera> const& cam_list_all)
 {
     _n_2d = camid_list.size();
     _camid_list = camid_list;
@@ -100,13 +100,5 @@ void Tracer3D::getTracer2D(Tracer2D& tracer2d, int cam_id)
     }
 }
 
-void Tracer3D::getTracer2D(std::vector<Tracer2D>& tracer2d_list)
-{
-    tracer2d_list = _tracer2d_list;
-}
 
-void Tracer3D::getCamID(std::vector<int>& camid_list)
-{
-    camid_list = _camid_list;
-}
 
