@@ -75,6 +75,7 @@ struct StereoMatchParam
     int check_id = 2;     // check_id <= n_use !
     double check_radius = 1; // [px]
     bool is_delete_ghost = false; // delete ghost tracer
+    bool is_update_inner_var = false; // update inner variables
 };
 
 
@@ -87,7 +88,7 @@ public:
     int _n_cam_use = 0; // number of cameras used
 
     /*************************OUTPUT VARIABLES******************************/
-    std::vector<std::vector<int>> _objID_match_list; // matches of object ID (before deleting ghost)
+    std::vector<std::vector<int>> _objID_match_list; // matches of object ID
     std::vector<double> _error_list; // error list
 
     StereoMatch(StereoMatchParam param, CamList& cam_list);
@@ -169,16 +170,7 @@ private:
         std::vector<std::vector<Tracer2D>> const& tr2d_list
     );
 
-
     int isWithinRange (int cam_cur_id, Matrix<double>& object_pos, std::vector<Matrix<double>>& pt_list, std::vector<Matrix<double>>& line_of_sight);
-
-    void deleteGohstMatch (std::vector<std::vector<Tracer2D>>& tr2d_list);
-    void deleteGohstMatchNew (std::vector<std::vector<Tracer2D>>& tr2d_list);
-    
-    void merge (std::vector<int>& A, int id_begin, int id_middle, int id_end, std::vector<int>& B, std::vector<int>& C);
-    void splitMerge (std::vector<int>& B, int id_begin, int i_end, std::vector<int>& A, std::vector<int>& C);
-    void sortPreference (std::vector<int>& sorted_id_list, std::vector<int>& object_id_match_rank);
-    void deleteGohstMatchOrig (std::vector<std::vector<Tracer2D>>& object_list_pixel);
  
 };
 

@@ -136,8 +136,6 @@ void StereoMatch::createObjIDMap (std::vector<std::vector<T2D>> const& obj2d_lis
 // get list of matched tracer_id list
 void StereoMatch::tracerMatch (std::vector<std::vector<Tracer2D>> const& tr2d_list)
 {
-    // std::cout << "\t Tracer match start!" << std::endl;
-
     if (_n_cam_use < 2)
     {
         std::cerr << "StereoMatch::tracerMatch error at line " << __LINE__ << ": \n"
@@ -246,7 +244,189 @@ void StereoMatch::tracerMatch (std::vector<std::vector<Tracer2D>> const& tr2d_li
 // remove ghost tracer
 void StereoMatch::removeGhostTracer (std::vector<Tracer3D>& tr3d_list, std::vector<std::vector<Tracer2D>> const& tr2d_list)
 {
+    int n_match = _objID_match_list.size();
 
+    std::vector<int> match_score;
+    match_score.resize(n_match, 0);
+
+    // update match_score 
+    int n_tr2d, tr2d_id, opt_matchID;
+    for (int i = 0; i < _n_cam_use; i ++)
+    {
+        n_tr2d = tr2d_list[i].size();
+
+        // optMatchID_map: 
+        //  save the corresponding match id with smallest error for each tracer2d 
+        std::vector<int> optMatchID_map(n_tr2d, -1);
+        
+        // update optMatchID_map
+        for (int j = 0; j < n_match; j ++)
+        {
+            tr2d_id = _objID_match_list[j][i];
+            
+            if (optMatchID_map[tr2d_id] == -1) 
+            {
+                optMatchID_map[tr2d_id] = j;
+            }
+            else 
+            {
+                opt_matchID = optMatchID_map[tr2d_id];
+                if (_error_list[opt_matchID] > _error_list[j])
+                {
+                    // replace by a match id with smaller error 
+                    optMatchID_map[opt_matchID] = j;
+                }
+            }
+        }
+
+        // update the score
+        for (int j = 0; j < n_tr2d; j ++)
+        {
+            if (optMatchID_map[j] == -1)
+            {
+                continue;
+            }
+            
+            opt_matchID = optMatchID_map[j];
+            match_score[opt_matchID] += 1;
+        }
+    }
+
+    // sort match_score from large to small
+    //  small to large 
+    std::vector<int> matchID_list;
+    myMATH::sortID(matchID_list, match_score);
+
+    // map tr2d_id to match_id with smallest error
+    std::vector<std::vector<int>> tr2dID_matchID_map;
+    for (int i = 0; i < _n_cam_use; i ++)
+    {
+        n_tr2d = tr2d_list[i].size();
+        tr2dID_matchID_map.push_back(std::vector<int>(n_tr2d, -1));
+    }
+
+    // select the optimal match
+    //  from the largest score to the smallest score
+    std::vector<bool> is_select(n_match, false);
+    int match_id, map_matchID, n_equal;
+    double sum_error;
+    bool is_rank_small;
+    for (int i = n_match-1; i > -1; i --)
+    {
+        match_id = matchID_list[i];  
+        n_equal = 0;
+        sum_error = 0.0;
+        is_rank_small = false;
+
+        for (int j = 0; j < _n_cam_use; j ++)
+        {
+            tr2d_id = _objID_match_list[match_id][j];
+            map_matchID = tr2dID_matchID_map[j][tr2d_id];
+
+            if (map_matchID == -1)
+            {
+                // when there is no match for the checked particle
+                continue;          
+            }
+            else if ((match_score[match_id] < match_score[map_matchID]) && (!is_rank_small)) 
+            {
+                is_rank_small = true;
+                break;
+            }
+            else if (match_score[match_id] == match_score[map_matchID])
+            {
+                // when the preference # is the same as the current preference # of those filled matches,
+                //  then we should calculate the average of the preference error of those filled matches
+                //  and compare it with the current preference error
+                n_equal ++;
+                sum_error += _error_list[map_matchID];
+            }
+        }
+
+        if (is_rank_small)
+        {
+            continue;
+        }
+        else if (
+            ( n_equal > 0 && 
+              _error_list[match_id] < sum_error/n_equal ) || 
+            n_equal == 0
+        )
+        {
+            // 1) if there is same preference number (for certain cam),
+            // and the error is less than the averaged of those filled match, 
+            // then replace all the old match with the new one
+            // 2) no repeating
+
+            for (int j = 0; j < _n_cam_use; j ++)
+            {
+                tr2d_id = _objID_match_list[match_id][j];
+                map_matchID = tr2dID_matchID_map[j][tr2d_id];
+
+                if (map_matchID != -1)
+                {
+                    is_select[map_matchID] = false;
+                    for (int k = 0; k < _n_cam_use; k ++)
+                    {
+                        int map_matchID_orig = _objID_match_list[map_matchID][k];
+                        tr2dID_matchID_map[k][map_matchID_orig] = -1;
+                    }
+                }
+
+                tr2dID_matchID_map[j][tr2d_id] = match_id;
+            }
+
+            is_select[match_id] = true;
+        }
+    }
+    
+    // get new match list 
+    Tracer3D tr3d;
+    tr3d._camid_list = _cam_list.useid_list;
+    tr3d._n_2d = _n_cam_use;
+    tr3d._tracer2d_list.resize(_n_cam_use);
+    std::vector<Line3D> sight3D_list(_n_cam_use);
+
+    int cam_id;
+    std::vector<std::vector<int>> objID_match_list_new;
+    std::vector<double> error_list_new;
+    for (int i = 0; i < n_match; i ++)
+    {
+        if (is_select[i])
+        {
+            for (int id = 0; id < _n_cam_use; id ++)
+            {
+                tr2d_id = _objID_match_list[i][id];
+                cam_id = _cam_list.useid_list[id];
+
+                tr3d._tracer2d_list[id]._pt_center = tr2d_list[id][tr2d_id]._pt_center;
+                sight3D_list[id] = _cam_list.cam_list[cam_id].lineOfSight(tr3d._tracer2d_list[id]._pt_center);
+            }
+
+            myMATH::triangulation(tr3d._pt_center, tr3d._error, sight3D_list);
+
+            tr3d_list.push_back(tr3d);
+
+            if (_param.is_update_inner_var)
+            {
+                objID_match_list_new.push_back(_objID_match_list[i]);
+                error_list_new.push_back(_error_list[i]);
+            }
+        }
+    }
+    if (_param.is_update_inner_var)
+    {
+        _objID_match_list = objID_match_list_new;
+        _error_list = error_list_new;
+    }
+
+    // print info
+    _n_after_del = _objID_match_list.size();
+    _n_del = _n_before_del - _n_after_del;
+    std::cout << "\t Finish deleting gohst match: "
+              << "n_del = " << _n_del << ", "
+              << "n_after_del = " << _n_after_del << "."
+              << std::endl;
 }
 
 // fill tracer info
@@ -259,16 +439,16 @@ void StereoMatch::fillTracerInfo (std::vector<Tracer3D>& tr3d_list, std::vector<
 
     std::vector<Line3D> sight3D_list(_n_cam_use);
     
-    int tr_id;
+    int tr2d_id;
     int cam_id;
     for (int i = 0; i < _objID_match_list.size(); i ++)
     {
         for (int id = 0; id < _n_cam_use; id ++)
         {
-            tr_id = _objID_match_list[i][id];
+            tr2d_id = _objID_match_list[i][id];
             cam_id = _cam_list.useid_list[id];
 
-            tr3d._tracer2d_list[id]._pt_center = tr2d_list[id][tr_id]._pt_center;
+            tr3d._tracer2d_list[id]._pt_center = tr2d_list[id][tr2d_id]._pt_center;
             sight3D_list[id] = _cam_list.cam_list[cam_id].lineOfSight(tr3d._tracer2d_list[id]._pt_center);
         }
 

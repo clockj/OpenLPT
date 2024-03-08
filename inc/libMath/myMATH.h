@@ -31,8 +31,7 @@ void sortID (std::vector<int>& sort_index, std::vector<T> const& nums)
     int n = nums.size();
     if (sort_index.size() != n)
     {
-        std::cerr << "myMATH::SortID: size unequal" << std::endl;
-        throw error_size;
+        sort_index.resize(n);
     }
 
     // Initialize sort_index
