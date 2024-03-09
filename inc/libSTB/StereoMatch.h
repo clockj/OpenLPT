@@ -126,8 +126,12 @@ private:
     // Tracers //
     //         //
     void tracerMatch(std::vector<std::vector<Tracer2D>> const& tr2d_list);
+    
     void removeGhostTracer (std::vector<Tracer3D>& obj3d_list, std::vector<std::vector<Tracer2D>> const& tr2d_list);
+    void removeGhostTracerTest (std::vector<Tracer3D>& obj3d_list, std::vector<std::vector<Tracer2D>> const& tr2d_list);
+
     void fillTracerInfo (std::vector<Tracer3D>& tr3d_list, std::vector<std::vector<Tracer2D>> const& tr2d_list);
+    
     void saveTracerInfo (std::string path, std::vector<Tracer3D> const& tr3d_list);
 
     // recursively find matches for tracer
@@ -135,7 +139,7 @@ private:
     // trID_match: current match for tracer A till the current camera
     void findTracerMatch (
         int id,
-        std::vector<int> trID_match,
+        std::vector<int> const& trID_match,
         std::deque<std::vector<int>>& trID_match_list, 
         std::deque<double>& error_list,
         std::vector<std::vector<Tracer2D>> const& tr2d_list
@@ -148,7 +152,7 @@ private:
         int row_id, int col_id,
         std::vector<Line2D> const& sight2D_list,
         std::vector<Line3D>& sight3D_list,
-        std::vector<int>& trID_match, 
+        std::vector<int> const& trID_match, 
         std::deque<std::vector<int>>& trID_match_list,
         std::deque<double>& error_list,
         std::vector<std::vector<Tracer2D>> const& tr2d_list
@@ -164,13 +168,12 @@ private:
     void checkTracerMatch(
         int id, 
         Pt3D const& pt3d,
-        std::vector<int> trID_match,
+        std::vector<int> const& trID_match,
         std::deque<std::vector<int>>& trID_match_list,
         std::deque<double>& error_list,
         std::vector<std::vector<Tracer2D>> const& tr2d_list
     );
 
-    int isWithinRange (int cam_cur_id, Matrix<double>& object_pos, std::vector<Matrix<double>>& pt_list, std::vector<Matrix<double>>& line_of_sight);
  
 };
 

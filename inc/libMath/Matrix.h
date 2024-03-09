@@ -32,6 +32,7 @@ class Matrix
     int _is_space = 0; // 0 for nothing installed; 1 for already claim space
     int mapID (int id_x, int id_y) const; // id_x*_dim_col + id_y
     T* _mtx;
+    // std::vector<T> _mtx;
     
     // Create/Clear space 
     void clear  ();

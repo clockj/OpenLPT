@@ -18,7 +18,7 @@ bool test_function_1 ()
 
     std::ofstream outfile("../test/results/test_ObjectFinder/test_function_1.csv");
     outfile.setf(std::ios_base::scientific);
-    outfile.precision(8);
+    outfile.precision(SAVEPRECISION);
     for (auto& tr2d : tr2d_list)
     {
         outfile << tr2d._pt_center[0] << "," << tr2d._pt_center[1] << std::endl;
@@ -45,9 +45,51 @@ bool test_function_1 ()
     return true;
 }   
 
+// compare with real 2d location
+bool test_function_2 ()
+{
+    // load image path
+    std::vector<ImageIO> imgio_list;
+    for (int i = 0; i < 4; i ++)
+    {
+        ImageIO imgio;
+        imgio.loadImgPath("../test/inputs/test_ObjectFinder/", "cam" + std::to_string(i+1) + "ImageNames" + ".txt");
+        imgio_list.push_back(imgio);
+    }
+    // load image
+    std::vector<Image> img_list;
+    for (int i = 0; i < 4; i ++)
+    {
+        img_list.push_back(imgio_list[i].loadImg(0));
+    }
+
+    // find 2d tracer
+    std::vector<std::vector<Tracer2D>> tr2d_list_all;
+    std::vector<double> properties = {255, 30};
+    ObjectFinder2D objfinder;
+    for (int i = 0; i < 4; i ++)
+    {
+        std::vector<Tracer2D> tr2d_list;
+        objfinder.findObject2D(tr2d_list, img_list[i], properties);
+        tr2d_list_all.push_back(tr2d_list);
+        std::cout << "tr2d_list_all[" << i << "].size() = " << tr2d_list_all[i].size() << std::endl;
+
+        // save result
+        std::ofstream outfile("../test/results/test_ObjectFinder/pt2d_list_cam" + std::to_string(i+1) + ".csv");
+        outfile.precision(SAVEPRECISION);
+        for (auto& tr2d : tr2d_list)
+        {
+            outfile << tr2d._pt_center[0] << "," << tr2d._pt_center[1] << std::endl;
+        }
+    }
+
+    return true;
+}
+
 int main ()
 {
     IS_TRUE(test_function_1());
+    IS_TRUE(test_function_2());
 
     return 0;
 }

@@ -30,7 +30,7 @@ public:
 class Tracer2D : public Object2D
 {
 public:
-    int _r_px = 4; // [px] 
+    int _r_px = 2; // [px], for shaking, it is suggested to set the search radius as 2*_r_px 
 
     Tracer2D () {};
     Tracer2D (Tracer2D const& tracer) : Object2D(tracer), _r_px(tracer._r_px) {};

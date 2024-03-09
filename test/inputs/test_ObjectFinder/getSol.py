@@ -82,42 +82,8 @@ for i in range(ncam):
         transVecInv = np.zeros((3,1))
         transVecInv[:,0] = np.array(lines[line_id].split(',')).astype(np.double)
         transVecInvList.append(transVecInv)
-
-# %%
-# randomly generate 3D points
-# npts = int(1.5e4)
-npts = int(4e4)
-
-np.random.seed(1234)
-pt3d_list = np.random.rand(npts, 3) * 40 - 20
-is_select = np.ones(npts, dtype=bool)
-
-for i in range(ncam):
-    # project 3D points to 2D
-    pt2d_list = cv2.projectPoints(pt3d_list.reshape(npts, 1, 3), rotVecList[i], transVecList[i], camMatList[i], distCoeffList[i])[0].reshape(npts, 2)
-
-    # remove points outside the image
-    is_select = np.logical_and(is_select, np.logical_and(pt2d_list[:,0] > 0, pt2d_list[:,0] < imgSizeList[i][1]))
-    is_select = np.logical_and(is_select, np.logical_and(pt2d_list[:,1] > 0, pt2d_list[:,1] < imgSizeList[i][0]))
-
-pt3d_list = pt3d_list[is_select]
-
-pt2d_list_all = []
-for i in range(ncam):
-    pt2d_list = cv2.projectPoints(pt3d_list.reshape(-1, 1, 3), rotVecList[i], transVecList[i], camMatList[i], distCoeffList[i])[0].reshape(-1, 2)
-    pt2d_list_all.append(pt2d_list)
-pt2d_list_all = np.array(pt2d_list_all)
-
-
-# save to csv file 
-np.savetxt('../../solutions/test_StereoMatch/pt3d_list.csv', pt3d_list, delimiter=',', fmt='%.8f')
-
-for i in range(ncam):
-    np.savetxt('../../inputs/test_StereoMatch/pt2d_list_cam' + str(i+1) + '.csv', pt2d_list_all[i], delimiter=',', fmt='%.8f')
     
 # %%
-# generate tiff images
-
 # randomly generate 3D points
 npts = int(1.5e4)
 # npts = int(4e4)
@@ -139,36 +105,48 @@ for i in range(ncam):
     pt2d_list_all.append(pt2d_list)
 pt2d_list_all = np.array(pt2d_list_all)
 
-#%%
+
+# save to csv file 
+for i in range(ncam):
+    np.savetxt('../../solutions/test_ObjectFinder/pt2d_list_cam' + str(i+1) + '.csv', pt2d_list_all[i], delimiter=',', fmt='%.8f')
+
 # generate tiff images
-img_list = []
 for i in range(ncam):
     img = getTiffImg.getTiffImg(pt3d_list, rotVecList[i], transVecList[i], camMatList[i], distCoeffList[i], imgSizeList[i])
-    img_list.append(img)
-
     # save to tiff files
-    cv2.imwrite('../../inputs/test_StereoMatch/img_cam'+str(i+1)+'.tif', img_list[i])
+    cv2.imwrite('../../inputs/test_ObjectFinder/img_cam'+str(i+1)+'.tif', img)
 
 # %%
-# load results 
-tr3d_list = np.loadtxt('../../results/test_StereoMatch/tr3d_img_deleteGhost.csv', delimiter=',', skiprows=1)
+# load results
+pt2d_list_all_res = []
 
-pt3d_list_res = tr3d_list[:,:3]
+for i in range(ncam):
+    pt2d_list_all_res.append(np.loadtxt('../../results/test_ObjectFinder/pt2d_list_cam' + str(i+1) + '.csv', delimiter=','))
 
+# %%
+plt.plot(pt2d_list_all[0][:,0], pt2d_list_all[0][:,1], 'k.', markersize=0.5)
+plt.plot(pt2d_list_all_res[0][:,0], pt2d_list_all_res[0][:,1], 'r.', markersize=0.5)
+
+# %%
+# compare results
 npts = pt3d_list.shape[0]
 
-tor = 5e-3
-mismatchID_list = []
-for i in range(npts):
-    error = np.linalg.norm(pt3d_list[i] - pt3d_list_res, axis=1)
-    min_id = np.argmin(error)
-    if error[min_id] > tor:
-        mismatchID_list.append(i)
+mismatch_id_all = []
+tor = 2
+for i in range(ncam):
+    mismatch_id = []
+    for j in range(npts):
+        pt2d_real = pt2d_list_all[i][j]
         
-n_mismatch = len(mismatchID_list)
-rate_mismatch = n_mismatch / npts * 100
+        error_list = np.linalg.norm(pt2d_real - pt2d_list_all_res[i], axis=1)
+        
+        min_id = np.argmin(error_list)
 
-print('Number of mismatched points:', n_mismatch)
-print('Mismatch rate:', rate_mismatch, '%')
+        if error_list[min_id] > tor:
+            mismatch_id.append(j)
+            
+    mismatch_id_all.append(mismatch_id)
+    
+    print('cam' + str(i+1) + ': ' + str(len(mismatch_id)) + ' mismatched points')
 
 # %%

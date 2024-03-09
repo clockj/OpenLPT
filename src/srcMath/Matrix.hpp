@@ -138,6 +138,7 @@ template<class T>
 Matrix<T>::~Matrix ()
 {
     clear();
+    _mtx = nullptr;
 }
 
 
@@ -168,6 +169,7 @@ void Matrix<T>::create(int dim_row, int dim_col)
         _n = _dim_row * _dim_col;
 
         _mtx = new T [_n];
+        // _mtx.resize(_n);
     }
     else
     {
@@ -516,6 +518,7 @@ Matrix<T>& Matrix<T>::operator*= (Matrix<T> const& mtx)
 
         delete[] _mtx;
         _mtx = new T [_n];
+        // _mtx.resize(_n);
     }
 
     for (int i = 0; i < _n; i ++)

@@ -46,12 +46,12 @@ void ObjectFinder2D::findTracer2D
                 ln_z2 = img(y2, x2) < INTSMALLNUMBER ? std::log(INTSMALLNUMBER) : std::log(img(y2, x2));
                 ln_z3 = img(y2, x3) < INTSMALLNUMBER ? std::log(INTSMALLNUMBER) : std::log(img(y2, x3));
     
-                double xc = -0.5 * (  (ln_z1 * ((x2 * x2) - (x3 * x3))) 
-                                    - (ln_z2 * ((x1 * x1) - (x3 * x3))) 
-                                    + (ln_z3 * ((x1 * x1) - (x2 * x2))) ) 
-                                 / (  (ln_z1 * (x3 - x2)) 
-                                    - (ln_z3 * (x1 - x2)) 
-                                    + (ln_z2 * (x1 - x3)) );
+                double xc = -0.5 * (  (ln_z1 * double((x2 * x2) - (x3 * x3))) 
+                                    - (ln_z2 * double((x1 * x1) - (x3 * x3))) 
+                                    + (ln_z3 * double((x1 * x1) - (x2 * x2))) ) 
+                                 / (  (ln_z1 * double(x3 - x2)) 
+                                    - (ln_z3 * double(x1 - x2)) 
+                                    + (ln_z2 * double(x1 - x3)) );
                 if (!std::isfinite(xc)) 
                 {
                     continue;
@@ -61,12 +61,12 @@ void ObjectFinder2D::findTracer2D
                 ln_z1 = img(y1, x2) < INTSMALLNUMBER ? std::log(INTSMALLNUMBER) : std::log(img(y1, x2));
                 ln_z3 = img(y3, x2) < INTSMALLNUMBER ? std::log(INTSMALLNUMBER) : std::log(img(y3, x2));
 
-                double yc = -0.5 * (  (ln_z1 * ((y2 * y2) - (y3 * y3))) 
-                                    - (ln_z2 * ((y1 * y1) - (y3 * y3))) 
-                                    + (ln_z3 * ((y1 * y1) - (y2 * y2))) ) 
-                                 / (  (ln_z1 * (y3 - y2)) 
-                                    - (ln_z3 * (y1 - y2)) 
-                                    + (ln_z2 * (y1 - y3)) );
+                double yc = -0.5 * (  (ln_z1 * double((y2 * y2) - (y3 * y3))) 
+                                    - (ln_z2 * double((y1 * y1) - (y3 * y3))) 
+                                    + (ln_z3 * double((y1 * y1) - (y2 * y2))) ) 
+                                 / (  (ln_z1 * double(y3 - y2)) 
+                                    - (ln_z3 * double(y1 - y2)) 
+                                    + (ln_z2 * double(y1 - y3)) );
                 if (!std::isfinite(yc)) 
                 {
                     continue;

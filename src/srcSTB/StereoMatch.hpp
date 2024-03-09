@@ -42,7 +42,8 @@ void StereoMatch::match(std::vector<T3D>& obj3d_list, std::vector<std::vector<T2
 
         if (_param.is_delete_ghost)
         {   
-            removeGhostTracer(obj3d_list, obj2d_list);
+            // removeGhostTracer(obj3d_list, obj2d_list);
+            removeGhostTracerTest(obj3d_list, obj2d_list);
         }
         else
         {
@@ -174,7 +175,6 @@ void StereoMatch::tracerMatch (std::vector<std::vector<Tracer2D>> const& tr2d_li
             std::deque<std::vector<int>> trID_match_list; // match list for the particle i in the first camera
 
             std::vector<int> trID_match; 
-            trID_match.reserve(_n_cam_use);
             trID_match.push_back(tr_id);
 
             std::deque<double> error_list;
@@ -245,11 +245,14 @@ void StereoMatch::tracerMatch (std::vector<std::vector<Tracer2D>> const& tr2d_li
 void StereoMatch::removeGhostTracer (std::vector<Tracer3D>& tr3d_list, std::vector<std::vector<Tracer2D>> const& tr2d_list)
 {
     int n_match = _objID_match_list.size();
+    if (n_match == 0)
+    {
+        return;
+    }
 
-    std::vector<int> match_score;
-    match_score.resize(n_match, 0);
+    std::vector<int> match_score(n_match, 0);
 
-    // update match_score 
+    // update match_score  
     int n_tr2d, tr2d_id, opt_matchID;
     for (int i = 0; i < _n_cam_use; i ++)
     {
@@ -263,38 +266,38 @@ void StereoMatch::removeGhostTracer (std::vector<Tracer3D>& tr3d_list, std::vect
         for (int j = 0; j < n_match; j ++)
         {
             tr2d_id = _objID_match_list[j][i];
-            
-            if (optMatchID_map[tr2d_id] == -1) 
+            opt_matchID = optMatchID_map[tr2d_id];
+
+            if (opt_matchID == -1) 
             {
                 optMatchID_map[tr2d_id] = j;
             }
             else 
             {
-                opt_matchID = optMatchID_map[tr2d_id];
                 if (_error_list[opt_matchID] > _error_list[j])
                 {
                     // replace by a match id with smaller error 
-                    optMatchID_map[opt_matchID] = j;
+                    optMatchID_map[tr2d_id] = j;
                 }
             }
         }
 
+
         // update the score
         for (int j = 0; j < n_tr2d; j ++)
         {
-            if (optMatchID_map[j] == -1)
+            if (optMatchID_map[j] != -1)
             {
-                continue;
+                opt_matchID = optMatchID_map[j];
+                match_score[opt_matchID] += 1;
             }
-            
-            opt_matchID = optMatchID_map[j];
-            match_score[opt_matchID] += 1;
         }
+
     }
 
     // sort match_score from large to small
     //  small to large 
-    std::vector<int> matchID_list;
+    std::vector<int> matchID_list(n_match);
     myMATH::sortID(matchID_list, match_score);
 
     // map tr2d_id to match_id with smallest error
@@ -343,15 +346,9 @@ void StereoMatch::removeGhostTracer (std::vector<Tracer3D>& tr3d_list, std::vect
             }
         }
 
-        if (is_rank_small)
-        {
-            continue;
-        }
-        else if (
-            ( n_equal > 0 && 
-              _error_list[match_id] < sum_error/n_equal ) || 
-            n_equal == 0
-        )
+        if ( !is_rank_small &&
+            (( n_equal > 0 && _error_list[match_id] < sum_error/n_equal ) || 
+              n_equal == 0 ))
         {
             // 1) if there is same preference number (for certain cam),
             // and the error is less than the averaged of those filled match, 
@@ -377,6 +374,174 @@ void StereoMatch::removeGhostTracer (std::vector<Tracer3D>& tr3d_list, std::vect
             }
 
             is_select[match_id] = true;
+        }
+        
+    }
+    
+    // get new match list 
+    Tracer3D tr3d;
+    tr3d._camid_list = _cam_list.useid_list;
+    tr3d._n_2d = _n_cam_use;
+    tr3d._tracer2d_list.resize(_n_cam_use);
+    std::vector<Line3D> sight3D_list(_n_cam_use);
+
+    int cam_id;
+    std::vector<std::vector<int>> objID_match_list_new;
+    std::vector<double> error_list_new;
+    for (int i = 0; i < n_match; i ++)
+    {
+        if (is_select[i])
+        {
+            for (int id = 0; id < _n_cam_use; id ++)
+            {
+                tr2d_id = _objID_match_list[i][id];
+                cam_id = _cam_list.useid_list[id];
+
+                tr3d._tracer2d_list[id]._pt_center = tr2d_list[id][tr2d_id]._pt_center;
+                sight3D_list[id] = _cam_list.cam_list[cam_id].lineOfSight(tr3d._tracer2d_list[id]._pt_center);
+            }
+
+            myMATH::triangulation(tr3d._pt_center, tr3d._error, sight3D_list);
+
+            tr3d_list.push_back(tr3d);
+
+            if (_param.is_update_inner_var)
+            {
+                objID_match_list_new.push_back(_objID_match_list[i]);
+                error_list_new.push_back(_error_list[i]);
+            }
+        }
+    }
+    if (_param.is_update_inner_var)
+    {
+        _objID_match_list = objID_match_list_new;
+        _error_list = error_list_new;
+    }
+
+    // print info
+    _n_after_del = tr3d_list.size();
+    _n_del = _n_before_del - _n_after_del;
+    std::cout << "\tFinish deleting gohst match: "
+              << "n_del = " << _n_del << ", "
+              << "n_after_del = " << _n_after_del << "."
+              << std::endl;
+}
+
+// remove ghost tracer
+void StereoMatch::removeGhostTracerTest (std::vector<Tracer3D>& tr3d_list, std::vector<std::vector<Tracer2D>> const& tr2d_list)
+{
+    int n_match = _objID_match_list.size();
+    if (n_match == 0)
+    {
+        return;
+    }
+
+    std::vector<int> match_score(n_match, 0);
+
+    // update match_score  
+    int n_tr2d, tr2d_id, opt_matchID;
+    for (int i = 0; i < _n_cam_use; i ++)
+    {
+        n_tr2d = tr2d_list[i].size();
+
+        // optMatchID_map: 
+        //  save the corresponding match id with smallest error for each tracer2d 
+        std::vector<int> optMatchID_map(n_tr2d, -1);
+        
+        // update optMatchID_map
+        for (int j = 0; j < n_match; j ++)
+        {
+            tr2d_id = _objID_match_list[j][i];
+            opt_matchID = optMatchID_map[tr2d_id];
+
+            if (opt_matchID == -1) 
+            {
+                optMatchID_map[tr2d_id] = j;
+            }
+            else 
+            {
+                if (_error_list[opt_matchID] > _error_list[j])
+                {
+                    // replace by a match id with smaller error 
+                    optMatchID_map[tr2d_id] = j;
+                }
+            }
+        }
+
+
+        // update the score
+        for (int j = 0; j < n_tr2d; j ++)
+        {
+            if (optMatchID_map[j] != -1)
+            {
+                opt_matchID = optMatchID_map[j];
+                match_score[opt_matchID] += 1;
+            }
+        }
+
+    }
+
+    // sort match_score and error_list
+    //  match_score: small to large 
+    //  error_list: large to small
+    std::vector<int> matchID_list(n_match);
+    for (int i = 0; i < n_match; i ++)
+    {
+        matchID_list[i] = i;
+    }
+    std::vector<double>& error_list(_error_list);
+    auto comparator = [match_score, error_list](size_t i, size_t j) {
+        if (match_score[i] < match_score[j])
+        {
+            return true;
+        }
+        else if (match_score[i] == match_score[j])
+        {
+            return error_list[i] > error_list[j];
+        }
+        else
+        {
+            return false;
+        }
+    };
+    std::sort(matchID_list.begin(), matchID_list.end(), comparator);
+
+    // create map for record whether a tr2d is used
+    std::vector<std::vector<bool>> is_tr2d_use;
+    for (int i = 0; i < _n_cam_use; i ++)
+    {
+        n_tr2d = tr2d_list[i].size();
+        is_tr2d_use.push_back(std::vector<bool>(n_tr2d, false));
+    }
+
+    // select the optimal match based on the sortID
+    //  from the highest score and smallest error to the lowest score and largest error
+    //  from the last one to the first one
+    std::vector<bool> is_select(n_match, true);
+    int match_id;
+    bool is_use;
+    for (int i = n_match-1; i > -1; i --)
+    {
+        match_id = matchID_list[i];
+
+        for (int j = 0; j < _n_cam_use; j ++)
+        {
+            tr2d_id = _objID_match_list[match_id][j];
+            is_use = is_tr2d_use[j][tr2d_id];
+            if (is_use)
+            {
+                is_select[match_id] = false;
+                break;
+            }
+        }
+
+        if (is_select[match_id])
+        {
+            for (int j = 0; j < _n_cam_use; j ++)
+            {
+                tr2d_id = _objID_match_list[match_id][j];
+                is_tr2d_use[j][tr2d_id] = true;
+            }
         }
     }
     
@@ -421,9 +586,9 @@ void StereoMatch::removeGhostTracer (std::vector<Tracer3D>& tr3d_list, std::vect
     }
 
     // print info
-    _n_after_del = _objID_match_list.size();
+    _n_after_del = tr3d_list.size();
     _n_del = _n_before_del - _n_after_del;
-    std::cout << "\t Finish deleting gohst match: "
+    std::cout << "\tFinish deleting gohst match: "
               << "n_del = " << _n_del << ", "
               << "n_after_del = " << _n_after_del << "."
               << std::endl;
@@ -507,7 +672,7 @@ void StereoMatch::saveTracerInfo (std::string path, std::vector<Tracer3D> const&
 // recursively find matches for tracer
 void StereoMatch::findTracerMatch (
     int id, // id = 1 => 2nd used cam 
-    std::vector<int> trID_match,
+    std::vector<int> const& trID_match,
     std::deque<std::vector<int>>& trID_match_list,
     std::deque<double>& error_list,
     std::vector<std::vector<Tracer2D>> const& tr2d_list
@@ -714,7 +879,7 @@ void StereoMatch::iterOnObjIDMap (
     int row_id, int col_id,
     std::vector<Line2D> const& sight2D_list,
     std::vector<Line3D>& sight3D_list,
-    std::vector<int>& trID_match, 
+    std::vector<int> const& trID_match, 
     std::deque<std::vector<int>>& trID_match_list,
     std::deque<double>& error_list,
     std::vector<std::vector<Tracer2D>> const& tr2d_list
@@ -750,7 +915,8 @@ void StereoMatch::iterOnObjIDMap (
         // reproject onto the previous cam, then is within error line
         if (in_range && checkReProject(id, tr_id, trID_match, tr2d_list))
         {
-            trID_match.push_back(tr_id);
+            std::vector<int> trID_match_new = trID_match;
+            trID_match_new.push_back(tr_id);
 
             // if there is still other cameras to check
             if (id < _param.check_id - 1) 
@@ -760,13 +926,11 @@ void StereoMatch::iterOnObjIDMap (
                 // move onto the next camera and search candidates
                 findTracerMatch (
                     next_id,
-                    trID_match, 
+                    trID_match_new, 
                     trID_match_list,
                     error_list,
                     tr2d_list                  
                 );
-
-                trID_match.pop_back(); // clear the match for the next candidate.
             }
             // if the current camera is the last one, then finalize the match.
             else
@@ -778,7 +942,7 @@ void StereoMatch::iterOnObjIDMap (
 
                 if (error_3d > _param.tor_3d)
                 {
-                    trID_match.pop_back();
+                    continue;
                 }
                 else 
                 {
@@ -789,21 +953,17 @@ void StereoMatch::iterOnObjIDMap (
                         checkTracerMatch (
                             next_id,
                             pt3d,
-                            trID_match,
+                            trID_match_new,
                             trID_match_list,
                             error_list,
                             tr2d_list
                         );
-
-                        trID_match.pop_back();
                     }
                     else 
                     {
-                        trID_match_list.push_back(trID_match);
+                        trID_match_list.push_back(trID_match_new);
 
                         error_list.push_back(error_3d);
-
-                        trID_match.pop_back();
                     }
                 }
             }
@@ -928,7 +1088,7 @@ bool StereoMatch::checkReProject (
 void StereoMatch::checkTracerMatch(
     int id, 
     Pt3D const& pt3d,
-    std::vector<int> trID_match, 
+    std::vector<int> const& trID_match, 
     std::deque<std::vector<int>>& trID_match_list,
     std::deque<double>& error_list,
     std::vector<std::vector<Tracer2D>> const& tr2d_list
