@@ -10,6 +10,8 @@
 // test tracer stereomatch without deleting ghost
 bool test_function_1 ()
 {    
+    std::cout << "test_function_1" << std::endl;
+
     CamList cam_list;
     for (int i = 0; i < 4; i ++)
     {
@@ -148,12 +150,16 @@ bool test_function_1 ()
         }
     }
 
+    std::cout << "test_function_1 passed\n" << std::endl;
+
     return true;
 }
 
 // test tracer stereomatch with deleting ghost
 bool test_function_2 ()
 {
+    std::cout << "test_function_2" << std::endl;
+
     CamList cam_list;
     for (int i = 0; i < 4; i ++)
     {
@@ -293,12 +299,16 @@ bool test_function_2 ()
         }
     }
 
+    std::cout << "test_function_2 passed\n" << std::endl;
+
     return true;
 }
 
 // test stereomatch from image with deleting ghost
 bool test_function_3 ()
 {
+    std::cout << "test_function_3" << std::endl;
+
     CamList cam_list;
     for (int i = 0; i < 4; i ++)
     {
@@ -356,50 +366,51 @@ bool test_function_3 ()
     // save tracer info
     stereo_match.saveObjInfo("../test/results/test_StereoMatch/tr3d_img_deleteGhost.csv", tr3d_list);
 
-    // // load solution: pt3d_list
-    // Matrix<double> pt3d_list_sol("../test/solutions/test_StereoMatch/pt3d_list.csv");
+    // load solution: pt3d_list
+    Matrix<double> pt3d_list_sol("../test/solutions/test_StereoMatch/pt3d_list_img.csv");
 
-    // // check match correctness
-    // int n_tr3d_real = pt3d_list_sol.getDimRow();
-    // int n_tr3d_find = tr3d_list.size();
-    // std::vector<int> is_mismatch(n_tr3d_real, 0);
-    // double tor = param.tor_3d; // [mm]
+    // check match correctness
+    int n_tr3d_real = pt3d_list_sol.getDimRow();
+    int n_tr3d_find = tr3d_list.size();
+    std::vector<int> is_mismatch(n_tr3d_real, 0);
+    double tor = param.tor_3d; // [mm]
     
-    // for (int i = 0; i < n_tr3d_real; i ++)
-    // {
-    //     Pt3D pt3d;
-    //     pt3d[0] = pt3d_list_sol(i, 0);
-    //     pt3d[1] = pt3d_list_sol(i, 1);
-    //     pt3d[2] = pt3d_list_sol(i, 2);
+    #pragma omp parallel for
+    for (int i = 0; i < n_tr3d_real; i ++)
+    {
+        Pt3D pt3d;
+        pt3d[0] = pt3d_list_sol(i, 0);
+        pt3d[1] = pt3d_list_sol(i, 1);
+        pt3d[2] = pt3d_list_sol(i, 2);
         
-    //     std::vector<double> error_list(n_tr3d_find, 0);
+        std::vector<double> error_list(n_tr3d_find, 0);
 
-    //     #pragma omp parallel
-    //     {
-    //         #pragma omp for
-    //         for (int j = 0; j < n_tr3d_find; j ++)
-    //         {
-    //             error_list[j] = myMATH::distance(pt3d, tr3d_list[j]._pt_center);
-    //         }
-    //     }
-        
-    //     std::vector<int> sortID(n_tr3d_find, 0);
-    //     myMATH::sortID(sortID, error_list);
+        for (int j = 0; j < n_tr3d_find; j ++)
+        {
+            error_list[j] = myMATH::distance(pt3d, tr3d_list[j]._pt_center);
+        }
+                
+        std::vector<double>::iterator minIt = std::min_element(error_list.begin(), error_list.end());
 
-    //     if (error_list[sortID[0]] > tor)
-    //     {
-    //         is_mismatch[i] = 1;
-    //     }
-    // }
+        if (*minIt > tor)
+        {
+            is_mismatch[i] = 1;
+        }
+    }
     
-    // int n_mismatch = 0;
-    // for (int i = 0; i < n_tr3d_real; i ++)
-    // {
-    //     n_mismatch += is_mismatch[i];
-    // }
+    int n_mismatch = 0;
+    for (int i = 0; i < n_tr3d_real; i ++)
+    {
+        n_mismatch += is_mismatch[i];
+    }
 
-    // double mismatch_rate = double(n_mismatch) / n_tr3d_real * 100; // [%]
-    // std::cout << "mismatch_rate = " << mismatch_rate << "%" << std::endl;
+    double mismatch_rate = double(n_mismatch) / n_tr3d_real * 100; // [%]
+    std::cout << "n_tr3d_real = " << n_tr3d_real << std::endl;
+    std::cout << "n_tr3d_find = " << n_tr3d_find << std::endl;
+    std::cout << "n_mismatch = " << n_mismatch << std::endl;
+    std::cout << "mismatch_rate = " << mismatch_rate << "%" << std::endl;
+
+    std::cout << "test_function_3 passed\n" << std::endl;
 
     return true;
 }
@@ -407,8 +418,8 @@ bool test_function_3 ()
 
 int main ()
 {
-    // IS_TRUE(test_function_1());
-    // IS_TRUE(test_function_2());
+    IS_TRUE(test_function_1());
+    IS_TRUE(test_function_2());
     IS_TRUE(test_function_3());
 
     return 0;

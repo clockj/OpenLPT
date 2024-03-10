@@ -139,6 +139,8 @@ for i in range(ncam):
     pt2d_list_all.append(pt2d_list)
 pt2d_list_all = np.array(pt2d_list_all)
 
+np.savetxt('../../solutions/test_StereoMatch/pt3d_list_img.csv', pt3d_list, delimiter=',', fmt='%.8f')
+
 #%%
 # generate tiff images
 img_list = []
