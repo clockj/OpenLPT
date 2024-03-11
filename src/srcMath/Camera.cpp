@@ -200,14 +200,15 @@ void Camera::loadParameters (std::string file_name)
     std::ifstream infile(file_name.c_str(), std::ios::in);
     std::string line;
     std::stringstream file_content;
-    while (std::getline(infile, line)) {
+    while (std::getline(infile, line)) 
+    {
         size_t comment_pos = line.find('#');
         if (comment_pos > 0) 
         {
             if (comment_pos < std::string::npos) 
             {
                 line.erase(comment_pos);
-    		}
+            }
     	}
         else if (comment_pos == 0)
         {

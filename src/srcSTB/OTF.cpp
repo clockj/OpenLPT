@@ -1,167 +1,200 @@
 #include "OTF.h"
 
-
-OTF::OTF(int n_cam, int n_x, int n_y, int n_z, AxisLimit& boundary, std::string file_head)
-        : _n_cam(n_cam), _nx(n_x), _ny(n_y), _nz(n_z),
-          _n_grid(_nx*_ny*_nz), 
-          _a(file_head+"_a.csv"),_b(file_head+"_b.csv"),_c(file_head+"_c.csv"),_alpha(file_head+"_alpha.csv"),
-          _boundary(boundary)
+OTF::OTF(int n_cam, int nx, int ny, int nz, AxisLimit const& boundary)
 {
-    bool judge = _a.GetDimX()!=_n_cam || _a.GetDimY()!=_n_grid || 
-                 _b.GetDimX()!=_n_cam || _b.GetDimY()!=_n_grid ||
-                 _c.GetDimX()!=_n_cam || _c.GetDimY()!=_n_grid ||
-                 _alpha.GetDimX()!=_n_cam || _alpha.GetDimY()!=_n_grid;
-    if (judge)
-    {
-        std::cerr << "OTF::OTF error: a/b/c/alpha dim is inconsistent!" << std::endl;
-        std::cerr << "_n_cam,_n_grid=" << _n_cam << "," << _n_grid << std::endl;
-        std::cerr << _a.GetDimX() << "," << _a.GetDimY() << ","
-                    << _b.GetDimX() << "," << _b.GetDimY() << ","
-                    << _c.GetDimX() << "," << _c.GetDimY() << ","
-                    << _alpha.GetDimX() << "," << _alpha.GetDimY()
-                    << std::endl;
-        throw error_size;
-    }
-
-    SetGrid();
+    loadParam(n_cam, nx, ny, nz, boundary);
 };
 
-
-void OTF::LoadParam (int n_cam, int n_x, int n_y, int n_z, AxisLimit& boundary)
+OTF::OTF(std::string otf_file)
 {
-    _n_cam = n_cam; 
-    _nx = n_x;
-    _ny = n_y;
-    _nz = n_z;
-    _n_grid = _nx*_ny*_nz;
-    _a = Matrix<double>(_n_cam, _n_grid, 125);
-    _b = Matrix<double>(_n_cam, _n_grid, 1.5);
-    _c = Matrix<double>(_n_cam, _n_grid, 1.5);
-    _alpha = Matrix<double>(_n_cam, _n_grid, 0);
-    _boundary = boundary;
+    loadParam(otf_file);
+};
 
-    SetGrid();
+void OTF::setGrid ()
+{
+    _param.grid_x = myMATH::linspace(_param.boundary.x_min, _param.boundary.x_max, _param.nx);
+    _param.grid_y = myMATH::linspace(_param.boundary.y_min, _param.boundary.y_max, _param.ny);
+    _param.grid_z = myMATH::linspace(_param.boundary.z_min, _param.boundary.z_max, _param.nz);
+
+    _param.dx = (_param.boundary.x_max - _param.boundary.x_min) / (_param.nx - 1);
+    _param.dy = (_param.boundary.y_max - _param.boundary.y_min) / (_param.ny - 1);
+    _param.dz = (_param.boundary.z_max - _param.boundary.z_min) / (_param.nz - 1);
 }
 
-
-void OTF::LoadParam (int n_cam, int n, AxisLimit& boundary)
+void OTF::loadParam (int n_cam, int nx, int ny, int nz, AxisLimit const& boundary)
 {
-    LoadParam (n_cam, n, n, n, boundary);
+    if (nx < 2 || ny < 2 || nz < 2)
+    {
+        std::cerr << "OTF::loadParam error at line" << __LINE__ << ":\n"
+                  << "nx, ny, nz should be larger than 1." << std::endl;
+        std::cerr << "nx = " << nx << ", ny = " << ny << ", nz = " << nz << std::endl;
+        throw error_range;
+    }
+
+    _param.n_cam = n_cam;
+    _param.nx = nx;
+    _param.ny = ny;
+    _param.nz = nz;
+    _param.n_grid = nx * ny * nz;
+
+    _param.boundary = boundary;
+
+    _param.a = Matrix<double> (n_cam, _param.n_grid, 125);
+    _param.b = Matrix<double> (n_cam, _param.n_grid, 1.5);
+    _param.c = Matrix<double> (n_cam, _param.n_grid, 1.5);
+    _param.alpha = Matrix<double> (n_cam, _param.n_grid, 0);
+
+    setGrid();
 }
 
-
-void OTF::SetGrid ()
+void OTF::loadParam (std::string otf_file)
 {
-    _grid_x = myMATH::Linspace(_boundary._x_min, _boundary._x_max, _nx);
-    _grid_y = myMATH::Linspace(_boundary._y_min, _boundary._y_max, _ny);
-    _grid_z = myMATH::Linspace(_boundary._z_min, _boundary._z_max, _nz);
+    std::ifstream infile(otf_file);
+    std::string line;
+    std::stringstream file_content;
+    while (std::getline(infile, line))
+    {
+        size_t comment_pos = line.find("#");
+        if (comment_pos > 0 && comment_pos < std::string::npos)
+        {
+            line.erase(comment_pos);
+        }
+        else if (comment_pos == 0)
+        {
+            continue;
+        }
 
-    _dx = (_boundary._x_max - _boundary._x_min) / (_nx - 1);
-    _dy = (_boundary._y_max - _boundary._y_min) / (_ny - 1);
-    _dz = (_boundary._z_max - _boundary._z_min) / (_nz - 1);
+        file_content << line << '\t';
+    }
+    infile.close();
+    
+    file_content >> _param.n_cam;
+    file_content.ignore();
+    file_content >> _param.nx;
+    file_content.ignore();
+    file_content >> _param.ny;
+    file_content.ignore();
+    file_content >> _param.nz;
+    file_content.ignore();
+    file_content >> _param.n_grid;
+
+    file_content >> _param.boundary.x_min;
+    file_content.ignore();
+    file_content >> _param.boundary.x_max;
+    file_content.ignore();
+    file_content >> _param.boundary.y_min;
+    file_content.ignore();
+    file_content >> _param.boundary.y_max;
+    file_content.ignore();
+    file_content >> _param.boundary.z_min;
+    file_content.ignore();
+    file_content >> _param.boundary.z_max;
+
+    _param.a = Matrix<double> (_param.n_cam, _param.n_grid, file_content);
+    _param.b = Matrix<double> (_param.n_cam, _param.n_grid, file_content);
+    _param.c = Matrix<double> (_param.n_cam, _param.n_grid, file_content);
+    _param.alpha = Matrix<double> (_param.n_cam, _param.n_grid, file_content);
+
+    setGrid();
 }
 
-
-std::vector<double> OTF::GetOTFParam(int cam_index, const Matrix<double>& pt_world)
-{
-    // find out the limits of interpolation cube 
-    double pt_x = std::min(
-        std::max(pt_world(0,0), _boundary._x_min),
-        _boundary._x_max
+std::vector<double> OTF::getOTFParam(int cam_id, Pt3D const& pt3d)
+{ 
+    double pt3d_x = std::min(
+        std::max(pt3d[0], _param.boundary.x_min),
+        _param.boundary.x_max
     );
-    double pt_y = std::min(
-        std::max(pt_world(1,0), _boundary._y_min),
-        _boundary._y_max
+    double pt3d_y = std::min(
+        std::max(pt3d[1], _param.boundary.y_min),
+        _param.boundary.y_max
     );
-    double pt_z = std::min(
-        std::max(pt_world(2,0), _boundary._z_min),
-        _boundary._z_max
+    double pt3d_z = std::min(
+        std::max(pt3d[1], _param.boundary.z_min),
+        _param.boundary.z_max
     );
     
-    int index_x = std::max(
+    // find out the limits of interpolation cube
+    int x_id = std::max(
         0, 
-        (int) std::floor((pt_x - _boundary._x_min) / _dx)
+        (int) std::floor((pt3d_x - _param.boundary.x_min) / _param.dx)
     );
-    int index_y = std::max(
+    int y_id = std::max(
         0, 
-        (int) std::floor((pt_y - _boundary._y_min) / _dy)
+        (int) std::floor((pt3d_y - _param.boundary.y_min) / _param.dy)
     );
-    int index_z = std::max(
+    int z_id = std::max(
         0, 
-        (int) std::floor((pt_z - _boundary._z_min) / _dz)
+        (int) std::floor((pt3d_z - _param.boundary.z_min) / _param.dz)
     );
-
-    index_x = std::min(index_x, _nx-2);
-    index_y = std::min(index_y, _ny-2);
-    index_z = std::min(index_z, _nz-2);
+    x_id = std::min(x_id, _param.nx-2);
+    y_id = std::min(y_id, _param.ny-2);
+    z_id = std::min(z_id, _param.nz-2);
 
     AxisLimit grid_limit;
 
-    grid_limit._x_min = _grid_x[index_x];
-    grid_limit._x_max = _grid_x[index_x + 1];
+    grid_limit.x_min = _param.grid_x[x_id];
+    grid_limit.x_max = _param.grid_x[x_id + 1];
+    grid_limit.y_min = _param.grid_y[y_id];
+    grid_limit.y_max = _param.grid_y[y_id + 1];
+    grid_limit.z_min = _param.grid_z[z_id];
+    grid_limit.z_max = _param.grid_z[z_id + 1];
 
-    grid_limit._y_min = _grid_y[index_y];
-    grid_limit._y_max = _grid_y[index_y + 1];
-
-    grid_limit._z_min = _grid_z[index_z];
-    grid_limit._z_max = _grid_z[index_z + 1];
-
-    int i_000 = MapGridIndexToID(index_x  , index_y  , index_z  );
-    int i_100 = MapGridIndexToID(index_x+1, index_y  , index_z  );
-    int i_101 = MapGridIndexToID(index_x+1, index_y  , index_z+1);
-    int i_001 = MapGridIndexToID(index_x  , index_y  , index_z+1);
-    int i_010 = MapGridIndexToID(index_x  , index_y+1, index_z  );
-    int i_110 = MapGridIndexToID(index_x+1, index_y+1, index_z  );
-    int i_111 = MapGridIndexToID(index_x+1, index_y+1, index_z+1);
-    int i_011 = MapGridIndexToID(index_x  , index_y+1, index_z+1);
+    int i_000 = mapGridID(x_id  , y_id  , z_id  );
+    int i_100 = mapGridID(x_id+1, y_id  , z_id  );
+    int i_101 = mapGridID(x_id+1, y_id  , z_id+1);
+    int i_001 = mapGridID(x_id  , y_id  , z_id+1);
+    int i_010 = mapGridID(x_id  , y_id+1, z_id  );
+    int i_110 = mapGridID(x_id+1, y_id+1, z_id  );
+    int i_111 = mapGridID(x_id+1, y_id+1, z_id+1);
+    int i_011 = mapGridID(x_id  , y_id+1, z_id+1);
 
     std::vector<double> a_value = { 
-        _a(cam_index,i_000), 
-        _a(cam_index,i_100),
-        _a(cam_index,i_101),
-        _a(cam_index,i_001),
-        _a(cam_index,i_010),
-        _a(cam_index,i_110),
-        _a(cam_index,i_111),
-        _a(cam_index,i_011)
+        _param.a(cam_id,i_000), 
+        _param.a(cam_id,i_100),
+        _param.a(cam_id,i_101),
+        _param.a(cam_id,i_001),
+        _param.a(cam_id,i_010),
+        _param.a(cam_id,i_110),
+        _param.a(cam_id,i_111),
+        _param.a(cam_id,i_011)
     };
     std::vector<double> b_value = { 
-        _b(cam_index,i_000), 
-        _b(cam_index,i_100),
-        _b(cam_index,i_101),
-        _b(cam_index,i_001),
-        _b(cam_index,i_010),
-        _b(cam_index,i_110),
-        _b(cam_index,i_111),
-        _b(cam_index,i_011)
+        _param.b(cam_id,i_000), 
+        _param.b(cam_id,i_100),
+        _param.b(cam_id,i_101),
+        _param.b(cam_id,i_001),
+        _param.b(cam_id,i_010),
+        _param.b(cam_id,i_110),
+        _param.b(cam_id,i_111),
+        _param.b(cam_id,i_011)
     };
     std::vector<double> c_value = { 
-        _c(cam_index,i_000), 
-        _c(cam_index,i_100),
-        _c(cam_index,i_101),
-        _c(cam_index,i_001),
-        _c(cam_index,i_010),
-        _c(cam_index,i_110),
-        _c(cam_index,i_111),
-        _c(cam_index,i_011)
+        _param.c(cam_id,i_000), 
+        _param.c(cam_id,i_100),
+        _param.c(cam_id,i_101),
+        _param.c(cam_id,i_001),
+        _param.c(cam_id,i_010),
+        _param.c(cam_id,i_110),
+        _param.c(cam_id,i_111),
+        _param.c(cam_id,i_011)
     };
     std::vector<double> alpha_value = { 
-        _alpha(cam_index,i_000), 
-        _alpha(cam_index,i_100),
-        _alpha(cam_index,i_101),
-        _alpha(cam_index,i_001),
-        _alpha(cam_index,i_010),
-        _alpha(cam_index,i_110),
-        _alpha(cam_index,i_111),
-        _alpha(cam_index,i_011)
+        _param.alpha(cam_id,i_000), 
+        _param.alpha(cam_id,i_100),
+        _param.alpha(cam_id,i_101),
+        _param.alpha(cam_id,i_001),
+        _param.alpha(cam_id,i_010),
+        _param.alpha(cam_id,i_110),
+        _param.alpha(cam_id,i_111),
+        _param.alpha(cam_id,i_011)
     };
 
-    std::vector<double> res(4,0);
-    std::vector<double> pt_vec = {pt_x, pt_y, pt_z};
-    res[0] = myMATH::TriLinearInterp(grid_limit, a_value, pt_vec);
-    res[1] = myMATH::TriLinearInterp(grid_limit, b_value, pt_vec);
-    res[2] = myMATH::TriLinearInterp(grid_limit, c_value, pt_vec);
-    res[3] = myMATH::TriLinearInterp(grid_limit, alpha_value, pt_vec);
+    std::vector<double> res(4,0); // a,b,c,alpha
+    std::vector<double> pt_vec = {pt3d_x, pt3d_y, pt3d_z};
+    res[0] = myMATH::triLinearInterp(grid_limit, a_value, pt_vec);
+    res[1] = myMATH::triLinearInterp(grid_limit, b_value, pt_vec);
+    res[2] = myMATH::triLinearInterp(grid_limit, c_value, pt_vec);
+    res[3] = myMATH::triLinearInterp(grid_limit, alpha_value, pt_vec);
 
     return res;
 }

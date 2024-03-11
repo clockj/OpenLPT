@@ -6,69 +6,61 @@
 #include "STBCommons.h"
 #include "myMATH.h"
 
+struct OTFParam
+{
+    double dx, dy, dz;
+    int n_cam, nx, ny, nz, n_grid; // n_grid = nx*ny*nz
+
+    // OTF parameters: calculate intensity of a tracer onto camera
+    //  2D projection point: (x0, y0)
+    //  xx =  (x-x0) * cos(alpha) + (y-y0) * sin(alpha)
+    //  yy = -(x-x0) * sin(alpha) + (y-y0) * cos(alpha)
+    //  img[y,x] = a * exp(-b * xx^2 - c * yy^2) 
+    // default: a = 125, b = 1.5, c = 1.5, alpha = 0   
+    Matrix<double> a, b, c, alpha; 
+    
+    AxisLimit boundary;
+    std::vector<double> grid_x, grid_y, grid_z;
+};
+
 class OTF 
 {
 private:
-    // _a, _b, _c, _alpha: n_cam*n_grid, n_grid = _nx*_ny*_nz
-    //  i in 0 ~ n_grid: i = index_x*_ny*_nz + index_y*_nz + index_z
-    //  for index_x in 0:_nx-1 
-    //      for index_y in 0:_ny-1 
-    //          for index_z in 0:_nz-1  
+    //  i in 0 ~ n_grid: i = x_id * (ny*nz) + y_id * nz + z_id
+    //  for x_id = 0:_nx-1 
+    //      for y_id = 0:_ny-1 
+    //          for z_id = 0:_nz-1  
     //              i ++
-    int _n_cam, _nx, _ny, _nz, _n_grid;
-    Matrix<double> _a, _b, _c, _alpha;
-    double _dx, _dy, _dz;
-    AxisLimit _boundary;
-    std::vector<double> _grid_x, _grid_y, _grid_z;
-
-    void LoadParam (int n_cam, int n_x, int n_y, int n_z, AxisLimit& boundary);
-    void LoadParam (int n_cam, int n, AxisLimit& boundary);
-    void SetGrid ();
+    int mapGridID (int x_id, int y_id, int z_id)
+    {
+        int id = x_id * (_param.ny*_param.nz) + y_id * _param.nz + z_id;
+        return id;
+    }
+    void setGrid ();
 
 public:
-    // TODO: add self-calibration code.
+    OTFParam _param;
+
     OTF () {};
-    OTF(int n_cam, int n_x, int n_y, int n_z, AxisLimit& boundary) 
-        : _n_cam(n_cam), _nx(n_x), _ny(n_y), _nz(n_z),
-          _n_grid(_nx*_ny*_nz),
-          _a(_n_cam, _n_grid, 125),
-          _b(_n_cam, _n_grid, 1.5),
-          _c(_n_cam, _n_grid, 1.5),
-          _alpha(_n_cam, _n_grid, 0),
-          _boundary(boundary)
-    {
-        SetGrid();
-    };
-    OTF(int n_cam, int n, AxisLimit& boundary) 
-        : OTF(n_cam, n, n, n, boundary)
-    {};
+    OTF(const OTF& otf) : _param(otf._param) {};
 
-    OTF(int n_cam, int n_x, int n_y, int n_z, AxisLimit& boundary, std::string file_head);
-    OTF(int n_cam, int n, AxisLimit& boundary, std::string file_head)
-        : OTF(n_cam, n, n, n, boundary, file_head)
-    {};
+    // nx,ny,nz >= 2
+    // set as default a,b,c,alpha values
+    OTF(int n_cam, int nx, int ny, int nz, AxisLimit const& boundary); 
 
-    OTF(const OTF& otf)
-        : _n_cam(otf._n_cam), _nx(otf._nx), _ny(otf._ny), _nz(otf._nz),
-          _n_grid(otf._n_grid),_a(otf._a), _b(otf._b), _c(otf._c), _alpha(otf._alpha), 
-          _dx(otf._dx), _dy(otf._dy), _dz(otf._dz), _boundary(otf._boundary),
-          _grid_x(otf._grid_x), _grid_y(otf._grid_y), _grid_z(otf._grid_z)
-    {};
+    // nx,ny,nz >= 2
+    // use file to load a,b,c,alpha
+    OTF(std::string otf_file); 
 
     ~OTF() {};
 
-    int MapGridIndexToID (int index_x, int index_y, int index_z)
-    {
-        return index_x*_ny*_nz + index_y*_nz + index_z;
-    }
+    void loadParam (int n_cam, int nx, int ny, int nz, AxisLimit const& boundary);
+    void loadParam (std::string otf_file);
 
     // Output: (a,b,c,alpha)
-    std::vector<double> GetOTFParam(int cam_index, const Matrix<double>& pt_world);
-    Matrix<double> GetA() 
-    {
-        return _a;
-    }
+    std::vector<double> getOTFParam(int cam_id, Pt3D const& pt_world);
 
+    // TODO: add self-calibration code.
 };
 
 #endif

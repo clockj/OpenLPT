@@ -33,7 +33,7 @@ set(HEADERFILES
     ${CMAKE_HOME_DIRECTORY}/inc/libObject/ObjectInfo.h
     ${CMAKE_HOME_DIRECTORY}/inc/libObject/ObjectFinder.h
     ${CMAKE_HOME_DIRECTORY}/inc/libSTB/StereoMatch.h
-    # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/OTF.h
+    ${CMAKE_HOME_DIRECTORY}/inc/libSTB/OTF.h
     # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/Shake.h
     # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/IPR.h
     # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/PredField.h
@@ -49,7 +49,7 @@ set(SOURCEFILES main.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcObject/ObjectInfo.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcObject/ObjectFinder.hpp
     ${CMAKE_HOME_DIRECTORY}/src/srcSTB/StereoMatch.hpp
-    # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/OTF.cpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcSTB/OTF.cpp
     # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/Shake.hpp
     # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/IPR.hpp
     # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/PredField.hpp
@@ -200,4 +200,19 @@ add_executable(test_StereoMatch ${CMAKE_HOME_DIRECTORY}/test/test_StereoMatch.cp
 target_link_libraries(test_StereoMatch PUBLIC tiff)
 add_test(test_StereoMatch test_StereoMatch)
 set_tests_properties(test_StereoMatch
+                     PROPERTIES FAIL_REGULAR_EXPRESSION "failed on line")
+
+
+# test OTF
+add_executable(test_OTF ${CMAKE_HOME_DIRECTORY}/test/test_OTF.cpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcSTB/OTF.cpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcMath/Matrix.hpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcMath/myMATH.cpp
+    ${TESTHEADERFILES}
+    ${CMAKE_HOME_DIRECTORY}/inc/libSTB/OTF.h
+    ${CMAKE_HOME_DIRECTORY}/inc/libMath/Matrix.h
+    ${CMAKE_HOME_DIRECTORY}/inc/libMath/myMATH.h
+)
+add_test(test_OTF test_OTF)
+set_tests_properties(test_OTF
                      PROPERTIES FAIL_REGULAR_EXPRESSION "failed on line")
