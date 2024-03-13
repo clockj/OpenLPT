@@ -8,21 +8,9 @@ StereoMatch::StereoMatch(StereoMatchParam param, CamList& cam_list)
 
 void StereoMatch::clearAll()
 {
-    if (_objID_map_list.size() > 0)
-    {
-        _objID_map_list.clear();
-    }
-
-    if (_error_list.size() > 0)
-    {
-        _error_list.clear();
-    }
-
-    if (_objID_match_list.size() > 0)
-    {
-        _objID_match_list.clear();
-    }
-
+    _objID_map_list.clear();
+    _error_list.clear();
+    _objID_match_list.clear();
     _n_before_del = 0;
 }
 
@@ -31,10 +19,7 @@ void StereoMatch::match(std::vector<T3D>& obj3d_list, std::vector<std::vector<T2
 {
     // clear all the lists
     clearAll();
-    if (obj3d_list.size() > 0)
-    {
-        obj3d_list.clear();
-    }
+    obj3d_list.clear();
 
     if (typeid(T3D) == typeid(Tracer3D) && typeid(T2D) == typeid(Tracer2D))
     {   
@@ -382,7 +367,7 @@ void StereoMatch::removeGhostTracer (std::vector<Tracer3D>& tr3d_list, std::vect
     Tracer3D tr3d;
     tr3d._camid_list = _cam_list.useid_list;
     tr3d._n_2d = _n_cam_use;
-    tr3d._tracer2d_list.resize(_n_cam_use);
+    tr3d._tr2d_list.resize(_n_cam_use);
     std::vector<Line3D> sight3D_list(_n_cam_use);
 
     int cam_id;
@@ -397,8 +382,8 @@ void StereoMatch::removeGhostTracer (std::vector<Tracer3D>& tr3d_list, std::vect
                 tr2d_id = _objID_match_list[i][id];
                 cam_id = _cam_list.useid_list[id];
 
-                tr3d._tracer2d_list[id]._pt_center = tr2d_list[id][tr2d_id]._pt_center;
-                sight3D_list[id] = _cam_list.cam_list[cam_id].lineOfSight(tr3d._tracer2d_list[id]._pt_center);
+                tr3d._tr2d_list[id]._pt_center = tr2d_list[id][tr2d_id]._pt_center;
+                sight3D_list[id] = _cam_list.cam_list[cam_id].lineOfSight(tr3d._tr2d_list[id]._pt_center);
             }
 
             myMATH::triangulation(tr3d._pt_center, tr3d._error, sight3D_list);
@@ -549,7 +534,7 @@ void StereoMatch::removeGhostTracerTest (std::vector<Tracer3D>& tr3d_list, std::
     Tracer3D tr3d;
     tr3d._camid_list = _cam_list.useid_list;
     tr3d._n_2d = _n_cam_use;
-    tr3d._tracer2d_list.resize(_n_cam_use);
+    tr3d._tr2d_list.resize(_n_cam_use);
     std::vector<Line3D> sight3D_list(_n_cam_use);
 
     int cam_id;
@@ -564,8 +549,8 @@ void StereoMatch::removeGhostTracerTest (std::vector<Tracer3D>& tr3d_list, std::
                 tr2d_id = _objID_match_list[i][id];
                 cam_id = _cam_list.useid_list[id];
 
-                tr3d._tracer2d_list[id]._pt_center = tr2d_list[id][tr2d_id]._pt_center;
-                sight3D_list[id] = _cam_list.cam_list[cam_id].lineOfSight(tr3d._tracer2d_list[id]._pt_center);
+                tr3d._tr2d_list[id]._pt_center = tr2d_list[id][tr2d_id]._pt_center;
+                sight3D_list[id] = _cam_list.cam_list[cam_id].lineOfSight(tr3d._tr2d_list[id]._pt_center);
             }
 
             myMATH::triangulation(tr3d._pt_center, tr3d._error, sight3D_list);
@@ -600,7 +585,7 @@ void StereoMatch::fillTracerInfo (std::vector<Tracer3D>& tr3d_list, std::vector<
     Tracer3D tr3d;
     tr3d._camid_list = _cam_list.useid_list;
     tr3d._n_2d = _n_cam_use;
-    tr3d._tracer2d_list.resize(_n_cam_use);
+    tr3d._tr2d_list.resize(_n_cam_use);
 
     std::vector<Line3D> sight3D_list(_n_cam_use);
     
@@ -613,8 +598,8 @@ void StereoMatch::fillTracerInfo (std::vector<Tracer3D>& tr3d_list, std::vector<
             tr2d_id = _objID_match_list[i][id];
             cam_id = _cam_list.useid_list[id];
 
-            tr3d._tracer2d_list[id]._pt_center = tr2d_list[id][tr2d_id]._pt_center;
-            sight3D_list[id] = _cam_list.cam_list[cam_id].lineOfSight(tr3d._tracer2d_list[id]._pt_center);
+            tr3d._tr2d_list[id]._pt_center = tr2d_list[id][tr2d_id]._pt_center;
+            sight3D_list[id] = _cam_list.cam_list[cam_id].lineOfSight(tr3d._tr2d_list[id]._pt_center);
         }
 
         myMATH::triangulation(tr3d._pt_center, tr3d._error, sight3D_list);
@@ -652,8 +637,8 @@ void StereoMatch::saveTracerInfo (std::string path, std::vector<Tracer3D> const&
         {
             cam_id = tr3d_list[i]._camid_list[j];
 
-            pt2d_list[cam_id*2] = tr3d_list[i]._tracer2d_list[j]._pt_center[0];
-            pt2d_list[cam_id*2+1] = tr3d_list[i]._tracer2d_list[j]._pt_center[1];
+            pt2d_list[cam_id*2] = tr3d_list[i]._tr2d_list[j]._pt_center[0];
+            pt2d_list[cam_id*2+1] = tr3d_list[i]._tr2d_list[j]._pt_center[1];
         }
 
         for (int j = 0; j < n_cam_all; j ++)

@@ -77,8 +77,7 @@ void isOutlier (std::vector<int>& judge, std::vector<T> const& nums)
     int n = nums.size();
     if (judge.size() != n)
     {
-        std::cerr << "myMATH::IsOutlier: size unequal" << std::endl;
-        throw error_size;
+        judge.resize(n);
     }
 
     double median = getMedian<T> (nums);
@@ -478,6 +477,11 @@ bool isLocalMax (Matrix<T> const& mtx, int row_id, int col_id)
 
     return true;
 };
+
+
+// Fit quadratic function
+// y = coeff[0] + coeff[1] * x + coeff[2] * x^2 + ...
+void polyfit (std::vector<double>& coeff, std::vector<double> const& x, std::vector<double> const& y, int order);
 
 }
 

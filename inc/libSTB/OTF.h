@@ -31,7 +31,7 @@ private:
     //      for y_id = 0:_ny-1 
     //          for z_id = 0:_nz-1  
     //              i ++
-    int mapGridID (int x_id, int y_id, int z_id)
+    int mapGridID (int x_id, int y_id, int z_id) const
     {
         int id = x_id * (_param.ny*_param.nz) + y_id * _param.nz + z_id;
         return id;
@@ -58,7 +58,7 @@ public:
     void loadParam (std::string otf_file);
 
     // Output: (a,b,c,alpha)
-    std::vector<double> getOTFParam(int cam_id, Pt3D const& pt_world);
+    std::vector<double> getOTFParam(int cam_id, Pt3D const& pt_world) const;
 
     // TODO: add self-calibration code.
 };

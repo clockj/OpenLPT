@@ -17,6 +17,7 @@ bool test_function_1 ()
     {
         Camera cam("../test/inputs/test_StereoMatch/cam" + std::to_string(i+1) + ".txt");
         cam_list.cam_list.push_back(cam);
+        cam_list.intensity_max.push_back(255); // default
         cam_list.useid_list.push_back(i);
     }
 
@@ -165,6 +166,7 @@ bool test_function_2 ()
     {
         Camera cam("../test/inputs/test_StereoMatch/cam" + std::to_string(i+1) + ".txt");
         cam_list.cam_list.push_back(cam);
+        cam_list.intensity_max.push_back(255); // default
         cam_list.useid_list.push_back(i);
     }
 
@@ -314,6 +316,7 @@ bool test_function_3 ()
     {
         Camera cam("../test/inputs/test_StereoMatch/cam" + std::to_string(i+1) + ".txt");
         cam_list.cam_list.push_back(cam);
+        cam_list.intensity_max.push_back(255); // default
         cam_list.useid_list.push_back(i);
     }
 

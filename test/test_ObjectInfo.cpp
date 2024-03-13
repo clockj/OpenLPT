@@ -52,7 +52,7 @@ bool test_function_2 ()
     tr3d.addTracer2D(tr2d_2, 10);
     tr3d.addTracer2D(tr2d_3, 2);
     camid_list = tr3d._camid_list;
-    tracer2d_list = tr3d._tracer2d_list;
+    tracer2d_list = tr3d._tr2d_list;
     if (camid_list.size() != 3 || tracer2d_list.size() != 3)
     {
         std::cout << "test_function_2: addTracer2D failed (line " << __LINE__ << ")" << std::endl;
@@ -75,7 +75,7 @@ bool test_function_2 ()
     // test removeTracer2D
     tr3d.removeTracer2D(100);
     camid_list = tr3d._camid_list;
-    tracer2d_list = tr3d._tracer2d_list;
+    tracer2d_list = tr3d._tr2d_list;
     if (camid_list.size() != 3 || tracer2d_list.size() != 3)
     {
         std::cout << "test_function_2: removeTracer2D failed (line " << __LINE__ << ")" << std::endl;
@@ -98,7 +98,7 @@ bool test_function_2 ()
     std::vector<Tracer2D> tr2d_list_ans_2 = {tr2d_1, tr2d_3};
     std::vector<int> camid_list_ans_2 = {0, 2};
     camid_list = tr3d._camid_list;
-    tracer2d_list = tr3d._tracer2d_list;
+    tracer2d_list = tr3d._tr2d_list;
     if (camid_list.size() != 2 || tracer2d_list.size() != 2)
     {
         std::cout << "test_function_2: removeTracer2D failed (line " << __LINE__ << ")" << std::endl;
@@ -119,7 +119,7 @@ bool test_function_2 ()
 
     tr3d.removeTracer2D({0, 2});
     camid_list = tr3d._camid_list;
-    tracer2d_list = tr3d._tracer2d_list;
+    tracer2d_list = tr3d._tr2d_list;
     if (camid_list.size() != 0 || tracer2d_list.size() != 0)
     {
         std::cout << "test_function_2: removeTracer2D failed (line " << __LINE__ << ")" << std::endl;
@@ -135,7 +135,7 @@ bool test_function_2 ()
     tr3d.addTracer2D(tr2d_3, 2);
     tr3d.clearTracer2D();
     camid_list = tr3d._camid_list;
-    tracer2d_list = tr3d._tracer2d_list;
+    tracer2d_list = tr3d._tr2d_list;
     if (camid_list.size() != 0 || tracer2d_list.size() != 0)
     {
         std::cout << "test_function_2: clearTracer2D failed (line " << __LINE__ << ")" << std::endl;
@@ -151,7 +151,7 @@ bool test_function_2 ()
     tr3d.addTracer2D(tr2d_3, 2);
     Tracer2D tr2d_4 = Tracer2D(Pt2D(11, 12));
     tr3d.updateTracer2D(tr2d_4, 10);
-    tracer2d_list = tr3d._tracer2d_list;
+    tracer2d_list = tr3d._tr2d_list;
     if (tracer2d_list.size() != 3 || tracer2d_list[1]._pt_center != tr2d_4._pt_center)
     {
         std::cout << "test_function_2: updateTracer2D failed (line " << __LINE__ << ")" << std::endl;
@@ -160,7 +160,7 @@ bool test_function_2 ()
     }
 
     tr3d.updateTracer2D({tr2d_4, tr2d_4}, {0, 2});
-    tracer2d_list = tr3d._tracer2d_list;
+    tracer2d_list = tr3d._tr2d_list;
     if (tracer2d_list.size() != 2 || 
         tracer2d_list[0]._pt_center != tr2d_4._pt_center || 
         tracer2d_list[1]._pt_center != tr2d_4._pt_center)
@@ -180,7 +180,7 @@ bool test_function_2 ()
         cam_list_all.push_back(cam);
     }
     tr3d.projectTracer2D(camid_list_2, cam_list_all);
-    tracer2d_list = tr3d._tracer2d_list;
+    tracer2d_list = tr3d._tr2d_list;
     camid_list = tr3d._camid_list;
     if (tracer2d_list.size() != 4 || camid_list.size() != 4)
     {

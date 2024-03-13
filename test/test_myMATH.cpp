@@ -547,6 +547,106 @@ bool test_function_16 ()
     return true;
 }
 
+// test polyfit
+bool test_function_17 ()
+{
+    // load x_list
+    std::vector<std::vector<double>> x_list;
+    std::ifstream file("../test/inputs/test_myMATH/x_list.txt");
+    std::string line;
+    std::cout << "load x:" << std::endl;
+    while (std::getline(file, line))
+    {
+        std::stringstream is(line);
+        std::vector<double> val_list;
+        std::string val;
+        while (std::getline(is, val, ','))
+        {
+            val_list.push_back(std::stof(val));
+        }
+        x_list.push_back(val_list);
+    }
+    file.close();
+
+    // load y_list
+    std::vector<std::vector<double>> y_list;
+    file.open("../test/inputs/test_myMATH/y_list.txt");
+    while (std::getline(file, line))
+    {
+        std::stringstream is(line);
+        std::vector<double> val_list;
+        std::string val;
+        while (std::getline(is, val, ','))
+        {
+            val_list.push_back(std::stof(val));
+        }
+        y_list.push_back(val_list);
+    }
+    file.close();
+
+    // load order_list
+    std::vector<int> order_list;
+    file.open("../test/inputs/test_myMATH/order_list.txt");
+    while (std::getline(file, line))
+    {
+        order_list.push_back(std::stoi(line));
+    }
+    file.close();
+
+    // load sol: coeff_list
+    std::vector<std::vector<double>> coeff_list_sol;
+    file.open("../test/solutions/test_myMATH/coeff_list.txt");
+    while (std::getline(file, line))
+    {
+        std::stringstream is(line);
+        std::vector<double> val_list;
+        std::string val;
+        while (std::getline(is, val, ','))
+        {
+            val_list.push_back(std::stof(val));
+        }
+        coeff_list_sol.push_back(val_list);
+    }
+    file.close();
+
+    // calculate coeff_list using polyfit
+    std::vector<std::vector<double>> coeff_list;
+    for (int i = 0; i < x_list.size(); i ++)
+    {
+        std::vector<double> coeff;
+        myMATH::polyfit (coeff, x_list[i], y_list[i], order_list[i]);
+        coeff_list.push_back(coeff);
+    }
+
+    for (int i = 0; i < coeff_list_sol.size(); i ++)
+    {
+        for (int j = 0; j < coeff_list_sol[i].size(); j ++)
+        {
+            if (std::fabs(coeff_list_sol[i][j]-coeff_list[i][j]) > 1e-5)
+            {
+                std::cout << "test_function_17: polyfit failed" << std::endl;
+                std::cout << "coeff: " << std::endl;
+                for (int k = 0; k < coeff_list[i].size(); k ++)
+                {
+                    std::cout << std::setprecision(SAVEPRECISION) << coeff_list[i][k] << " ";
+                }
+                std::cout << std::endl;
+
+                std::cout << "coeff_ans: " << std::endl;
+                for (int k = 0; k < coeff_list_sol[i].size(); k ++)
+                {
+                    std::cout << std::setprecision(SAVEPRECISION) << coeff_list_sol[i][k] << " ";
+                }
+                std::cout << std::endl;
+                
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
 int main()
 {
     IS_TRUE(test_function_1());
@@ -565,6 +665,7 @@ int main()
     IS_TRUE(test_function_14());
     IS_TRUE(test_function_15());
     IS_TRUE(test_function_16());
+    IS_TRUE(test_function_17());
 
     return 0;
 }

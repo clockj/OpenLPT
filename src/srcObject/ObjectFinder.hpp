@@ -84,11 +84,7 @@ void ObjectFinder2D::findObject2D
 {
     if (typeid(T) == typeid(Tracer2D))
     {
-        if (obj2d_list.size() > 0)
-        {
-            obj2d_list.clear();
-        }
-
+        obj2d_list.clear();
         findTracer2D(obj2d_list, img, properties[0], properties[1]);
     }
     else

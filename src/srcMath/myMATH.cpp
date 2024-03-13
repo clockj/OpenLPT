@@ -283,7 +283,7 @@ void triangulation(Pt3D& pt_world, double& error,
 }
 
 // Find the cross points of two 2d lines
-Pt2D crossPoint(Line2D const& line1, Line2D const& line2)
+Pt2D crossPoint (Line2D const& line1, Line2D const& line2)
 {
     double den = line1.unit_vector[0] * line2.unit_vector[1] - line1.unit_vector[1] * line2.unit_vector[0];
     if (std::fabs(den) < SMALLNUMBER)
@@ -301,6 +301,53 @@ Pt2D crossPoint(Line2D const& line1, Line2D const& line2)
     res += line1.pt;
 
     return res;
+}
+
+// Polynomial fit
+void polyfit (std::vector<double>& coeff, std::vector<double> const& x, std::vector<double> const& y, int order)
+{
+    if (x.size() != y.size())
+    {
+        std::cerr << "myMATH::polyfit error at line " << __LINE__ << ":\n"
+                  << "x.size() != y.size()"
+                  << std::endl;
+        throw error_size;
+    }
+
+    if (order < 1)
+    {
+        std::cerr << "myMATH::polyfit error at line " << __LINE__ << ":\n"
+                  << "order < 1"
+                  << std::endl;
+        throw error_range;
+    }
+
+
+    int n = x.size();
+    int m = order + 1;
+    
+    Matrix<double> x_mat(n, m, 0);
+    Matrix<double> y_mat(n, 1, 0);
+    Matrix<double> a_mat(m, 1, 0);
+
+    for (int i = 0; i < n; i ++)
+    {
+        for (int j = 0; j < m; j ++)
+        {
+            x_mat(i,j) = std::pow(x[i], j);
+        }
+        y_mat(i,0) = y[i];
+    }
+
+    // std::string method = m < 4 ? "det" : "gauss";
+    std::string method = "gauss";
+    a_mat = myMATH::inverse(x_mat.transpose() * x_mat, method) * x_mat.transpose() * y_mat;
+
+    coeff.resize(m);
+    for (int i = 0; i < m; i ++)
+    {
+        coeff[i] = a_mat(i,0);
+    }
 }
 
 }

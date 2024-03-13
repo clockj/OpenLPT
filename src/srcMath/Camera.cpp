@@ -341,7 +341,7 @@ void Camera::saveParameters (std::string file_name)
 // 
 // Get image size
 //
-int Camera::getNRow ()
+int Camera::getNRow () const
 {
     if (_type == PINHOLE)
     {
@@ -358,7 +358,7 @@ int Camera::getNRow ()
     }
 }
 
-int Camera::getNCol ()
+int Camera::getNCol () const
 {
     if (_type == PINHOLE)
     {

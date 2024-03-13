@@ -3,8 +3,7 @@
 
 #include "Shake.h"
 
-template<class T>
-PixelRange Shake<T>::FindSearchRegion (int cam_use_id, int center_row, int center_col, int half_width_pixel)
+PixelRange Shake::FindSearchRegion (int cam_use_id, int center_row, int center_col, int half_width_pixel)
 {
     // int center_row = tracer.tracer_center_pixel(1,0);
     // int center_col = tracer.tracer_center_pixel(0,0);
@@ -42,8 +41,7 @@ PixelRange Shake<T>::FindSearchRegion (int cam_use_id, int center_row, int cente
 
 
 // (x, y) = (col_id, row_id)
-template<class T>
-double Shake<T>::GaussianProjection (Matrix<double>& tracer_center_pixel, std::vector<double>& otf_param, int x, int y)
+double Shake::GaussianProjection (Matrix<double>& tracer_center_pixel, std::vector<double>& otf_param, int x, int y)
 {
     double xx =   (double(x) - tracer_center_pixel(0,0)) * std::cos(otf_param[3]) 
                 + (double(y) - tracer_center_pixel(1,0)) * std::sin(otf_param[3]);
@@ -55,8 +53,7 @@ double Shake<T>::GaussianProjection (Matrix<double>& tracer_center_pixel, std::v
 }
 
 
-template<class T>
-double Shake<T>::CalPointResidue (Matrix<double>& pos_new, std::vector<PixelRange>& search_range_list, std::vector<Matrix<double>>& aug_img_list)
+double Shake::CalPointResidue (Matrix<double>& pos_new, std::vector<PixelRange>& search_range_list, std::vector<Matrix<double>>& aug_img_list)
 {
     double residue = 0;
 
@@ -104,8 +101,7 @@ double Shake<T>::CalPointResidue (Matrix<double>& pos_new, std::vector<PixelRang
 
 
 // only use the initial 3 elements
-template<class T>
-void Shake<T>::FitQuadratic (std::vector<double>& coeff, double* array, std::vector<double>& residue)
+void Shake::FitQuadratic (std::vector<double>& coeff, double* array, std::vector<double>& residue)
 {
     // std::vector<double> coeff(3,0);
 
@@ -124,8 +120,7 @@ void Shake<T>::FitQuadratic (std::vector<double>& coeff, double* array, std::vec
 }
 
 
-template<class T>
-Matrix<double> Shake<T>::UpdatePos3D (Matrix<double> const& pos_old, std::vector<PixelRange>& search_range_list, std::vector<Matrix<double>>& aug_img_list, double delta, int half_width)
+Matrix<double> Shake::UpdatePos3D (Matrix<double> const& pos_old, std::vector<PixelRange>& search_range_list, std::vector<Matrix<double>>& aug_img_list, double delta, int half_width)
 {
     Matrix<double> pos_new(pos_old);
 
@@ -261,7 +256,6 @@ Matrix<double> Shake<T>::UpdatePos3D (Matrix<double> const& pos_old, std::vector
 
 // remove search_range_small, directly use new range 
 // if use new range, if it is out of the original range, use the original image intensity
-template<class T>
 double Shake<T>::CalObjectIntensity (TracerInfo& tracer, std::vector<PixelRange>& search_range_list, std::vector<Matrix<double>>& aug_img_list, double intensity, double min_ratio_of_median)
 {
     Matrix<double> pos_new(tracer.GetCenterPos());

@@ -98,7 +98,7 @@ void OTF::loadParam (std::string otf_file)
     setGrid();
 }
 
-std::vector<double> OTF::getOTFParam(int cam_id, Pt3D const& pt3d)
+std::vector<double> OTF::getOTFParam(int cam_id, Pt3D const& pt3d) const
 { 
     double pt3d_x = std::min(
         std::max(pt3d[0], _param.boundary.x_min),

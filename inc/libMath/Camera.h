@@ -88,8 +88,8 @@ public:
     //                //
     // Get image size //
     //                //
-    int getNRow (); // get number of rows of the image
-    int getNCol (); // get number of columns of the image
+    int getNRow () const; // get number of rows of the image
+    int getNCol () const; // get number of columns of the image
 
 
     //            //
@@ -150,7 +150,8 @@ public:
 
 struct CamList
 {
-    std::vector<Camera> cam_list; // id: 0,1,2,3,..
+    std::vector<Camera> cam_list; // cam_id: 0,1,2,3,..
+    std::vector<int> intensity_max; // default: 8 digit (255), save size as cam_list
     std::vector<int> useid_list; // cam_id to be used
 };
 

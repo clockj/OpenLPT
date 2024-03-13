@@ -16,6 +16,7 @@
 
 // intensity
 #define INTSMALLNUMBER 1e-6
+#define INTLARGENUMBER 1e6
 
 struct PixelRange 
 {
@@ -61,14 +62,14 @@ struct PixelRange
         setRowRange(row);
         setColRange(col);
     };
-    int getNumOfRow ()
+    int getNumOfRow () const
     {
         return row_max - row_min;
-    }
-    int getNumOfCol()
+    };
+    int getNumOfCol() const
     {
         return col_max - col_min;
-    }
+    };
 };
 
 struct AxisLimit 
