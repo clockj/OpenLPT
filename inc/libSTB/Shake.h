@@ -6,6 +6,7 @@
 #include <string>
 #include <omp.h>
 #include <time.h>
+#include <random>
 
 #include "Matrix.h"
 #include "ObjectInfo.h"
@@ -43,6 +44,7 @@ private:
     // Shaking and refine 3D position and search range
     // return final residue
     double updateTracer (Tracer3D& tr3d, std::vector<Image>& imgAug_list, std::vector<PixelRange>& region_list, OTF const& otf, double delta);
+    double updateTracerGrad (Tracer3D& tr3d, std::vector<Image>& imgAug_list, std::vector<PixelRange>& region_list, OTF const& otf, double delta, double lr);
 
     // Update imgAug_list and region_list
     void updateImgAugList (std::vector<Image>& imgAug_list, std::vector<PixelRange>& region_list, Tracer3D const& tr3d);
@@ -52,6 +54,7 @@ private:
 
     // Procedure for each shake
     double shakeOneTracer(Tracer3D& tr3d, OTF const& otf, double delta, double score_old);
+    double shakeOneTracerGrad(Tracer3D& tr3d, OTF const& otf, double delta, double lr=1e-4);
 
     // Remove all tracked particles from image to get residual image.
     void calResImg(std::vector<Tracer3D> const& tr3d_list, OTF const& otf, std::vector<Image> const& imgOrig_list);

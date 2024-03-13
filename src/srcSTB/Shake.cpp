@@ -3,7 +3,7 @@
 
 #include "Shake.h"
 
-
+// TODO: try gradient descend for optimization
 void Shake::shakeTracers(std::vector<Tracer3D>& tr3d_list, OTF const& otf, std::vector<Image> const& imgOrig_list, bool tri_only)
 {
     // if only do triangulation, then skip the following steps
@@ -53,7 +53,8 @@ void Shake::shakeTracers(std::vector<Tracer3D>& tr3d_list, OTF const& otf, std::
         }
         else if (loop < 32)
         {
-            delta = _shake_width / std::pow(2, loop - 1);   
+            // delta = _shake_width / std::pow(2, loop);  
+            delta = _shake_width / std::pow(10, loop);   
         }
         else 
         {
@@ -73,7 +74,8 @@ void Shake::shakeTracers(std::vector<Tracer3D>& tr3d_list, OTF const& otf, std::
             {
                 if (!is_ignore[i])
                 {
-                    _score_list[i] = shakeOneTracer(tr3d_list[i], otf, delta, _score_list[i]);
+                    // _score_list[i] = shakeOneTracer(tr3d_list[i], otf, delta, _score_list[i]);
+                    _score_list[i] = shakeOneTracerGrad(tr3d_list[i], otf, delta);
                 }
             }
         }
@@ -264,6 +266,66 @@ double Shake::shakeOneTracer(Tracer3D& tr3d, OTF const& otf, double delta, doubl
 }
 
 
+double Shake::shakeOneTracerGrad(Tracer3D& tr3d, OTF const& otf, double delta, double lr)
+{
+    std::vector<PixelRange> region_list(_n_cam_use);
+    std::vector<Image> imgAug_list; // augmented image list
+    
+    int cam_id;
+    for (int id = 0; id < _n_cam_use; id ++)
+    {
+        cam_id = _cam_list.useid_list[id];
+
+        PixelRange region = findRegion(
+            id, 
+            tr3d._tr2d_list[id]._pt_center[1], // row
+            tr3d._tr2d_list[id]._pt_center[0], // col
+            tr3d._tr2d_list[id]._r_px
+        );
+
+        // create a particle reproj image (I_p) matrix in the pixel range
+        Image aug_img(
+            region.getNumOfRow(),
+            region.getNumOfCol(), 
+            0
+        );
+
+        std::vector<double> otf_para = otf.getOTFParam(cam_id, tr3d._pt_center);
+
+        int i = 0;
+        for (int row = region.row_min; row < region.row_max; row ++)
+        {
+            int j = 0;
+            for (int col = region.col_min; col < region.col_max; col ++)
+            {
+                double value = gaussIntensity(
+                    col, row,
+                    tr3d._tr2d_list[id]._pt_center,
+                    otf_para
+                );
+
+                // Creating a particle augmented residual image: (res+p)
+                aug_img(i, j) = std::max( 
+                    0.0,
+                    std::min(double(_cam_list.intensity_max[cam_id]), 
+                             _imgRes_list[id](row,col) + value)
+                );
+                j++;
+            }
+            i++;
+        }
+
+        region_list[id] = region;
+        imgAug_list.push_back(aug_img);
+    }
+
+    // Update the particle position, imgAug and search range
+    double residue = updateTracerGrad(tr3d, imgAug_list, region_list, otf, delta, lr);
+
+    return residue;
+}
+
+
 double Shake::updateTracer(Tracer3D& tr3d, std::vector<Image>& imgAug_list, std::vector<PixelRange>& region_list, OTF const& otf, double delta)
 {
     std::vector<double> delta_list(3);
@@ -376,6 +438,112 @@ double Shake::updateTracer(Tracer3D& tr3d, std::vector<Image>& imgAug_list, std:
     // updateImgAugList(imgAug_list, region_list, tr3d);
 
     return residue;
+}
+
+
+
+double Shake::updateTracerGrad(Tracer3D& tr3d, std::vector<Image>& imgAug_list, std::vector<PixelRange>& region_list, OTF const& otf, double delta, double lr)
+{
+    double residue_old, residue_new;
+    double limit_min, limit_max;
+    Pt3D shift3d, grad;
+
+    // initialize shift
+    std::mt19937 gen(1);
+    std::bernoulli_distribution distribution(0.5);
+    shift3d[0] = int(distribution(gen)) * 2 - 1;
+    shift3d[1] = int(distribution(gen)) * 2 - 1;
+    shift3d[2] = int(distribution(gen)) * 2 - 1;
+    shift3d = shift3d / shift3d.norm() * delta;
+
+    // calculate current residue
+    residue_old = calPointResidue(tr3d._pt_center, region_list, imgAug_list, otf);
+
+    double tor = 1e-6;
+    int record_step = 0;
+    for (int step = 0; step < 100; step ++)
+    {
+        // std::cout << std::endl;
+        // std::cout << "step = " << step << ", residue_old = " << residue_old << std::endl;
+        // std::cout << "shift3d = " << shift3d[0] << ", " << shift3d[1] << ", " << shift3d[2] << std::endl;
+        // std::cout << "tr3d._pt_center = " << tr3d._pt_center[0] << ", " << tr3d._pt_center[1] << ", " << tr3d._pt_center[2] << std::endl;
+
+        // update tr3d
+        for (int i = 0; i < 3; i ++)
+        {
+            switch (i)
+            {
+                case 0:
+                    limit_min = otf._param.boundary.x_min;
+                    limit_max = otf._param.boundary.x_max;
+                    break;
+                case 1:
+                    limit_min = otf._param.boundary.y_min;
+                    limit_max = otf._param.boundary.y_max;
+                    break;
+                case 2:
+                    limit_min = otf._param.boundary.z_min;
+                    limit_max = otf._param.boundary.z_max;
+                    break;
+                default:
+                    std::cerr << "Shake::updateTracer: error at line " << __LINE__ << ".\n";
+                    throw error_range;
+            }
+
+            if (tr3d._pt_center[i] + shift3d[i] < limit_min)
+            {
+                shift3d[i] = limit_min - tr3d._pt_center[i];
+                tr3d._pt_center[i] = limit_min;
+            }
+            else if (tr3d._pt_center[i] + shift3d[i] > limit_max)
+            {
+                shift3d[i] = limit_max - tr3d._pt_center[i];
+                tr3d._pt_center[i] = limit_max;
+            }
+            else
+            {
+                tr3d._pt_center[i] += shift3d[i];
+            }
+        }
+
+        // update tr2d
+        tr3d.projectTracer2D(_cam_list.useid_list, _cam_list.cam_list);
+
+        // calculate new residue
+        residue_new = calPointResidue(tr3d._pt_center, region_list, imgAug_list, otf);
+
+        // std::cout << "residue_new = " << residue_new << std::endl;
+        // std::cout << "tr3d._pt_center = " << tr3d._pt_center[0] << ", " << tr3d._pt_center[1] << ", " << tr3d._pt_center[2] << std::endl;
+
+        // calculate grad
+        int n_stop = 0;
+        for (int i = 0; i < 3; i ++)
+        {
+            if (std::fabs(shift3d[i]) < tor)
+            {
+                grad[i] = 0;
+                n_stop ++;
+            }
+            else
+            {
+                grad[i] = (residue_new - residue_old) / shift3d[i] / 255;
+            }
+        }
+        if (n_stop == 3)
+        {
+            break;
+        }
+
+        // update tr3d
+        shift3d = grad * (-lr);
+
+        // update residue_old
+        residue_old = residue_new;
+        record_step ++;
+    }
+    // std::cout << "step = " << record_step << ", shift3d.mag = " << shift3d.norm() << std::endl;
+    
+    return residue_new;
 }
 
 

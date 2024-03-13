@@ -87,7 +87,10 @@ bool test_function_1 ()
 
     // Shake s (cam_list, 0.01, 0.1, 4, 6); // 0.25 vox, 1 vox = 0.04 mm
     // Shake s (cam_list, 0.01, 0.7, 3, 6); // 0.25 vox, 1 vox = 0.04 mm
-    Shake s (cam_list, 2*param.tor_3d, 0.1, 10, 6); // 0.25 vox, 1 vox = 0.04 mm
+    // Shake s (cam_list, 2*param.tor_3d, 0.1, 10, 6); // 0.25 vox, 1 vox = 0.04 mm
+
+    Shake s (cam_list, 2*param.tor_3d, 3, 1, 6); // gradient descent
+
     start = clock();
     s.shakeTracers(tr3d_list_shake, otf, img_list, false); // 0.25 vox, 1 vox = 0.04 mm
     end = clock();
