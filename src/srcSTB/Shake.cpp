@@ -3,6 +3,12 @@
 
 #include "Shake.h"
 
+void Shake::runShake(std::vector<Tracer3D>& tr3d_list, OTF const& otf, std::vector<Image> const& imgOrig_list, bool tri_only)
+{
+    shakeTracers(tr3d_list, otf, imgOrig_list, tri_only);
+}
+
+
 // TODO: try gradient descend for optimization
 void Shake::shakeTracers(std::vector<Tracer3D>& tr3d_list, OTF const& otf, std::vector<Image> const& imgOrig_list, bool tri_only)
 {
@@ -70,7 +76,6 @@ void Shake::shakeTracers(std::vector<Tracer3D>& tr3d_list, OTF const& otf, std::
         {
             #pragma omp for
             for (int i = 0; i < n_tr3d; i ++)
-            // for (int i = 100; i < 101; i ++)
             {
                 if (!is_ignore[i])
                 {
@@ -441,7 +446,6 @@ double Shake::updateTracer(Tracer3D& tr3d, std::vector<Image>& imgAug_list, std:
 }
 
 
-
 double Shake::updateTracerGrad(Tracer3D& tr3d, std::vector<Image>& imgAug_list, std::vector<PixelRange>& region_list, OTF const& otf, double delta, double lr)
 {
     double residue_old, residue_new;
@@ -526,7 +530,8 @@ double Shake::updateTracerGrad(Tracer3D& tr3d, std::vector<Image>& imgAug_list, 
             }
             else
             {
-                grad[i] = (residue_new - residue_old) / shift3d[i] / 255;
+                // grad[i] = (residue_new - residue_old) / shift3d[i] / 255;
+                grad[i] = (residue_new - residue_old) / shift3d[i] / 255 / 100;
             }
         }
         if (n_stop == 3)
@@ -640,7 +645,7 @@ double Shake::calPointResidue (Pt3D const& pt3d, std::vector<PixelRange> const& 
         }
     }
 
-    residue /= npts;
+    // residue /= npts;
     return residue;
 }
 

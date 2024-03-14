@@ -87,12 +87,12 @@ bool test_function_1 ()
 
     // Shake s (cam_list, 0.01, 0.1, 4, 6); // 0.25 vox, 1 vox = 0.04 mm
     // Shake s (cam_list, 0.01, 0.7, 3, 6); // 0.25 vox, 1 vox = 0.04 mm
-    // Shake s (cam_list, 2*param.tor_3d, 0.1, 10, 6); // 0.25 vox, 1 vox = 0.04 mm
+    // Shake s (cam_list, 2*param.tor_3d, 3, 4, 6); // 0.25 vox, 1 vox = 0.04 mm
 
-    Shake s (cam_list, 2*param.tor_3d, 3, 1, 6); // gradient descent
+    Shake s (cam_list, 1e-4, 3, 1, 6); // gradient descent
 
     start = clock();
-    s.shakeTracers(tr3d_list_shake, otf, img_list, false); // 0.25 vox, 1 vox = 0.04 mm
+    s.runShake(tr3d_list_shake, otf, img_list, false); // 0.25 vox, 1 vox = 0.04 mm
     end = clock();
     std::cout << "shake time = " << double(end-start)/CLOCKS_PER_SEC << " [s]" << std::endl;
     
@@ -107,7 +107,7 @@ bool test_function_1 ()
     int n_tr3d_find = tr3d_list.size();
     std::vector<int> is_mismatch(n_tr3d_real, 0);
     // double tor = param.tor_3d; // [mm]
-    double tor = 5e-3; // [mm]
+    double tor = 1e-3; // [mm]
     
     // before shake
     #pragma omp parallel for

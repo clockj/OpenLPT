@@ -1,75 +1,64 @@
 #ifndef IPR_H
 #define IPR_H
 
+#include <time.h>
 #include <vector>
+
 #include "Matrix.h"
 #include "Camera.h"
+#include "ObjectInfo.h"
+#include "ObjectFinder.h"
 #include "StereoMatch.h"
 #include "Shake.h"
 #include "OTF.h"
-#include "ObjectFinder.h"
 
-template<class T>
-class IPR 
+struct IPRParam
 {
-protected:
-	// INPUT
-	std::vector<Matrix<double>>& _orig_img_list;
-	std::vector<int>& _max_intensity_list;
-	std::vector<int>& _min_intensity_list;
-	std::vector<Camera>& _cam_list;
-	int _n_cam;
-	OTF& _otf;
+    bool tri_only = false;
+    int n_thread = 6; // number of threads
+    int n_loop_ipr = 4; // 
+    int n_loop_ipr_reduced = 2; // number of shake times after reducing cameras
 
-	bool _TRIONLY = false;
-	int _n_loop_ipr = 4;
-	int _n_loop_shake = 6;
-	int _n_loop_ipr_reduced = 2;
-	double _tol_2d = 1e-2;      // [mm], 0.25 * (x_max-x_min)/1000
-	double _tol_3d = 2.4e-2;    // [mm], 0.60 * (x_max-x_min)/1000
-	double _shake_width = 1e-2; // [mm]
+    // Stereo match parameters
+    double tol_2d = 1.; // [mm], 0.25 * (x_max-x_min)/1000
+    double tol_3d = 2.4e-2;  // [mm], 0.60 * (x_max-x_min)/1000
+    int check_id = 3; // check_id <= n_use !
+    double check_radius = 3; // [px]
 
-	// OUTPUT
-	std::vector<T> _object_info;
-	std::vector<Matrix<double>> _res_img_list;
-
-public:
-	IPR (std::vector<Matrix<double>>& orig_img_list, std::vector<int>& max_intensity_list, std::vector<int>& min_intensity_list, std::vector<Camera>& cam_list, OTF& otf);
-
-	~IPR () {};
-
-	void RunIPR(std::vector<T>& object_info, bool is_reduced = false, int n_reduced = 1);
-	void ReducedCamLoop (std::vector<int> cam_id, int n_cam);
-	void CreateCamID (std::deque<std::vector<int>>& cam_id_all, std::vector<int> cam_id, int id, int n_rest);
-
-	void SetTRIONLY (bool TRIONLY) {_TRIONLY = TRIONLY;};
-
-	void SetTol2D (double tol_2d) {_tol_2d = tol_2d;};
-	void SetTol3D (double tol_3d) {_tol_3d = tol_3d;};
-
-	void SetShakeWidth (double shake_width) {_shake_width = shake_width;};
-	
-	void SetIPRTimes (int n_loop_ipr) { _n_loop_ipr = n_loop_ipr; };
-	void SetShakeTimes (int n_loop_shake) { _n_loop_shake = n_loop_shake; };
-
-	std::vector<Matrix<double>> GetResImgList () {return _res_img_list;};
-
-	std::vector<T> GetObjList () {return _object_info;};
-	std::vector<Matrix<double>> GetPtList () 
-	{
-		int n = _object_info.size();
-		std::vector<Matrix<double>> pt_list(n, Matrix<double>(3,1));
-		Matrix<double> pt(3,1);
-
-		for (int i = 0; i < n; i ++)
-		{
-			pt_list[i] = _object_info[i].GetCenterPos();
-		}
-
-		return pt_list;
-	};
+    // Shake parameters
+    int n_loop_shake = 1; // number of shake times, using gradient descent
+    double shake_width = 2*2.4e-2; // [mm]
+    double ghost_threshold = 3; // Ghost threshold: remove residue > mean + ghost_threshold * std
 };
 
-#include "IPR.hpp"
+
+class IPR 
+{
+private:
+    CamList& _cam_list;
+    int _n_cam_all;
+
+    void resetCamIDList ();
+
+public:
+    std::vector<Image> _imgRes_list;
+    IPRParam _param;
+
+    IPR (CamList& cam_list, std::vector<Image> const& imgOrig_list, IPRParam const& param) 
+        : _cam_list(cam_list), _n_cam_all(cam_list.cam_list.size()), _imgRes_list(imgOrig_list), _param(param) 
+    {};
+
+    ~IPR () {};
+
+    // Run IPR
+    void runIPR(std::vector<Tracer3D>& tr3d_list_all, std::vector<double> const& tr2d_properties, OTF const& otf, bool is_reduced = false, int n_reduced = 1);
+
+    // Run IPR with reduced cameras
+    void reducedCamLoop (std::vector<Tracer3D>& tr3d_list_all, std::vector<double> const& tr2d_properties, 
+    OTF const& otf, std::vector<int> const& cam_id, int n_cam);
+    void createCamID (std::deque<std::vector<int>>& cam_id_all, std::vector<int> cam_id, int id, int n_rest);
+
+};
+
 
 #endif // !IPR_H

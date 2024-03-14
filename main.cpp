@@ -7,10 +7,10 @@
 
 #include "myMATH.h"
 #include "Matrix.h"
-// #include "Camera.h"
-// #include "ObjectInfo.h"
+#include "Camera.h"
+#include "ObjectInfo.h"
 #include "ImageIO.h"
-// #include "ObjectFinder.h"
+#include "ObjectFinder.h"
 // #include "StereoMatch.h"
 // #include "OTF.h"
 // #include "Shake.h"

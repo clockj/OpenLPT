@@ -35,7 +35,7 @@ set(HEADERFILES
     ${CMAKE_HOME_DIRECTORY}/inc/libSTB/StereoMatch.h
     ${CMAKE_HOME_DIRECTORY}/inc/libSTB/OTF.h
     ${CMAKE_HOME_DIRECTORY}/inc/libSTB/Shake.h
-    # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/IPR.h
+    ${CMAKE_HOME_DIRECTORY}/inc/libSTB/IPR.h
     # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/PredField.h
     # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/Track.h
     # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/STB.h
@@ -51,7 +51,7 @@ set(SOURCEFILES main.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcSTB/StereoMatch.hpp
     ${CMAKE_HOME_DIRECTORY}/src/srcSTB/OTF.cpp
     ${CMAKE_HOME_DIRECTORY}/src/srcSTB/Shake.cpp
-    # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/IPR.hpp
+    ${CMAKE_HOME_DIRECTORY}/src/srcSTB/IPR.cpp
     # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/PredField.hpp
     # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/Track.hpp
     # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/STB.hpp
@@ -243,4 +243,34 @@ add_executable(test_Shake ${CMAKE_HOME_DIRECTORY}/test/test_Shake.cpp
 target_link_libraries(test_Shake PUBLIC tiff)
 add_test(test_Shake test_Shake)
 set_tests_properties(test_Shake
+                     PROPERTIES FAIL_REGULAR_EXPRESSION "failed on line")
+
+
+# test IPR
+add_executable(test_IPR ${CMAKE_HOME_DIRECTORY}/test/test_IPR.cpp
+    ${CMAKE_HOME_DIRECTORY}/inc/libSTB/StereoMatch.h
+    ${CMAKE_HOME_DIRECTORY}/src/srcSTB/StereoMatch.hpp
+    ${CMAKE_HOME_DIRECTORY}/inc/libSTB/IPR.h
+    ${CMAKE_HOME_DIRECTORY}/src/srcSTB/IPR.cpp
+    ${CMAKE_HOME_DIRECTORY}/inc/libSTB/Shake.h
+    ${CMAKE_HOME_DIRECTORY}/src/srcSTB/Shake.cpp
+    ${CMAKE_HOME_DIRECTORY}/inc/libSTB/OTF.h
+    ${CMAKE_HOME_DIRECTORY}/src/srcSTB/OTF.cpp
+    ${CMAKE_HOME_DIRECTORY}/inc/libMath/Matrix.h
+    ${CMAKE_HOME_DIRECTORY}/src/srcMath/Matrix.hpp
+    ${CMAKE_HOME_DIRECTORY}/inc/libMath/ImageIO.h
+    ${CMAKE_HOME_DIRECTORY}/src/srcMath/ImageIO.cpp
+    ${CMAKE_HOME_DIRECTORY}/inc/libMath/Camera.h
+    ${CMAKE_HOME_DIRECTORY}/src/srcMath/Camera.cpp
+    ${CMAKE_HOME_DIRECTORY}/inc/libMath/myMATH.h
+    ${CMAKE_HOME_DIRECTORY}/src/srcMath/myMATH.cpp
+    ${CMAKE_HOME_DIRECTORY}/inc/libObject/ObjectInfo.h
+    ${CMAKE_HOME_DIRECTORY}/src/srcObject/ObjectInfo.cpp
+    ${CMAKE_HOME_DIRECTORY}/inc/libObject/ObjectFinder.h
+    ${CMAKE_HOME_DIRECTORY}/src/srcObject/ObjectFinder.hpp
+    ${TESTHEADERFILES}
+)
+target_link_libraries(test_IPR PUBLIC tiff)
+add_test(test_IPR test_IPR)
+set_tests_properties(test_IPR
                      PROPERTIES FAIL_REGULAR_EXPRESSION "failed on line")

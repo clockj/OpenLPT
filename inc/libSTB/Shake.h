@@ -14,58 +14,8 @@
 #include "OTF.h"
 
 
-// template<class T>
 class Shake
 {
-private:
-    // INPUTS //
-    CamList const& _cam_list; 
-    int _n_cam; // number of all cameras
-    int _n_cam_use; // number of used cameras
-    double _shake_width; // unit: mm
-    double _score_min; // Ghost threshold
-    int _n_loop;       // Number of shake times
-    int _n_thread; // Number of threads
-
-    // FUNCTIONS //
-    // Calculate the windows size for shaking
-    // id: cam used id, not real cam id
-    PixelRange findRegion (int id, int row, int col, int half_width_px); // a square region
-    
-    // Gaussian intensity for particles
-    double gaussIntensity (int x, int y, Pt2D const& pt2d, std::vector<double> const& otf_param); // (x,y)=(col,row)
-
-    // Calculate residue for shaking
-    double calPointResidue (Pt3D const& pt3d, std::vector<PixelRange> const& region_list, std::vector<Image> const& imgAug_list, OTF const& otf);
-
-    // Search for the minimum residue
-    void fitQuadratic (std::vector<double>& coeff, double* array, std::vector<double>& residue);
-
-    // Shaking and refine 3D position and search range
-    // return final residue
-    double updateTracer (Tracer3D& tr3d, std::vector<Image>& imgAug_list, std::vector<PixelRange>& region_list, OTF const& otf, double delta);
-    double updateTracerGrad (Tracer3D& tr3d, std::vector<Image>& imgAug_list, std::vector<PixelRange>& region_list, OTF const& otf, double delta, double lr);
-
-    // Update imgAug_list and region_list
-    void updateImgAugList (std::vector<Image>& imgAug_list, std::vector<PixelRange>& region_list, Tracer3D const& tr3d);
-
-    // Calculate intensity for shaken particles
-    double calTracerScore (Tracer3D const& tr3d, std::vector<PixelRange> const& region_list, std::vector<Image> const& imgAug_list, OTF const& otf, double score);
-
-    // Procedure for each shake
-    double shakeOneTracer(Tracer3D& tr3d, OTF const& otf, double delta, double score_old);
-    double shakeOneTracerGrad(Tracer3D& tr3d, OTF const& otf, double delta, double lr=1e-4);
-
-    // Remove all tracked particles from image to get residual image.
-    void calResImg(std::vector<Tracer3D> const& tr3d_list, OTF const& otf, std::vector<Image> const& imgOrig_list);
-
-    // Remove negative pxiel and set them as zeros, this function is used to prepare residual image for the next run of IPR.
-    void absResImg ();
-
-    // Remove ghost particles.
-    void removeGhost(std::vector<Tracer3D>& tr3d_list);
-    void removeGhostResidue(std::vector<Tracer3D>& tr3d_list);
-
 public:
     // OUTPUTS //
     std::vector<Image> _imgRes_list; // residue image, size=_cam_list.n_cam_use: Original image - Particle projection image
@@ -84,7 +34,65 @@ public:
 
     ~Shake() {};
 
+    void runShake(std::vector<Tracer3D>& tr3d_list, OTF const& otf, std::vector<Image> const& imgOrig_list, bool tri_only=false);
+
+    
+private:
+    // INPUTS //
+    CamList const& _cam_list; 
+    int _n_cam; // number of all cameras
+    int _n_cam_use; // number of used cameras
+    double _shake_width; // unit: mm
+    double _score_min; // Ghost threshold
+    int _n_loop;       // Number of shake times
+    int _n_thread; // Number of threads
+
+
+    //                //
+    // MAIN FUNCTIONS //
+    //                //
+
     void shakeTracers(std::vector<Tracer3D>& tr3d_list, OTF const& otf, std::vector<Image> const& imgOrig_list, bool tri_only=false);
+
+    // Procedure for each shake
+    double shakeOneTracer(Tracer3D& tr3d, OTF const& otf, double delta, double score_old);
+    double shakeOneTracerGrad(Tracer3D& tr3d, OTF const& otf, double delta, double lr=1e-4);
+
+    // Remove all tracked particles from image to get residual image.
+    void calResImg(std::vector<Tracer3D> const& tr3d_list, OTF const& otf, std::vector<Image> const& imgOrig_list);
+
+    // Remove negative pxiel and set them as zeros, this function is used to prepare residual image for the next run of IPR.
+    void absResImg ();
+
+    // Remove ghost particles.
+    void removeGhost(std::vector<Tracer3D>& tr3d_list);
+    void removeGhostResidue(std::vector<Tracer3D>& tr3d_list);
+
+
+    //                     //
+    // AUXILIARY FUNCTIONS //
+    //                     //
+
+    // Calculate the windows size for shaking
+    // id: cam used id, not real cam id
+    PixelRange findRegion (int id, int row, int col, int half_width_px); // a square region
+    
+    // Gaussian intensity for particles
+    double gaussIntensity (int x, int y, Pt2D const& pt2d, std::vector<double> const& otf_param); // (x,y)=(col,row)
+
+    // Calculate residue for shaking
+    double calPointResidue (Pt3D const& pt3d, std::vector<PixelRange> const& region_list, std::vector<Image> const& imgAug_list, OTF const& otf);
+
+    // Shaking and refine 3D position and search range
+    // return final residue
+    double updateTracer (Tracer3D& tr3d, std::vector<Image>& imgAug_list, std::vector<PixelRange>& region_list, OTF const& otf, double delta);
+    double updateTracerGrad (Tracer3D& tr3d, std::vector<Image>& imgAug_list, std::vector<PixelRange>& region_list, OTF const& otf, double delta, double lr);
+
+    // Update imgAug_list and region_list
+    void updateImgAugList (std::vector<Image>& imgAug_list, std::vector<PixelRange>& region_list, Tracer3D const& tr3d);
+
+    // Calculate intensity for shaken particles
+    double calTracerScore (Tracer3D const& tr3d, std::vector<PixelRange> const& region_list, std::vector<Image> const& imgAug_list, OTF const& otf, double score);
 
 };
 

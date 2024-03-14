@@ -84,14 +84,14 @@ class StereoMatch
 public:
     /**************************INPUT VARIABLES******************************/
     StereoMatchParam _param;
-    CamList& _cam_list; // camera list
+    CamList const& _cam_list; // camera list
     int _n_cam_use = 0; // number of cameras used
 
     /*************************OUTPUT VARIABLES******************************/
     std::vector<std::vector<int>> _objID_match_list; // matches of object ID
     std::vector<double> _error_list; // error list
 
-    StereoMatch(StereoMatchParam param, CamList& cam_list);
+    StereoMatch(StereoMatchParam const& param, CamList const& cam_list);
     ~StereoMatch() {};
 
     void clearAll ();
@@ -100,11 +100,10 @@ public:
     // Match 3D object to 2D object
     // obj3d_list: 3D object list (output)
     // obj2d_list: 2D object list (input)
-    template<class T3D, class T2D>
-    void match(std::vector<T3D>& obj3d_list, std::vector<std::vector<T2D>> const& obj2d_list);
+    void match(std::vector<Tracer3D>& obj3d_list, std::vector<std::vector<Tracer2D>> const& obj2d_list);
 
-    template<class T3D>
-    void saveObjInfo (std::string path, std::vector<T3D> const& obj3d_list);
+
+    void saveObjInfo (std::string path, std::vector<Tracer3D> const& obj3d_list);
     void saveObjIDMatchList (std::string path);
     
 private:
@@ -119,8 +118,7 @@ private:
     /*****************************Functions*********************************/
     // Create object ID map
     // This map facilitates the search of object on a specific image position
-    template<class T2D>
-    void createObjIDMap (std::vector<std::vector<T2D>> const& obj2d_list);
+    void createObjIDMap (std::vector<std::vector<Tracer2D>> const& obj2d_list);
 
     //         //
     // Tracers //
@@ -174,10 +172,9 @@ private:
         std::vector<std::vector<Tracer2D>> const& tr2d_list
     );
 
- 
 };
 
-#include "StereoMatch.hpp"
+// #include "StereoMatch.hpp"
 
 #endif
 
