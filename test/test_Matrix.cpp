@@ -1,7 +1,6 @@
 #include "test.h"
 
 #include "Matrix.h"
-#include "myMATH.h"
 
 
 // test initialization

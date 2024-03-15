@@ -8,6 +8,7 @@
 /.vs/
 *.o
 /OpenLPT/
+/bin/
 
 
 

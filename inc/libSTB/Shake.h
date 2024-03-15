@@ -34,6 +34,8 @@ public:
 
     ~Shake() {};
 
+    // Run shake
+    // if tri_only=true, only calculate residue images
     void runShake(std::vector<Tracer3D>& tr3d_list, OTF const& otf, std::vector<Image> const& imgOrig_list, bool tri_only=false);
 
     

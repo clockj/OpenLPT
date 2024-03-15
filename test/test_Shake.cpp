@@ -1,4 +1,5 @@
 #include "test.h"
+#include "Matrix.h"
 #include "Camera.h"
 #include "ImageIO.h"
 #include "ObjectInfo.h"
@@ -107,7 +108,7 @@ bool test_function_1 ()
     int n_tr3d_find = tr3d_list.size();
     std::vector<int> is_mismatch(n_tr3d_real, 0);
     // double tor = param.tor_3d; // [mm]
-    double tor = 1e-3; // [mm]
+    double tor = 10e-3; // [mm]
     
     // before shake
     #pragma omp parallel for

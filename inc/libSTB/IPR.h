@@ -58,6 +58,13 @@ public:
     OTF const& otf, std::vector<int> const& cam_id, int n_cam);
     void createCamID (std::deque<std::vector<int>>& cam_id_all, std::vector<int> cam_id, int id, int n_rest);
 
+    // Save objct info
+    template <class T3D>
+    void saveObjInfo (std::string const& filename, std::vector<T3D> const& obj3d_list)
+    {
+        StereoMatch stereoMatch(StereoMatchParam(), _cam_list);
+        stereoMatch.saveObjInfo(filename, obj3d_list);
+    };
 };
 
 

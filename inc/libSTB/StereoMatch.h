@@ -100,10 +100,11 @@ public:
     // Match 3D object to 2D object
     // obj3d_list: 3D object list (output)
     // obj2d_list: 2D object list (input)
-    void match(std::vector<Tracer3D>& obj3d_list, std::vector<std::vector<Tracer2D>> const& obj2d_list);
+    template<class T3D, class T2D>
+    void match(std::vector<T3D>& obj3d_list, std::vector<std::vector<T2D>> const& obj2d_list);
 
-
-    void saveObjInfo (std::string path, std::vector<Tracer3D> const& obj3d_list);
+    template<class T3D>
+    void saveObjInfo (std::string path, std::vector<T3D> const& obj3d_list);
     void saveObjIDMatchList (std::string path);
     
 private:
@@ -118,7 +119,8 @@ private:
     /*****************************Functions*********************************/
     // Create object ID map
     // This map facilitates the search of object on a specific image position
-    void createObjIDMap (std::vector<std::vector<Tracer2D>> const& obj2d_list);
+    template<class T2D>
+    void createObjIDMap (std::vector<std::vector<T2D>> const& obj2d_list);
 
     //         //
     // Tracers //
@@ -174,7 +176,7 @@ private:
 
 };
 
-// #include "StereoMatch.hpp"
+#include "StereoMatch.hpp"
 
 #endif
 

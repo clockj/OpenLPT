@@ -85,6 +85,9 @@ void IPR::runIPR(
         // Save tracer info after shaking
         tr3d_list_all.insert(tr3d_list_all.end(), tr3d_list.begin(), tr3d_list.end());
 
+        // Update imgRes_list
+        _imgRes_list = s._imgRes_list;
+
         std::cout << "\tIPR step " << loop << ": find " << tr3d_list_all.size() << " particles. " << std::endl;
     }
 
@@ -197,6 +200,9 @@ void IPR::reducedCamLoop(std::vector<Tracer3D>& tr3d_list_all, std::vector<doubl
 
         // Save tracer info after shaking
         tr3d_list_all.insert(tr3d_list_all.end(), tr3d_list.begin(), tr3d_list.end());
+
+        // Update imgRes_list
+        _imgRes_list = s._imgRes_list;
 
         std::cout << "\tIPR step " << loop << ": find " << tr3d_list_all.size() << " particles. " << std::endl;
     }

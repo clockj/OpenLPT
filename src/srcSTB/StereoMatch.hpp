@@ -4,7 +4,16 @@
 #include "StereoMatch.h"
 
 StereoMatch::StereoMatch(StereoMatchParam const& param, CamList const& cam_list) 
-    : _param(param), _cam_list(cam_list), _n_cam_use(cam_list.useid_list.size()) {}
+    : _param(param), _cam_list(cam_list), _n_cam_use(cam_list.useid_list.size()) 
+{
+    if (_n_cam_use < 2)
+    {
+        std::cerr << "StereoMatch::StereoMatch error at line " << __LINE__ << ": \n"
+                  << "Need at least 2 cameras for matching" 
+                  << std::endl;
+        throw error_size;
+    }
+}
 
 void StereoMatch::clearAll()
 {
@@ -14,28 +23,50 @@ void StereoMatch::clearAll()
     _n_before_del = 0;
 }
 
-void StereoMatch::match(std::vector<Tracer3D>& obj3d_list, std::vector<std::vector<Tracer2D>> const& obj2d_list)
+template<class T3D, class T2D>
+void StereoMatch::match(std::vector<T3D>& obj3d_list, std::vector<std::vector<T2D>> const& obj2d_list)
 {
     // clear all the lists
     clearAll();
     obj3d_list.clear();
 
-    tracerMatch(obj2d_list);
+    if (typeid(T3D)==typeid(Tracer3D) && typeid(T2D)==typeid(Tracer2D))
+    {
+        tracerMatch(obj2d_list);
 
-    if (_param.is_delete_ghost)
-    {   
-        // removeGhostTracer(obj3d_list, obj2d_list);
-        removeGhostTracerTest(obj3d_list, obj2d_list);
+        if (_param.is_delete_ghost)
+        {   
+            // removeGhostTracer(obj3d_list, obj2d_list);
+            removeGhostTracerTest(obj3d_list, obj2d_list);
+        }
+        else
+        {
+            fillTracerInfo(obj3d_list, obj2d_list);
+        }
     }
     else
     {
-        fillTracerInfo(obj3d_list, obj2d_list);
+        std::cerr << "StereoMatch::match error at line " << __LINE__ << ": \n"
+                  << "The type of object is not supported." 
+                  << std::endl;
+        throw error_type;
     }
 }
 
-void StereoMatch::saveObjInfo (std::string path, std::vector<Tracer3D> const& obj3d_list)
+template<class T3D>
+void StereoMatch::saveObjInfo (std::string path, std::vector<T3D> const& obj3d_list)
 {
-    saveTracerInfo(path, obj3d_list);
+    if (typeid(T3D)==typeid(Tracer3D))
+    {
+        saveTracerInfo(path, obj3d_list);
+    }
+    else
+    {
+        std::cerr << "StereoMatch::saveObjInfo error at line " << __LINE__ << ": \n"
+                  << "The type of object is not supported." 
+                  << std::endl;
+        throw error_type;
+    }
 }
 
 // save obj ID match list
@@ -56,7 +87,9 @@ void StereoMatch::saveObjIDMatchList (std::string path)
     file.close();
 }
 
-void StereoMatch::createObjIDMap (std::vector<std::vector<Tracer2D>> const& obj2d_list)
+// create object ID map
+template<class T2D>
+void StereoMatch::createObjIDMap (std::vector<std::vector<T2D>> const& obj2d_list)
 {
     int row_id, col_id;
     int cam_id;

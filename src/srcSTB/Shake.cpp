@@ -90,6 +90,9 @@ void Shake::shakeTracers(std::vector<Tracer3D>& tr3d_list, OTF const& otf, std::
     // removeGhost(tr3d_list);
     removeGhostResidue(tr3d_list);
 
+    // update residue image
+    calResImg(tr3d_list, otf, imgOrig_list);
+
     // calculate absolute intensity value
     absResImg();
 }
