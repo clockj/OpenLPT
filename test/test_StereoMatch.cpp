@@ -49,7 +49,7 @@ bool test_function_1 ()
     }
 
     // stereo match
-    StereoMatchParam param;
+    SMParam param;
     param.tor_2d = 1;
     param.tor_3d = 5e-3;
     param.n_thread = 6;
@@ -198,7 +198,7 @@ bool test_function_2 ()
     }
 
     // stereo match
-    StereoMatchParam param;
+    SMParam param;
     param.tor_2d = 1;
     param.tor_3d = 5e-3;
     param.n_thread = 6;
@@ -349,7 +349,7 @@ bool test_function_3 ()
     }
 
     // stereo match
-    StereoMatchParam param;
+    SMParam param;
     param.tor_2d = 1.;
     param.tor_3d = 2.4e-2;
     param.n_thread = 6;

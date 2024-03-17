@@ -67,7 +67,7 @@ public:
 
 
 // Stereo match parameters
-struct StereoMatchParam
+struct SMParam
 {
     double tor_2d = -1;   // [px] 2D tolerance
     double tor_3d = -1;   // [mm] 3D tolerance
@@ -83,7 +83,7 @@ class StereoMatch
 {
 public:
     /**************************INPUT VARIABLES******************************/
-    StereoMatchParam _param;
+    SMParam _param;
     CamList const& _cam_list; // camera list
     int _n_cam_use = 0; // number of cameras used
 
@@ -91,7 +91,7 @@ public:
     std::vector<std::vector<int>> _objID_match_list; // matches of object ID
     std::vector<double> _error_list; // error list
 
-    StereoMatch(StereoMatchParam const& param, CamList const& cam_list);
+    StereoMatch(SMParam const& param, CamList const& cam_list);
     ~StereoMatch() {};
 
     void clearAll ();

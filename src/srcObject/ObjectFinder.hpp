@@ -42,9 +42,9 @@ void ObjectFinder2D::findTracer2D
                 double ln_z3 = 0.0;
 
                 // find the col value (coordinate: x)
-                ln_z1 = img(y2, x1) < INTSMALLNUMBER ? std::log(INTSMALLNUMBER) : std::log(img(y2, x1));
-                ln_z2 = img(y2, x2) < INTSMALLNUMBER ? std::log(INTSMALLNUMBER) : std::log(img(y2, x2));
-                ln_z3 = img(y2, x3) < INTSMALLNUMBER ? std::log(INTSMALLNUMBER) : std::log(img(y2, x3));
+                ln_z1 = img(y2, x1) < LOGSMALLNUMBER ? std::log(LOGSMALLNUMBER) : std::log(img(y2, x1));
+                ln_z2 = img(y2, x2) < LOGSMALLNUMBER ? std::log(LOGSMALLNUMBER) : std::log(img(y2, x2));
+                ln_z3 = img(y2, x3) < LOGSMALLNUMBER ? std::log(LOGSMALLNUMBER) : std::log(img(y2, x3));
     
                 double xc = -0.5 * (  (ln_z1 * double((x2 * x2) - (x3 * x3))) 
                                     - (ln_z2 * double((x1 * x1) - (x3 * x3))) 
@@ -58,8 +58,8 @@ void ObjectFinder2D::findTracer2D
                 }
 
                 // find the row value (coordinate: y)
-                ln_z1 = img(y1, x2) < INTSMALLNUMBER ? std::log(INTSMALLNUMBER) : std::log(img(y1, x2));
-                ln_z3 = img(y3, x2) < INTSMALLNUMBER ? std::log(INTSMALLNUMBER) : std::log(img(y3, x2));
+                ln_z1 = img(y1, x2) < LOGSMALLNUMBER ? std::log(LOGSMALLNUMBER) : std::log(img(y1, x2));
+                ln_z3 = img(y3, x2) < LOGSMALLNUMBER ? std::log(LOGSMALLNUMBER) : std::log(img(y3, x2));
 
                 double yc = -0.5 * (  (ln_z1 * double((y2 * y2) - (y3 * y3))) 
                                     - (ln_z2 * double((y1 * y1) - (y3 * y3))) 

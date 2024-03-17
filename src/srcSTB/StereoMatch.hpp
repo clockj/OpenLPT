@@ -3,7 +3,7 @@
 
 #include "StereoMatch.h"
 
-StereoMatch::StereoMatch(StereoMatchParam const& param, CamList const& cam_list) 
+StereoMatch::StereoMatch(SMParam const& param, CamList const& cam_list) 
     : _param(param), _cam_list(cam_list), _n_cam_use(cam_list.useid_list.size()) 
 {
     if (_n_cam_use < 2)

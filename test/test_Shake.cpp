@@ -54,7 +54,7 @@ bool test_function_1 ()
     }
 
     // stereo match
-    StereoMatchParam param;
+    SMParam param;
     param.tor_2d = 1.;
     param.tor_3d = 2.4e-2;
     param.n_thread = 6;

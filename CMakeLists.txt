@@ -117,6 +117,9 @@ target_link_libraries(libShake PUBLIC libMatrix libObjectInfo libCamera libOTF)
 add_library(libIPR SHARED ${CMAKE_HOME_DIRECTORY}/src/srcSTB/IPR.cpp)
 target_link_libraries(libIPR PUBLIC libMatrix libCamera libObjectInfo libObjectFinder libStereoMatch libShake libOTF)
 
+add_library(libPredField SHARED ${CMAKE_HOME_DIRECTORY}/src/srcSTB/PredField.hpp)
+set_target_properties(libPredField PROPERTIES LINKER_LANGUAGE CXX)
+target_link_libraries(libPredField PUBLIC libMatrix libmyMath libObjectInfo)
 
 
 # install libraries
@@ -131,6 +134,7 @@ set(CMAKE_INSTALL_TARGETS
     libOTF
     libShake
     libIPR
+    libPredField
 )
 install(TARGETS ${CMAKE_INSTALL_TARGETS} DESTINATION ${CMAKE_HOME_DIRECTORY}/bin/)
 
@@ -269,3 +273,11 @@ add_test(test_IPR test_IPR)
 set_tests_properties(test_IPR
                      PROPERTIES FAIL_REGULAR_EXPRESSION "failed on line")
 
+
+# test PredField
+add_executable(test_PredField 
+    ${CMAKE_HOME_DIRECTORY}/test/test_PredField.cpp
+    ${TESTHEADERFILES}
+)
+target_link_libraries(test_PredField PRIVATE libPredField libMatrix libObjectInfo)
+add_test(test_PredField test_PredField)

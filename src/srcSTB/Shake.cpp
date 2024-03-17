@@ -709,13 +709,13 @@ double Shake::calTracerScore (Tracer3D const& tr3d, std::vector<PixelRange> cons
         }
     }
 
-    if (denominator < INTSMALLNUMBER)
+    if (denominator < SMALLNUMBER)
     {
         // // for debug
         // std::cerr << "Warning: Shake::calTracerIntensity warning at line " << __LINE__ << ":\n" 
         //           << "denominator is 0!"
         //           << std::endl;
-        denominator = INTSMALLNUMBER;
+        denominator = SMALLNUMBER;
     }
 
     // double score_new = score * std::fabs(numerator/denominator);
@@ -733,7 +733,7 @@ void Shake::removeGhost(std::vector<Tracer3D>& tr3d_list)
     int n_mean = 0;
     for (int i = 0; i < n_tr3d; i ++)
     {
-        if (_score_list[i] > INTSMALLNUMBER)
+        if (_score_list[i] > SMALLNUMBER)
         {
             mean += _score_list[i];
             n_mean ++;

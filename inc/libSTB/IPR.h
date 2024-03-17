@@ -62,7 +62,7 @@ public:
     template <class T3D>
     void saveObjInfo (std::string const& filename, std::vector<T3D> const& obj3d_list)
     {
-        StereoMatch stereoMatch(StereoMatchParam(), _cam_list);
+        StereoMatch stereoMatch(SMParam(), _cam_list);
         stereoMatch.saveObjInfo(filename, obj3d_list);
     };
 };

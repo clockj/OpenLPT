@@ -10,13 +10,12 @@
 #define SQRTSMALLNUMBER 1e-6
 #define MAGSMALLNUMBER 1e-8
 
+// log small
+#define LOGSMALLNUMBER 1e-4
+
 // undistort
 #define UNDISTORT_MAX_ITER 50
 #define UNDISTORT_EPS 1e-5
-
-// intensity
-#define INTSMALLNUMBER 1e-6
-#define INTLARGENUMBER 1e6
 
 struct PixelRange 
 {
@@ -80,6 +79,11 @@ struct AxisLimit
     double y_max = 0;
     double z_min = 0;
     double z_max = 0;
+
+    AxisLimit () {};
+
+    AxisLimit (double x1, double x2, double y1, double y2, double z1, double z2) 
+        : x_min(x1), x_max(x2), y_min(y1), y_max(y2), z_min(z1), z_max(z2) {};
 
     void operator= (AxisLimit const& limit)
     {

@@ -20,7 +20,7 @@ void IPR::runIPR(
     tr3d_list_all.clear();
 
     // Initialize stereo match parameters
-    StereoMatchParam match_param;
+    SMParam match_param;
     match_param.tor_2d = _param.tol_2d;
     match_param.tor_3d = _param.tol_3d;
     match_param.n_thread = _param.n_thread;
@@ -137,7 +137,7 @@ void IPR::reducedCamLoop(std::vector<Tracer3D>& tr3d_list_all, std::vector<doubl
     tr3d_list_all.clear();
 
     // Initialize stereo match parameters
-    StereoMatchParam match_param;
+    SMParam match_param;
     match_param.tor_2d = _param.tol_2d;
     match_param.tor_3d = _param.tol_3d;
     match_param.n_thread = _param.n_thread;
