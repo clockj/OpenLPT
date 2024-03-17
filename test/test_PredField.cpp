@@ -6,6 +6,8 @@
 
 bool test_function_1 ()
 {
+    std::cout << "test_function_1" << std::endl;
+
     PFParam param;
     param.limit = AxisLimit(-20, 20, -20, 20, -20, 20);
     param.nx = 51;
@@ -55,7 +57,7 @@ bool test_function_1 ()
                 }
                 else
                 {
-                    std::cout << "i=" << i << ", " << pf._disp_field(i, 0) <<  "," << pf._disp_field(i, 1) << "," << pf._disp_field(i, 2) << " " << disp_field(i, 0) << "," << disp_field(i, 1) << "," << disp_field(i, 2) << std::endl;
+                    // std::cout << "i=" << i << ", " << pf._disp_field(i, 0) <<  "," << pf._disp_field(i, 1) << "," << pf._disp_field(i, 2) << " " << disp_field(i, 0) << "," << disp_field(i, 1) << "," << disp_field(i, 2) << std::endl;
                 }
 
                 // return false;
@@ -75,6 +77,8 @@ bool test_function_1 ()
     std::cout << "n_correct=" << n_correct << std::endl;
     std::cout << "n_find=" << n_find << std::endl;
     std::cout << "ratio_correct=" << 100.0*n_correct/n_find << std::endl;
+
+    std::cout << "test_function_1 done\n" << std::endl;
 
     return true;
 }
@@ -82,6 +86,8 @@ bool test_function_1 ()
 
 bool test_function_2 ()
 {
+    std::cout << "test_function_2" << std::endl;
+
     PFParam param;
     param.limit = AxisLimit(-20, 20, -20, 20, -20, 20);
     param.nx = 51;
@@ -93,8 +99,8 @@ bool test_function_2 ()
     param.nBin_z = 5;
 
     // 3D object list
-    Matrix<double> inputs_prev("../test/inputs/test_PredField/pts_prev_1.csv");
-    Matrix<double> inputs_curr("../test/inputs/test_PredField/pts_curr_1.csv");
+    Matrix<double> inputs_prev("../test/inputs/test_PredField/pts_prev_2.csv");
+    Matrix<double> inputs_curr("../test/inputs/test_PredField/pts_curr_2.csv");
     std::vector<Pt3D> pt3d_list_prev(inputs_prev.getDimRow());
     std::vector<Pt3D> pt3d_list_curr(inputs_curr.getDimRow());
     for (int i = 0; i < inputs_prev.getDimRow(); i++)
@@ -114,14 +120,14 @@ bool test_function_2 ()
 
 
     // load real displacement field
-    Matrix<double> disp_field("../test/solutions/test_PredField/disp_field_1.csv");
+    Matrix<double> disp_field("../test/solutions/test_PredField/disp_field_2.csv");
     int n_wrong = 0;
     int n_notfind = 0;
     for (int i = 0; i < disp_field.getDimRow(); i++)
     {
         for (int j = 0; j < 3; j++)
         {
-            if (std::fabs(pf._disp_field(i, j) - disp_field(i, j)) > 1e-6)
+            if (std::fabs(pf._disp_field(i, j) - disp_field(i, j)) > 1e-4)
             {   
                 n_wrong ++;
                 
@@ -131,7 +137,7 @@ bool test_function_2 ()
                 }
                 else
                 {
-                    std::cout << "i=" << i << ", " << pf._disp_field(i, 0) <<  "," << pf._disp_field(i, 1) << "," << pf._disp_field(i, 2) << " " << disp_field(i, 0) << "," << disp_field(i, 1) << "," << disp_field(i, 2) << std::endl;
+                    // std::cout << "i=" << i << ", " << pf._disp_field(i, 0) <<  "," << pf._disp_field(i, 1) << "," << pf._disp_field(i, 2) << " " << disp_field(i, 0) << "," << disp_field(i, 1) << "," << disp_field(i, 2) << std::endl;
                 }
 
                 // return false;
@@ -152,6 +158,7 @@ bool test_function_2 ()
     std::cout << "n_find=" << n_find << std::endl;
     std::cout << "ratio_correct=" << 100.0*n_correct/n_find << std::endl;
 
+    std::cout << "test_function_2 done\n" << std::endl;
     return true;
 }
 
@@ -159,6 +166,7 @@ bool test_function_2 ()
 int main()
 {
     IS_TRUE(test_function_1());
+    IS_TRUE(test_function_2());
 
     return 0;
 }

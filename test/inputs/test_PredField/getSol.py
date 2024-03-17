@@ -44,25 +44,32 @@ np.savetxt('pts_curr_1.csv', pts_new, fmt='%.8f', delimiter=',')
 np.savetxt('../../solutions/test_PredField/disp_field_1.csv', disp_field, fmt='%.8f', delimiter=',')
 
 # %%
-# ideal vortex: vorticity direction is along z-axis
-gamma = 0.05
+# vortex: vorticity direction is along z-axis
+def vortex(pts):
+    gamma = 0.05
+    r0 = 1
+    
+    vel = np.zeros_like(pts)
+    radius = np.linalg.norm(pts[:,:2], axis=1)
+    is_linear = radius < r0 
+    is_vortex = np.bitwise_not(is_linear)
+
+    unit_vec = pts[:,:2] / radius.reshape(-1,1)
+    unit_vec = np.nan_to_num(unit_vec, nan=0)
+    perp_vec = np.array([-unit_vec[:,1], unit_vec[:,0], np.zeros_like(unit_vec[:,0])]).T
+    
+    vel[is_linear,:] = gamma * radius[is_linear].reshape(-1,1) * perp_vec[is_linear]
+
+    vel[is_vortex,:] = gamma / radius[is_vortex].reshape(-1,1) * perp_vec[is_vortex]
+    
+    return vel
 
 # calculate new position
-radius = np.linalg.norm(pts[:,:2], axis=1)
-unit_vec = pts[:,:2] / radius.reshape(-1,1)
-perp_vec = np.array([-unit_vec[:,1], unit_vec[:,0], np.zeros(npts)]).T
-
-vel = gamma / radius.reshape(-1,1) * perp_vec
+vel = vortex(pts)
 pts_new = pts + vel
 
 # calculate disp field
-radius = np.linalg.norm(grid, axis=1)
-unit_vec = grid[:,:2] / radius.reshape(-1,1)
-perp_vec = np.array([-unit_vec[:,1], unit_vec[:,0], np.zeros(n_grid)]).T
-
-vel = gamma / radius.reshape(-1,1) * perp_vec
-vel = np.nan_to_num(vel, nan=0)
-disp_field = vel
+disp_field = vortex(grid)
 
 # save 
 np.savetxt('pts_prev_2.csv', pts, fmt='%.8f', delimiter=',')
