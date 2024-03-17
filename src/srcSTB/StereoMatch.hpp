@@ -640,7 +640,7 @@ void StereoMatch::saveTracerInfo (std::string path, std::vector<Tracer3D> const&
         file << tr3d_list[i]._pt_center[0] << "," << tr3d_list[i]._pt_center[1] << "," << tr3d_list[i]._pt_center[2] << ",";
         file << tr3d_list[i]._error;
 
-        std::fill(pt2d_list.begin(), pt2d_list.end(), -1);
+        std::fill(pt2d_list.begin(), pt2d_list.end(), -10);
         for (int j = 0; j < tr3d_list[i]._n_2d; j ++)
         {
             cam_id = tr3d_list[i]._camid_list[j];

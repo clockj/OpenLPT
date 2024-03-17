@@ -121,6 +121,10 @@ add_library(libPredField SHARED ${CMAKE_HOME_DIRECTORY}/src/srcSTB/PredField.hpp
 set_target_properties(libPredField PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(libPredField PUBLIC libMatrix libmyMath libObjectInfo)
 
+add_library(libTrack SHARED ${CMAKE_HOME_DIRECTORY}/src/srcSTB/Track.hpp)
+set_target_properties(libTrack PROPERTIES LINKER_LANGUAGE CXX)
+target_link_libraries(libTrack PUBLIC libMatrix libmyMath libObjectInfo)
+
 
 # install libraries
 set(CMAKE_INSTALL_TARGETS
@@ -135,6 +139,7 @@ set(CMAKE_INSTALL_TARGETS
     libShake
     libIPR
     libPredField
+    libTrack
 )
 install(TARGETS ${CMAKE_INSTALL_TARGETS} DESTINATION ${CMAKE_HOME_DIRECTORY}/bin/)
 
@@ -281,3 +286,12 @@ add_executable(test_PredField
 )
 target_link_libraries(test_PredField PRIVATE libPredField libMatrix libObjectInfo)
 add_test(test_PredField test_PredField)
+
+
+# test Track
+add_executable(test_Track 
+    ${CMAKE_HOME_DIRECTORY}/test/test_Track.cpp
+    ${TESTHEADERFILES}
+)
+target_link_libraries(test_Track PRIVATE libTrack libMatrix libObjectInfo)
+add_test(test_Track test_Track)
