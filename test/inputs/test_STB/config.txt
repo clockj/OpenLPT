@@ -1,0 +1,28 @@
+# Frame Range: [startID,endID]
+0,4
+# Frame Rate: [Hz]
+1
+# Number of Threads: (0: use as many as possible)
+6
+# Number of Cameras: 
+4
+# Camera File Path, Max Intensity
+../test/inputs/test_STB/camFile/cam1.txt,255
+../test/inputs/test_STB/camFile/cam2.txt,255
+../test/inputs/test_STB/camFile/cam3.txt,255
+../test/inputs/test_STB/camFile/cam4.txt,255
+# Image File Path
+../test/inputs/test_STB/imgFile/cam1ImageNames.txt
+../test/inputs/test_STB/imgFile/cam2ImageNames.txt
+../test/inputs/test_STB/imgFile/cam3ImageNames.txt
+../test/inputs/test_STB/imgFile/cam4ImageNames.txt
+# View Volume: (xmin,xmax,ymin,ymax,zmin,zmax)
+-20,20,-20,20,-20,20
+# Voxel to MM: e.g. use 1000^3 voxel, (xmax-xmin)/1000
+0.04
+# Output Folder Path: 
+../test/results/test_STB/
+# Object Types: 
+Tracer
+# STB Config Files:
+../test/inputs/test_STB/tracerConfig.txt

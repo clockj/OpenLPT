@@ -21,7 +21,7 @@
 class ObjectFinder2D
 {
 private:
-    void findTracer2D(std::vector<Tracer2D>& tr2d_list, Image const& img, int max_intensity, int min_intensity);
+    void findTracer2D(std::vector<Tracer2D>& tr2d_list, Image const& img, int max_intensity, int min_intensity, double r_px=2);
 
 public:
     ObjectFinder2D() {};

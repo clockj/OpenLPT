@@ -8,16 +8,16 @@ void IPR::runIPR(
     std::vector<Tracer3D>& tr3d_list_all, 
     std::vector<double> const& tr2d_properties, 
     OTF const& otf, 
-    bool is_reduced, int n_reduced) 
+    int n_reduced) 
 {
     clock_t t_tot_start, t_tot_end;
     t_tot_start = clock();
 
+    // clear output
+    tr3d_list_all.clear();
+
     // reset cam id list
     resetCamIDList ();
-
-    // Clear output
-    tr3d_list_all.clear();
 
     // Initialize stereo match parameters
     SMParam match_param;
@@ -88,12 +88,12 @@ void IPR::runIPR(
         // Update imgRes_list
         _imgRes_list = s._imgRes_list;
 
-        std::cout << "\tIPR step " << loop << ": find " << tr3d_list_all.size() << " particles. " << std::endl;
+        std::cout << "  IPR step " << loop << ": find " << tr3d_list_all.size() << " particles. " << std::endl;
     }
 
 
     // Reduced cam
-    if (is_reduced)
+    if (n_reduced > 0)
     {
         int n_rest = _n_cam_all - n_reduced;
         if (_n_cam_all - n_reduced < 2 || n_reduced < 0)
@@ -124,7 +124,7 @@ void IPR::runIPR(
     resetCamIDList ();
 
     t_tot_end = clock();
-    std::cout << "IPR Finish! " << "Find " << tr3d_list_all.size() << " particles. " << " Total time = " << (t_tot_end-t_tot_start)/CLOCKS_PER_SEC << " [s]" << std::endl;
+    std::cout << "IPR Finish! " << "Find " << tr3d_list_all.size() << " particles." << " Total time = " << (double)(t_tot_end-t_tot_start)/CLOCKS_PER_SEC << " [s]" << std::endl;
 }
 
 

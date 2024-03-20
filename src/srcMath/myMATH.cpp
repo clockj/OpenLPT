@@ -139,21 +139,21 @@ double dot (Pt2D const& pt1, Pt2D const& pt2)
 }
 
 // Calculate the distance between two points
-double distance (Pt3D const& pt1, Pt3D const& pt2)
+double dist (Pt3D const& pt1, Pt3D const& pt2)
 {
     Pt3D res = pt2 - pt1;
     return res.norm();
 }
 
 // Calculate the distance between two points
-double distance (Pt2D const& pt1, Pt2D const& pt2)
+double dist (Pt2D const& pt1, Pt2D const& pt2)
 {
     Pt2D res = pt2 - pt1;
     return res.norm();
 }
 
 // Calculate the distance between point and line
-double distance (Pt3D const& pt, Line3D const& line)
+double dist (Pt3D const& pt, Line3D const& line)
 {
     Pt3D diff = pt - line.pt;
 
@@ -170,7 +170,7 @@ double distance (Pt3D const& pt, Line3D const& line)
     }
     else
     {
-        std::cerr << "myMATH::Distance: error at line " << __LINE__ << "\n" 
+        std::cerr << "myMATH::dist: error at line " << __LINE__ << "\n" 
                   << "negative distance " << dist << std::endl;
         pt.print();
         line.pt.print();
@@ -183,7 +183,7 @@ double distance (Pt3D const& pt, Line3D const& line)
 }
 
 // Calculate the distance between point and line
-double distance (Pt2D const& pt, Line2D const& line)
+double dist (Pt2D const& pt, Line2D const& line)
 {
     Pt2D diff = pt - line.pt;
 
@@ -200,7 +200,7 @@ double distance (Pt2D const& pt, Line2D const& line)
     }
     else
     {
-        std::cerr << "myMATH::Distance: error at line " << __LINE__ << "\n" 
+        std::cerr << "myMATH::dist: error at line " << __LINE__ << "\n" 
                   << "negative distance " << dist << std::endl;
         pt.print();
         line.pt.print();

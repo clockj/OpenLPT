@@ -633,27 +633,10 @@ void StereoMatch::saveTracerInfo (std::string path, std::vector<Tracer3D> const&
     file << "\n";
 
     file.precision(SAVEPRECISION);
-    int cam_id;
-    std::vector<double> pt2d_list(n_cam_all * 2); 
+
     for (int i = 0; i < tr3d_list.size(); i ++)
     {
-        file << tr3d_list[i]._pt_center[0] << "," << tr3d_list[i]._pt_center[1] << "," << tr3d_list[i]._pt_center[2] << ",";
-        file << tr3d_list[i]._error;
-
-        std::fill(pt2d_list.begin(), pt2d_list.end(), -10);
-        for (int j = 0; j < tr3d_list[i]._n_2d; j ++)
-        {
-            cam_id = tr3d_list[i]._camid_list[j];
-
-            pt2d_list[cam_id*2] = tr3d_list[i]._tr2d_list[j]._pt_center[0];
-            pt2d_list[cam_id*2+1] = tr3d_list[i]._tr2d_list[j]._pt_center[1];
-        }
-
-        for (int j = 0; j < n_cam_all; j ++)
-        {
-            file << "," << pt2d_list[j*2] << "," << pt2d_list[j*2+1];
-        }
-        file << "\n";
+        tr3d_list[i].saveObject3D(file, n_cam_all);
     }
 
     file.close();
@@ -897,7 +880,7 @@ void StereoMatch::iterOnObjIDMap (
         bool in_range = true;
         for (int m = 0; m < id; m ++)
         {
-            double dist = myMATH::distance(tr2d_list[id][tr_id]._pt_center, sight2D_list[m]);
+            double dist = myMATH::dist(tr2d_list[id][tr_id]._pt_center, sight2D_list[m]);
             if (dist > _param.tor_2d)
             {
                 in_range = false;
@@ -1066,7 +1049,7 @@ bool StereoMatch::checkReProject (
         sight2D.pt = pt2d_1;
         sight2D.unit_vector = myMATH::createUnitVector(pt2d_1, pt2d_2);
 
-        dist = myMATH::distance(tr2d_list[i][tracer_id_match[i]]._pt_center, sight2D);
+        dist = myMATH::dist(tr2d_list[i][tracer_id_match[i]]._pt_center, sight2D);
 
         if (dist > _param.tor_2d)
         {

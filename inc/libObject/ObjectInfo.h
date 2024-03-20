@@ -44,11 +44,13 @@ class Object3D
 {
 public:
     Pt3D _pt_center; 
+    bool _is_tracked = false;
 
     Object3D () {};
     Object3D (Object3D const& object) : _pt_center(object._pt_center) {};
     Object3D (Pt3D const& pt_center) : _pt_center(pt_center) {};
-    virtual ~Object3D () {};
+    void saveObject3D (std::ofstream& output, int n_cam_all) const {};
+    ~Object3D () {};
 };
 
 class Tracer3D : public Object3D
@@ -86,6 +88,9 @@ public:
     void projectTracer2D (std::vector<int> const& camid_list, std::vector<Camera> const& cam_list_all);
 
     void getTracer2D (Tracer2D& tracer2d, int cam_id);
+
+    // save the 3D tracer to a file
+    void saveObject3D (std::ofstream& output, int n_cam_all) const;
 };
 
 #endif

@@ -1,4 +1,5 @@
 #include "test.h"
+#include "Matrix.h"
 #include "Camera.h"
 #include "ImageIO.h"
 #include "ObjectInfo.h"
@@ -134,7 +135,7 @@ bool test_function_1 ()
         pt3d_sol[1] = pt3d_list_sol(sol_id, 1);
         pt3d_sol[2] = pt3d_list_sol(sol_id, 2);
 
-        error = myMATH::distance(pt3d_sol, tr3d_list[tr_id]._pt_center);
+        error = myMATH::dist(pt3d_sol, tr3d_list[tr_id]._pt_center);
 
         if (error > tor)
         {
@@ -284,7 +285,7 @@ bool test_function_2 ()
         pt3d_sol[1] = pt3d_list_sol(sol_id, 1);
         pt3d_sol[2] = pt3d_list_sol(sol_id, 2);
 
-        error = myMATH::distance(pt3d_sol, tr3d_list[tr_id]._pt_center);
+        error = myMATH::dist(pt3d_sol, tr3d_list[tr_id]._pt_center);
 
         if (error > tor)
         {
@@ -338,7 +339,7 @@ bool test_function_3 ()
 
     // find 2d tracer
     std::vector<std::vector<Tracer2D>> tr2d_list_all;
-    std::vector<double> properties = {255, 30};
+    std::vector<double> properties = {255, 30, 2};
     ObjectFinder2D objfinder;
     for (int i = 0; i < 4; i ++)
     {
@@ -390,7 +391,7 @@ bool test_function_3 ()
 
         for (int j = 0; j < n_tr3d_find; j ++)
         {
-            error_list[j] = myMATH::distance(pt3d, tr3d_list[j]._pt_center);
+            error_list[j] = myMATH::dist(pt3d, tr3d_list[j]._pt_center);
         }
                 
         std::vector<double>::iterator minIt = std::min_element(error_list.begin(), error_list.end());

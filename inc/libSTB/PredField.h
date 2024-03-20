@@ -25,9 +25,9 @@ struct PFParam
     double r;
     
     // number of bins for displacement statistics
-    int nBin_x = 10; // >=2, if <2, set to 2
-    int nBin_y = 10; // >=2, if <2, set to 2
-    int nBin_z = 10; // >=2, if <2, set to 2
+    int nBin_x = 5; // >=2, if <2, set to 2
+    int nBin_y = 5; // >=2, if <2, set to 2
+    int nBin_z = 5; // >=2, if <2, set to 2
 };
 
 
@@ -49,6 +49,8 @@ public:
 
     // interpolate displacement at (x,y,z)
     void getDisp (Pt3D& disp, Pt3D const& pt3d);
+
+    void saveDispField (std::string const& file);
 
 private:
     int _nGrid_tot; // total number of grid points

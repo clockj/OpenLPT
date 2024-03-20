@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13)  # CMake version check
 
 project(OpenLPT)               # Create project "simple_example"
-set(CMAKE_CXX_STANDARD 11)         # Enable c++11 standard
+set(CMAKE_CXX_STANDARD 17)         # Enable c++11 standard
 
 # set(CMAKE_C_COMPILER "D:\\MinGW\\mingw64\\bin\\gcc.exe")
 # set(CMAKE_CXX_COMPILER "D:\\MinGW\\mingw64\\bin\\g++.exe")
@@ -84,62 +84,68 @@ endif()
 
 
 # Build libraries
-add_library(libMatrix SHARED ${CMAKE_HOME_DIRECTORY}/src/srcMath/Matrix.hpp)
-set_target_properties(libMatrix PROPERTIES LINKER_LANGUAGE CXX)
+add_library(Matrix SHARED ${CMAKE_HOME_DIRECTORY}/src/srcMath/Matrix.hpp)
+set_target_properties(Matrix PROPERTIES LINKER_LANGUAGE CXX)
 
-add_library(libmyMath SHARED ${CMAKE_HOME_DIRECTORY}/src/srcMath/myMATH.cpp)
-target_link_libraries(libmyMath PUBLIC libMatrix)
+add_library(myMath SHARED ${CMAKE_HOME_DIRECTORY}/src/srcMath/myMATH.cpp)
+target_link_libraries(myMath PUBLIC Matrix)
 
-add_library(libImageIO SHARED ${CMAKE_HOME_DIRECTORY}/src/srcMath/ImageIO.cpp)
+add_library(ImageIO SHARED ${CMAKE_HOME_DIRECTORY}/src/srcMath/ImageIO.cpp)
 add_subdirectory("${CMAKE_HOME_DIRECTORY}/inc/libtiff")
-target_link_libraries(libImageIO PUBLIC libMatrix tiff)
+target_link_libraries(ImageIO PUBLIC Matrix tiff)
 
-add_library(libCamera SHARED ${CMAKE_HOME_DIRECTORY}/src/srcMath/Camera.cpp)
-target_link_libraries(libCamera PUBLIC libMatrix libmyMath)
+add_library(Camera SHARED ${CMAKE_HOME_DIRECTORY}/src/srcMath/Camera.cpp)
+target_link_libraries(Camera PUBLIC Matrix myMath)
 
-add_library(libObjectInfo SHARED ${CMAKE_HOME_DIRECTORY}/src/srcObject/ObjectInfo.cpp)
-target_link_libraries(libObjectInfo PUBLIC libMatrix libCamera)
+add_library(ObjectInfo SHARED ${CMAKE_HOME_DIRECTORY}/src/srcObject/ObjectInfo.cpp)
+target_link_libraries(ObjectInfo PUBLIC Matrix Camera)
 
-add_library(libObjectFinder SHARED ${CMAKE_HOME_DIRECTORY}/src/srcObject/ObjectFinder.hpp)
-set_target_properties(libObjectFinder PROPERTIES LINKER_LANGUAGE CXX)
-target_link_libraries(libObjectFinder PUBLIC libMatrix libmyMath libObjectInfo)
+add_library(ObjectFinder SHARED ${CMAKE_HOME_DIRECTORY}/src/srcObject/ObjectFinder.hpp)
+set_target_properties(ObjectFinder PROPERTIES LINKER_LANGUAGE CXX)
+target_link_libraries(ObjectFinder PUBLIC Matrix myMath ObjectInfo)
 
-add_library(libStereoMatch SHARED ${CMAKE_HOME_DIRECTORY}/src/srcSTB/StereoMatch.hpp)
-set_target_properties(libStereoMatch PROPERTIES LINKER_LANGUAGE CXX)
-target_link_libraries(libStereoMatch PUBLIC libMatrix libmyMath libObjectInfo libCamera)
+add_library(StereoMatch SHARED ${CMAKE_HOME_DIRECTORY}/src/srcSTB/StereoMatch.hpp)
+set_target_properties(StereoMatch PROPERTIES LINKER_LANGUAGE CXX)
+target_link_libraries(StereoMatch PUBLIC Matrix myMath ObjectInfo Camera)
 
-add_library(libOTF SHARED ${CMAKE_HOME_DIRECTORY}/src/srcSTB/OTF.cpp)
-target_link_libraries(libOTF PUBLIC libMatrix libmyMath)
+add_library(OTF SHARED ${CMAKE_HOME_DIRECTORY}/src/srcSTB/OTF.cpp)
+target_link_libraries(OTF PUBLIC Matrix myMath)
 
-add_library(libShake SHARED ${CMAKE_HOME_DIRECTORY}/src/srcSTB/Shake.cpp)
-target_link_libraries(libShake PUBLIC libMatrix libObjectInfo libCamera libOTF)
+add_library(Shake SHARED ${CMAKE_HOME_DIRECTORY}/src/srcSTB/Shake.cpp)
+target_link_libraries(Shake PUBLIC Matrix myMath ObjectInfo Camera OTF)
 
-add_library(libIPR SHARED ${CMAKE_HOME_DIRECTORY}/src/srcSTB/IPR.cpp)
-target_link_libraries(libIPR PUBLIC libMatrix libCamera libObjectInfo libObjectFinder libStereoMatch libShake libOTF)
+add_library(IPR SHARED ${CMAKE_HOME_DIRECTORY}/src/srcSTB/IPR.hpp)
+set_target_properties(IPR PROPERTIES LINKER_LANGUAGE CXX)
+target_link_libraries(IPR PUBLIC Matrix Camera ObjectInfo ObjectFinder StereoMatch Shake OTF)
 
-add_library(libPredField SHARED ${CMAKE_HOME_DIRECTORY}/src/srcSTB/PredField.hpp)
-set_target_properties(libPredField PROPERTIES LINKER_LANGUAGE CXX)
-target_link_libraries(libPredField PUBLIC libMatrix libmyMath libObjectInfo)
+add_library(PredField SHARED ${CMAKE_HOME_DIRECTORY}/src/srcSTB/PredField.hpp)
+set_target_properties(PredField PROPERTIES LINKER_LANGUAGE CXX)
+target_link_libraries(PredField PUBLIC Matrix myMath ObjectInfo)
 
-add_library(libTrack SHARED ${CMAKE_HOME_DIRECTORY}/src/srcSTB/Track.hpp)
-set_target_properties(libTrack PROPERTIES LINKER_LANGUAGE CXX)
-target_link_libraries(libTrack PUBLIC libMatrix libmyMath libObjectInfo)
+add_library(Track SHARED ${CMAKE_HOME_DIRECTORY}/src/srcSTB/Track.hpp)
+set_target_properties(Track PROPERTIES LINKER_LANGUAGE CXX)
+target_link_libraries(Track PUBLIC Matrix myMath ObjectInfo)
+
+add_library(STB SHARED ${CMAKE_HOME_DIRECTORY}/src/srcSTB/STB.hpp)
+set_target_properties(STB PROPERTIES LINKER_LANGUAGE CXX)
+target_link_libraries(STB PUBLIC Matrix myMath ObjectInfo ObjectFinder StereoMatch OTF Shake IPR PredField Track)
 
 
 # install libraries
 set(CMAKE_INSTALL_TARGETS
-    libMatrix
-    libmyMath
-    libImageIO
-    libCamera
-    libObjectInfo
-    libObjectFinder
-    libStereoMatch
-    libOTF
-    libShake
-    libIPR
-    libPredField
-    libTrack
+    Matrix
+    myMath
+    ImageIO
+    Camera
+    ObjectInfo
+    ObjectFinder
+    StereoMatch
+    OTF
+    Shake
+    IPR
+    PredField
+    Track
+    STB
 )
 install(TARGETS ${CMAKE_INSTALL_TARGETS} DESTINATION ${CMAKE_HOME_DIRECTORY}/bin/)
 
@@ -164,7 +170,7 @@ add_executable(test_Matrix
     ${CMAKE_HOME_DIRECTORY}/test/test_Matrix.cpp
     ${TESTHEADERFILES}
 )
-target_link_libraries(test_Matrix PRIVATE libMatrix)
+target_link_libraries(test_Matrix PRIVATE Matrix)
 add_test(test_Matrix test_Matrix)
 set_tests_properties(test_Matrix
                      PROPERTIES FAIL_REGULAR_EXPRESSION "failed on line")
@@ -175,7 +181,7 @@ add_executable(test_myMATH
     ${CMAKE_HOME_DIRECTORY}/test/test_myMATH.cpp
     ${TESTHEADERFILES}
 )
-target_link_libraries(test_myMATH PRIVATE libmyMath libMatrix)
+target_link_libraries(test_myMATH PRIVATE myMath Matrix)
 add_test(test_myMATH test_myMATH)
 set_tests_properties(test_myMATH
                      PROPERTIES FAIL_REGULAR_EXPRESSION "failed on line")
@@ -186,7 +192,7 @@ add_executable(test_ImageIO
     ${CMAKE_HOME_DIRECTORY}/test/test_ImageIO.cpp
     ${TESTHEADERFILES}
 )
-target_link_libraries(test_ImageIO PRIVATE libImageIO libMatrix tiff)
+target_link_libraries(test_ImageIO PRIVATE ImageIO Matrix tiff)
 add_test(test_ImageIO test_ImageIO)
 set_tests_properties(test_ImageIO
                      PROPERTIES FAIL_REGULAR_EXPRESSION "failed on line")
@@ -197,7 +203,7 @@ add_executable(test_Camera
     ${CMAKE_HOME_DIRECTORY}/test/test_Camera.cpp
     ${TESTHEADERFILES}
 )
-target_link_libraries(test_Camera PRIVATE libCamera libMatrix)
+target_link_libraries(test_Camera PRIVATE Camera Matrix myMath)
 add_test(test_Camera test_Camera)
 set_tests_properties(test_Camera
                      PROPERTIES FAIL_REGULAR_EXPRESSION "failed on line")
@@ -208,7 +214,7 @@ add_executable(test_ObjectInfo
     ${CMAKE_HOME_DIRECTORY}/test/test_ObjectInfo.cpp
     ${TESTHEADERFILES}
 )
-target_link_libraries(test_ObjectInfo PRIVATE libObjectInfo)
+target_link_libraries(test_ObjectInfo PRIVATE ObjectInfo Camera)
 add_test(test_ObjectInfo test_ObjectInfo)
 set_tests_properties(test_ObjectInfo
                      PROPERTIES FAIL_REGULAR_EXPRESSION "failed on line")
@@ -219,7 +225,7 @@ add_executable(test_ObjectFinder
     ${CMAKE_HOME_DIRECTORY}/test/test_ObjectFinder.cpp
     ${TESTHEADERFILES}
 )
-target_link_libraries(test_ObjectFinder PRIVATE libObjectFinder libObjectInfo libImageIO)
+target_link_libraries(test_ObjectFinder PRIVATE ObjectFinder ObjectInfo ImageIO)
 add_test(test_ObjectFinder test_ObjectFinder)
 set_tests_properties(test_ObjectFinder
                      PROPERTIES FAIL_REGULAR_EXPRESSION "failed on line")
@@ -230,7 +236,7 @@ add_executable(test_StereoMatch
     ${CMAKE_HOME_DIRECTORY}/test/test_StereoMatch.cpp
     ${TESTHEADERFILES}
 )
-target_link_libraries(test_StereoMatch PRIVATE libCamera libStereoMatch libObjectInfo libImageIO libObjectFinder)
+target_link_libraries(test_StereoMatch PRIVATE Camera StereoMatch ObjectInfo ImageIO ObjectFinder myMath Matrix)
 add_test(test_StereoMatch test_StereoMatch)
 set_tests_properties(test_StereoMatch
                      PROPERTIES FAIL_REGULAR_EXPRESSION "failed on line")
@@ -241,7 +247,7 @@ add_executable(test_OTF
     ${CMAKE_HOME_DIRECTORY}/test/test_OTF.cpp
     ${TESTHEADERFILES}
 )
-target_link_libraries(test_OTF PRIVATE libOTF libMatrix)
+target_link_libraries(test_OTF PRIVATE OTF Matrix)
 add_test(test_OTF test_OTF)
 set_tests_properties(test_OTF
                      PROPERTIES FAIL_REGULAR_EXPRESSION "failed on line")
@@ -252,7 +258,7 @@ add_executable(test_Shake
     ${CMAKE_HOME_DIRECTORY}/test/test_Shake.cpp
     ${TESTHEADERFILES}
 )
-target_link_libraries(test_Shake PRIVATE libShake libShake libObjectFinder libStereoMatch libObjectInfo libCamera libImageIO libOTF)
+target_link_libraries(test_Shake PRIVATE Shake Shake ObjectFinder StereoMatch ObjectInfo Camera ImageIO OTF myMath Matrix)
 add_test(test_Shake test_Shake)
 set_tests_properties(test_Shake
                      PROPERTIES FAIL_REGULAR_EXPRESSION "failed on line")
@@ -264,15 +270,16 @@ add_executable(test_IPR
     ${TESTHEADERFILES}
 )
 target_link_libraries(test_IPR PRIVATE 
-    libMatrix
-    libCamera
-    libImageIO
-    libObjectInfo
-    libObjectFinder
-    libStereoMatch
-    libShake
-    libOTF
-    libIPR
+    Matrix
+    myMath
+    Camera
+    ImageIO
+    ObjectInfo
+    ObjectFinder
+    StereoMatch
+    Shake
+    OTF
+    IPR
 )
 add_test(test_IPR test_IPR)
 set_tests_properties(test_IPR
@@ -284,7 +291,7 @@ add_executable(test_PredField
     ${CMAKE_HOME_DIRECTORY}/test/test_PredField.cpp
     ${TESTHEADERFILES}
 )
-target_link_libraries(test_PredField PRIVATE libPredField libMatrix libObjectInfo)
+target_link_libraries(test_PredField PRIVATE PredField Matrix ObjectInfo)
 add_test(test_PredField test_PredField)
 
 
@@ -293,5 +300,14 @@ add_executable(test_Track
     ${CMAKE_HOME_DIRECTORY}/test/test_Track.cpp
     ${TESTHEADERFILES}
 )
-target_link_libraries(test_Track PRIVATE libTrack libMatrix libObjectInfo)
+target_link_libraries(test_Track PRIVATE Track Matrix ObjectInfo)
 add_test(test_Track test_Track)
+
+
+# test STB
+add_executable(test_STB 
+    ${CMAKE_HOME_DIRECTORY}/test/test_STB.cpp
+    ${TESTHEADERFILES}
+)
+target_link_libraries(test_STB PRIVATE ImageIO STB Matrix ObjectInfo ObjectFinder StereoMatch OTF Shake IPR PredField Track)
+add_test(test_STB test_STB)

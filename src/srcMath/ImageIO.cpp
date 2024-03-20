@@ -9,6 +9,13 @@ ImageIO::ImageIO (const ImageIO& img)
 void ImageIO::loadImgPath (std::string folder_path, std::string file_img_path)
 {
     std::ifstream infile(folder_path + file_img_path, std::ios::in);
+
+    if (!infile.is_open())
+    {
+        std::cerr << "ImageIO::LoadImgPath: Could not open image path file!" << std::endl;
+        throw error_io;
+    }
+
     std::string line;
 
     while (std::getline(infile, line)) 
@@ -46,7 +53,10 @@ Image ImageIO::loadImg (int img_id)
 
     // check is the image is colorful
     _n_channel = 1;
+
+    #ifdef DEBUG
     IMAGEIO_CHECK_CALL_DEBUG(TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &_n_channel));
+    #endif
     if (_n_channel != 1)
     {
         std::cerr << "ImageIO::LoadImg: current version not supported for colorful image! " 
@@ -114,7 +124,9 @@ Image ImageIO::loadImg (int img_id)
     
     // check image orientation
     _img_orientation = ORIENTATION_TOPLEFT;
+    #ifdef DEBUG
     IMAGEIO_CHECK_CALL_DEBUG(TIFFGetField(tif, TIFFTAG_ORIENTATION, &_img_orientation));
+    #endif
     bool vert_flip = _img_orientation == ORIENTATION_BOTLEFT || _img_orientation == ORIENTATION_BOTRIGHT || _img_orientation == ORIENTATION_LEFTBOT || _img_orientation == ORIENTATION_RIGHTBOT;
 
     // initialize data array to convert buffer

@@ -47,7 +47,7 @@ private:
     double _shake_width; // unit: mm
     double _score_min; // Ghost threshold
     int _n_loop;       // Number of shake times
-    int _n_thread; // Number of threads
+    int _n_thread = 0; // Number of threads
 
 
     //                //

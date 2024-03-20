@@ -1,6 +1,6 @@
 #include "test.h"
 #include "ObjectInfo.h"
-
+#include "Camera.h"
 
 // test constructor
 bool test_function_1 ()

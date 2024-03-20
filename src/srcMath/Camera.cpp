@@ -198,6 +198,13 @@ void Camera::loadParameters (std::istream& is)
 void Camera::loadParameters (std::string file_name)
 {
     std::ifstream infile(file_name.c_str(), std::ios::in);
+
+    if (!infile)
+    {
+        std::cerr << "Camera::LoadParameters line " << __LINE__ << " : Error: cannot open file: " << file_name << std::endl;
+        throw error_io;
+    }
+
     std::string line;
     std::stringstream file_content;
     while (std::getline(infile, line)) 

@@ -4,10 +4,12 @@
 #include "ObjectFinder.h"
 
 void ObjectFinder2D::findTracer2D
-(std::vector<Tracer2D>& tr2d_list, Image const& img, int max_intensity, int min_intensity)
+(std::vector<Tracer2D>& tr2d_list, Image const& img, int max_intensity, int min_intensity, double r_px)
 {
     // Judge whether a given point is local maximum intensity or not
     //  skip first and last rows and columns   
+    Tracer2D tr2d;
+    tr2d._r_px = r_px;
     for (int row = 1; row < img.getDimRow()-1; row ++)
     {
         for (int col = 1; col < img.getDimCol()-1; col ++)
@@ -72,7 +74,9 @@ void ObjectFinder2D::findTracer2D
                     continue;
                 }
 
-                tr2d_list.push_back(Tracer2D(Pt2D(xc, yc)));
+                tr2d._pt_center[0] = xc;
+                tr2d._pt_center[1] = yc;
+                tr2d_list.push_back(tr2d);
             }
         }
     }
@@ -85,7 +89,7 @@ void ObjectFinder2D::findObject2D
     if (typeid(T) == typeid(Tracer2D))
     {
         obj2d_list.clear();
-        findTracer2D(obj2d_list, img, properties[0], properties[1]);
+        findTracer2D(obj2d_list, img, properties[0], properties[1], properties[2]);
     }
     else
     {

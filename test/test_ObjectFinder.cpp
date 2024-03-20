@@ -13,7 +13,7 @@ bool test_function_1 ()
 
     ObjectFinder2D objfinder;
     std::vector<Tracer2D> tr2d_list;
-    std::vector<double> properties = {255, 30};
+    std::vector<double> properties = {255, 30, 2};
     objfinder.findObject2D(tr2d_list, img, properties);
 
     std::ofstream outfile("../test/results/test_ObjectFinder/test_function_1.csv");

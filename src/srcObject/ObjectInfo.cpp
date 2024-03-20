@@ -100,5 +100,22 @@ void Tracer3D::getTracer2D(Tracer2D& tracer2d, int cam_id)
     }
 }
 
+void Tracer3D::saveObject3D(std::ofstream& output, int n_cam_all) const
+{
+    output << _pt_center[0] << "," << _pt_center[1] << "," << _pt_center[2] << "," << _error << "," << _n_2d;
+    
+    std::vector<double> pt2d_list(n_cam_all*2, IMGPTINIT);
+    for (int i = 0; i < _n_2d; i ++)
+    {
+        pt2d_list[_camid_list[i]*2] = _tr2d_list[i]._pt_center[0];
+        pt2d_list[_camid_list[i]*2+1] = _tr2d_list[i]._pt_center[1];
+    }
 
+    for (int i = 0; i < n_cam_all; i ++)
+    {
+        output << "," << pt2d_list[i*2] << "," << pt2d_list[i*2+1];
+    }
+
+    output << "\n";
+}
 

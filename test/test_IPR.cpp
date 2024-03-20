@@ -1,5 +1,6 @@
 #include "test.h"
 #include "Matrix.h"
+#include "myMATH.h"
 #include "Camera.h"
 #include "ImageIO.h"
 #include "ObjectInfo.h"
@@ -62,7 +63,7 @@ bool test_function_1 ()
     // save tracer info after shaking
     ipr.saveObjInfo("../test/results/test_IPR/tr3d_img_ipr.csv", tr3d_list);
 
-    std::cout << "zsj" << std::endl;
+    std::cout << std::endl;
 
     // load solution: pt3d_list
     Matrix<double> pt3d_list_sol("../test/solutions/test_IPR/pt3d_list_img.csv");
@@ -87,7 +88,7 @@ bool test_function_1 ()
 
         for (int j = 0; j < n_tr3d_find; j ++)
         {
-            error_list[j] = myMATH::distance(pt3d, tr3d_list[j]._pt_center);
+            error_list[j] = myMATH::dist(pt3d, tr3d_list[j]._pt_center);
         }
                 
         std::vector<double>::iterator minIt = std::min_element(error_list.begin(), error_list.end());

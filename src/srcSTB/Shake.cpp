@@ -612,6 +612,7 @@ void Shake::updateImgAugList (std::vector<Image>& imgAug_list, std::vector<Pixel
 }
 
 
+// Try with image cross correlation
 double Shake::calPointResidue (Pt3D const& pt3d, std::vector<PixelRange> const& region_list, std::vector<Image> const& imgAug_list, OTF const& otf)
 {
     double residue = 0;
@@ -741,7 +742,7 @@ void Shake::removeGhost(std::vector<Tracer3D>& tr3d_list)
     }
     mean /= n_mean;
 
-    std::cout << "mean score: " << mean << std::endl;
+    // std::cout << "mean score: " << mean << std::endl;
 
     // remove ghost tracers if the score is less than _min_score*mean
     // but _score_list is erased
@@ -764,7 +765,7 @@ void Shake::removeGhost(std::vector<Tracer3D>& tr3d_list)
     std::reverse(_objID_keep.begin(), _objID_keep.end());
 
 
-    std::cout << "Shake::removeGhost: " << _n_ghost << " ghost tracers are removed." << std::endl;
+    std::cout << "\tShake::removeGhost: " << _n_ghost << " ghost tracers are removed." << std::endl;
 }
 
 
@@ -789,7 +790,7 @@ void Shake::removeGhostResidue(std::vector<Tracer3D>& tr3d_list)
     }
     std = std::sqrt(std / n_mean);
 
-    std::cout << "mean score: " << mean << std::endl;
+    // std::cout << "mean score: " << mean << std::endl;
 
     // remove ghost tracers if the score is less than _min_score*mean
     // but _score_list is erased
@@ -811,7 +812,7 @@ void Shake::removeGhostResidue(std::vector<Tracer3D>& tr3d_list)
     // reverse _objID_keep back
     std::reverse(_objID_keep.begin(), _objID_keep.end());
 
-    std::cout << "Shake::removeGhost: " << _n_ghost << " ghost tracers are removed." << std::endl;
+    std::cout << "\tShake::removeGhost: " << _n_ghost << " ghost tracers are removed." << std::endl;
 }
 
 

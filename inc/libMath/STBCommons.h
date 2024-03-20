@@ -17,6 +17,13 @@
 #define UNDISTORT_MAX_ITER 50
 #define UNDISTORT_EPS 1e-5
 
+// Image point init
+// if 2d projection is not found, then the value is -10
+#define IMGPTINIT -10
+
+// STB parameters
+#define UNLINKED -1
+
 struct PixelRange 
 {
     // left is closed, right is open 

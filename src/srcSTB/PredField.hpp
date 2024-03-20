@@ -111,6 +111,12 @@ void PredField::getDisp (Pt3D& disp, Pt3D const& pt3d)
 }
 
 
+void PredField::saveDispField (std::string const& file)
+{
+    _disp_field.write(file);
+}
+
+
 void PredField::setGrid()
 {
     _nGrid_tot = _param.nx*_param.ny*_param.nz;

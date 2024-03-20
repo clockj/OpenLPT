@@ -124,15 +124,15 @@ Pt2D createUnitVector (Pt2D const& pt1, Pt2D const& pt2);
 double dot (Pt3D const& pt1, Pt3D const& pt2);
 double dot (Pt2D const& pt1, Pt2D const& pt2);
 
-
+// TODO: add dist2
 // Calculate the distance between two points
-double distance (Pt3D const& pt1, Pt3D const& pt2);
-double distance (Pt2D const& pt1, Pt2D const& pt2);
+double dist (Pt3D const& pt1, Pt3D const& pt2);
+double dist (Pt2D const& pt1, Pt2D const& pt2);
 
 
 // Calculate the distance between point and line  
-double distance (Pt3D const& pt, Line3D const& line);
-double distance (Pt2D const& pt, Line2D const& line);
+double dist (Pt3D const& pt, Line3D const& line);
+double dist (Pt2D const& pt, Line2D const& line);
 
 
 // Triangulation

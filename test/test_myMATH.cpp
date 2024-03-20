@@ -218,7 +218,7 @@ bool test_function_8 ()
 {
     Pt3D pt1(1,2,3);
     Pt3D pt2(4,5,6);
-    double distance_3D = myMATH::distance (pt1, pt2);
+    double distance_3D = myMATH::dist (pt1, pt2);
     double distance_3D_ans = std::sqrt(27);
 
     if (std::fabs(distance_3D - distance_3D_ans) > SMALLNUMBER)
@@ -231,7 +231,7 @@ bool test_function_8 ()
 
     Pt2D pt3(1,2);
     Pt2D pt4(4,5);
-    double distance_2D = myMATH::distance (pt3, pt4);
+    double distance_2D = myMATH::dist (pt3, pt4);
     double distance_2D_ans = std::sqrt(18);
 
     if (std::fabs(distance_2D - distance_2D_ans) > SMALLNUMBER)
@@ -254,7 +254,7 @@ bool test_function_9 ()
     line.pt = pt1;
     line.unit_vector = myMATH::createUnitVector (pt1, pt2);
     Pt3D pt3(2,3,4);
-    double distance_3D = myMATH::distance (pt3, line);
+    double distance_3D = myMATH::dist (pt3, line);
     double distance_3D_ans = 0;
 
     if (std::fabs(distance_3D - distance_3D_ans) > SQRTSMALLNUMBER)
@@ -273,7 +273,7 @@ bool test_function_9 ()
     line_2D.pt = pt4;
     line_2D.unit_vector = myMATH::createUnitVector (pt4, pt5);
     Pt2D pt6(10,13);
-    double distance_2D = myMATH::distance (pt6, line_2D);
+    double distance_2D = myMATH::dist (pt6, line_2D);
     double distance_2D_ans = std::fabs(pt6[0] - pt6[1] + 1) / std::sqrt(2);
 
     if (std::fabs(distance_2D - distance_2D_ans) > SMALLNUMBER)

@@ -33,29 +33,13 @@ void Track<T3D>::addNext(const Track& track)
 
 template<>
 void Track<Tracer3D>::saveTrack(std::ofstream& output, int track_id, float fps, int n_cam_all)
-{
-    std::vector<double> pt2d_list(n_cam_all*2, -10);
-    
-    int cam_id;
+{    
     for (int i = 0; i < _n_obj3d; i ++)
     {
-        output << track_id << "," << _t_list[i]/fps << "," << _obj3d_list[i]._pt_center[0] << "," << _obj3d_list[i]._pt_center[1] << "," << _obj3d_list[i]._pt_center[2] << "," << _obj3d_list[i]._error;
+        output << track_id << "," << _t_list[i]/fps << ",";
 
         // print 2d info
-        std::fill(pt2d_list.begin(), pt2d_list.end(), -10);
-        for (int j = 0; j < _obj3d_list[i]._n_2d; j ++)
-        {
-            cam_id = _obj3d_list[i]._camid_list[j];
-
-            pt2d_list[cam_id*2] = _obj3d_list[i]._tr2d_list[j]._pt_center[0];
-            pt2d_list[cam_id*2+1] = _obj3d_list[i]._tr2d_list[j]._pt_center[1];
-        }
-
-        for (int j = 0; j < n_cam_all; j ++)
-        {
-            output << "," << pt2d_list[j*2] << "," << pt2d_list[j*2+1];
-        }
-        output << "\n";
+        _obj3d_list[i].saveObject3D(output, n_cam_all);
     }
 }
 

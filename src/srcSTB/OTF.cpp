@@ -50,6 +50,14 @@ void OTF::loadParam (int n_cam, int nx, int ny, int nz, AxisLimit const& boundar
 void OTF::loadParam (std::string otf_file)
 {
     std::ifstream infile(otf_file);
+
+    if (!infile.is_open())
+    {
+        std::cerr << "OTF::loadParam error at line" << __LINE__ << ":\n"
+                  << "Cannot open file " << otf_file << std::endl;
+        throw error_io;
+    }
+
     std::string line;
     std::stringstream file_content;
     while (std::getline(infile, line))

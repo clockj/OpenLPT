@@ -55,8 +55,14 @@ Matrix<T>::Matrix (std::string file_name)
     int dim_col = 0;
     
     std::ifstream infile;
-    std::istringstream istream;
     infile.open(file_name);
+    if (!infile.is_open())
+    {
+        std::cerr << "Matrix<T>::Matrix error at line " << __LINE__ << ":\n" << "Cannot open file: " << file_name << std::endl;
+        throw error_io;
+    }
+
+    std::istringstream istream;
     while (std::getline(infile, line))
     {       
         dim_row ++;
@@ -146,6 +152,7 @@ Matrix<T>::~Matrix ()
 template<class T>
 void Matrix<T>::clear()
 {
+    // TODO: try to use nullptr for judge
     if (_is_space)
     {
         _dim_row = 0;
@@ -154,12 +161,16 @@ void Matrix<T>::clear()
         _is_space = 0;
 
         delete[] _mtx;
+
+        // TODO: try to use nullptr for judge
+        // _mtx = nullptr;
     }
 }
 
 template<class T>
 void Matrix<T>::create(int dim_row, int dim_col)
 {
+    // TODO: try to use nullptr for judge
     if (!_is_space)
     {
         _is_space = 1;
@@ -355,6 +366,8 @@ Matrix<T>& Matrix<T>::operator= (Matrix<T> const& mtx)
     {
         _mtx[i]= mtx._mtx[i];
     }
+    // TODO: try memcpy 
+    // std::memcpy(_mtx, mtx._mtx, _n * sizeof(T));
 
     return *this;
 }
@@ -525,6 +538,8 @@ Matrix<T>& Matrix<T>::operator*= (Matrix<T> const& mtx)
     {
         _mtx[i] = res._mtx[i];
     }
+    // TODO: try memcpy
+    // std::memcpy(_mtx, res._mtx, _n * sizeof(T));
 
     return *this;
 }
