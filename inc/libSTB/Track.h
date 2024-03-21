@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
+#include <typeinfo>
 
 #include "STBCommons.h"
 #include "Matrix.h"
@@ -37,12 +38,18 @@ public:
     // Add another Track onto the end of this one
     void addNext(Track const& t);
     
+    // Predict the next position of the track
+    void predictNext(T3D& obj3d);
+
     // write the track to a file
     void saveTrack(std::ofstream& output, int track_id, float fps = 1, int n_cam_all = 0);
     
     // member operators
     Track<T3D>& operator=(Track<T3D> const& t);
-        
+
+private:
+    void predLMSWiener (T3D& obj3d);
+
 };
 
 #include "Track.hpp"

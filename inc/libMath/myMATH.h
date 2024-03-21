@@ -125,6 +125,16 @@ double dot (Pt3D const& pt1, Pt3D const& pt2);
 double dot (Pt2D const& pt1, Pt2D const& pt2);
 
 // TODO: add dist2
+// Calculate the distance square between two points
+double dist2 (Pt3D const& pt1, Pt3D const& pt2);
+double dist2 (Pt2D const& pt1, Pt2D const& pt2);
+
+
+// Calculate the distance square between point and line  
+double dist2 (Pt3D const& pt, Line3D const& line);
+double dist2 (Pt2D const& pt, Line2D const& line);
+
+
 // Calculate the distance between two points
 double dist (Pt3D const& pt1, Pt3D const& pt2);
 double dist (Pt2D const& pt1, Pt2D const& pt2);

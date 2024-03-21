@@ -21,8 +21,12 @@
 // if 2d projection is not found, then the value is -10
 #define IMGPTINIT -10
 
+// Track prediction
+#define WIENER_MAX_ITER 1000
+
 // STB parameters
 #define UNLINKED -1
+#define MAX_ERR_LINEARFIT 5e-2
 
 struct PixelRange 
 {

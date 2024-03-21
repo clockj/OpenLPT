@@ -54,5 +54,102 @@ Track<T3D>& Track<T3D>::operator=(const Track<T3D>& track)
     return *this;
 }
 
+template<class T3D>
+void Track<T3D>::predictNext(T3D& obj3d)
+{
+    if (typeid(T3D) == typeid(Tracer3D))
+    {
+        predLMSWiener(obj3d);
+    }
+    else
+    {
+        std::cerr << "Error: predictNext not implemented for this type" << std::endl;
+    }
+}
+
+template<class T3D>
+void Track<T3D>::predLMSWiener(T3D& obj3d)
+{
+    int n_obj3d = _obj3d_list.size();
+    int order = 0;
+
+    if (n_obj3d < 2)
+    {
+        std::cerr << "Track<T3D>::predLMSWiener error at line " << __LINE__ << ": no enough points to predict" << std::endl;
+        return;
+    }
+    else if (n_obj3d < 6)
+    {
+        order = n_obj3d - 1;
+    }
+    else 
+    {
+        order = 5;
+    }
+
+    // predict at each direction
+    std::vector<double> series (order+1, 0);
+    std::vector<double> filter_param (order, 0);
+    for (int i = 0; i < 3; i ++)
+    {
+        for (int j = 0; j < order+1; j ++)
+        {
+            series[j] = _obj3d_list[n_obj3d-1-order + j]._pt_center[i];
+        }
+        
+        // Wiener filter does badly near zero
+        // Make a shift to avoid zero-plane prediction
+        bool shift_label = false;
+        double shift = 10;
+        if (std::fabs(series[order]) < 1)
+        {
+            shift_label = true;
+            for (int j = 0; j < order+1; j ++)
+            {
+                series[j] += shift;
+            }
+        }
+        
+        // calculate the step
+        double sum = 0;
+        for (int j = 0; j < order; j ++)
+        {
+            sum += (series[j] * series[j]);
+        }
+        double step = 1 / sum;
+
+        // initialize the filter param
+        std::fill(filter_param.begin(), filter_param.end(), 0);
+        double prediction = 0;
+        double error = series[order] - prediction;
+
+        int iter = 0;
+        while (std::fabs(error) > SMALLNUMBER && iter < WIENER_MAX_ITER)
+        {
+            // Update parameters and calculate the prediction using the new filter param
+            prediction = 0;
+            for (int j = 0; j < order; j ++)
+            {
+                filter_param[j] += (step * series[j] * error);
+                prediction += (filter_param[j] * series[j]);
+            }
+
+            error = series[order] - prediction;
+            iter ++;
+        }
+
+        prediction = 0;
+        for (int j = 0; j < order; j ++)
+        {
+            prediction += (filter_param[j] * series[j+1]);
+        }
+        if (shift_label)
+        {
+            prediction -= shift;
+        }
+        obj3d._pt_center[i] = prediction;
+    }  
+
+}
 
 #endif

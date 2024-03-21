@@ -50,6 +50,13 @@ STB<T3D>::STB(int frame_start, int frame_end, float fps, double vx_to_mm, int n_
     parsed >> _n_initPhase; // number of frames for initial phase
     parsed >> _r_trackSearch; _r_trackSearch *= _vx_to_mm;
 
+    if (_n_initPhase < 2)
+    {
+        std::cerr << "STB<T3D>::STB error at line" << __LINE__ << ":\n"
+                  << "Number of frames for initial phase should be at least 2!" << std::endl;
+        throw error_size;
+    }
+
     // Load Shake parameters //
     parsed >> _shake_width; _shake_width *= _vx_to_mm;
 
@@ -98,7 +105,7 @@ STB<T3D>::STB(int frame_start, int frame_end, float fps, double vx_to_mm, int n_
 
 
 template<class T3D>
-void STB<T3D>::processFrame (int frame_id, std::vector<Image>& img_list)
+void STB<T3D>::processFrame (int frame_id, std::vector<Image>& img_list, bool is_update_img)
 {
     if (frame_id < _first || frame_id > _last)
     {
@@ -115,14 +122,14 @@ void STB<T3D>::processFrame (int frame_id, std::vector<Image>& img_list)
         // Initial phase
         std::cout << "Initial phase at frame " << frame_id << std::endl;
 
-        runInitPhase(frame_id, img_list);
+        runInitPhase(frame_id, img_list, is_update_img);
     }
     else
     {
         // Convergence phase
         std::cout << "Convergence phase at frame " << frame_id << std::endl;
 
-        runConvPhase(frame_id, img_list);
+        runConvPhase(frame_id, img_list, is_update_img);
     }
 
     t_end = clock();
@@ -189,22 +196,35 @@ void STB<T3D>::loadObjParam (std::stringstream& config)
 
 
 template<class T3D>
-void STB<T3D>::runInitPhase (int frame, std::vector<Image>& img_list)
+void STB<T3D>::runInitPhase (int frame, std::vector<Image>& img_list, bool is_update_img)
 {
     // Initialize IPR
     IPR ipr(_cam_list, img_list, _ipr_param);
+    std::vector<T3D> obj3d_list;
+    _ipr_matched.push_back(obj3d_list);
 
     if (_ipr_flag)
     {
         // IPR
-        std::vector<T3D> obj3d_list;
-        _ipr_matched.push_back(obj3d_list);
-        
         ipr.runIPR(_ipr_matched.back(), _obj_param, _otf, _n_reduced);
+
+        if (is_update_img)
+        {
+            img_list = ipr._imgRes_list;
+        }
     }
     else
     {
         // TODO: Load .csv files
+
+        // if (is_update_img)
+        // {
+        //     // only calculate residue images
+        //     Shake s(_cam_list, _shake_width, _ipr_param.ghost_threshold, _ipr_param.n_loop_shake, _n_thread);
+        //     s.runShake(_ipr_matched.back(), _otf, img_list, true);
+
+        //     img_list = s._imgRes_list;
+        // }
     }
 
     if (frame-_first == _n_initPhase-1)
@@ -213,7 +233,6 @@ void STB<T3D>::runInitPhase (int frame, std::vector<Image>& img_list)
         {
             std::cout << std::endl;
 
-            Pt3D vel_curr;
             for (int i = 0; i < _n_initPhase-1; i ++)
             {   
                 int currframe = _first + i;
@@ -230,35 +249,40 @@ void STB<T3D>::runInitPhase (int frame, std::vector<Image>& img_list)
                 clock_t t_start, t_end;
                 t_start = clock();
 
-                // Extend all the tracks that are active in current frame
-                std::vector<int> is_tracked_next(_ipr_matched[i+1].size(), 0);
-                for (typename std::deque<Track<T3D>>::iterator track = _short_track_active.begin(); track != _short_track_active.end();)
+                // extend all the tracks that are active in current frame
+                int n_sa = _short_track_active.size();
+                std::vector<int> link_id(n_sa, UNLINKED);
+                
+                if (_n_thread>0)
                 {
-                    pf.getDisp(vel_curr, track->_obj3d_list.back()._pt_center);
-                    LinkStatus status = makeLink(*track, nextframe, vel_curr, _r_objSearch);
+                    omp_set_num_threads(_n_thread);
+                }
+                #pragma omp parallel for
+                for (int j = 0; j < n_sa; j ++)
+                {
+                    Pt3D vel_curr;
+                    pf.getDisp(vel_curr, _short_track_active[j]._obj3d_list.back()._pt_center);
+                    link_id[j] = makeLink(_short_track_active[j], nextframe, vel_curr, _r_objSearch);
+                }
 
-                    if (! status.active)
+                // update short track and _is_tracked status for the next frame
+                for (int j = n_sa-1; j > -1; j --)
+                {
+                    if (link_id[j] != UNLINKED)
                     {
-                        track = _short_track_active.erase(track);
+                        _short_track_active[j].addNext(_ipr_matched[i+1][link_id[j]], nextframe);
+                        _ipr_matched[i+1][link_id[j]]._is_tracked = true;
                     }
                     else
                     {
-                        ++ track;
-                        is_tracked_next[status.obj3d_id] = 1;
+                        _short_track_active.erase(_short_track_active.begin()+j);
                     }
                 }
 
-                // Update _is_tracked status for the next frame
-                for (int j = 0; j < _ipr_matched[i+1].size(); j ++)
-                {
-                    if (is_tracked_next[j])
-                    {
-                        _ipr_matched[i+1][j]._is_tracked = true;
-                    }
-                }
 
                 // Start a track for all particles left untracked in current frame
                 startTrack(currframe, pf);
+
 
                 t_end = clock();
                 std::cout << "; total link particles time: " 
@@ -266,10 +290,10 @@ void STB<T3D>::runInitPhase (int frame, std::vector<Image>& img_list)
                         << std::endl;
             }
 
-            // Move all tracks longer than 3 from _short_track_active to _long_track_active
+            // Move all tracks >= _n_initPhase from _short_track_active to _long_track_active
             for (typename std::deque<Track<T3D>>::iterator track = _short_track_active.begin(); track != _short_track_active.end();)
             {
-                if (track->_obj3d_list.size() > 3)
+                if (track->_obj3d_list.size() >= _n_initPhase)
                 {
                     _long_track_active.push_back(*track);
                     track = _short_track_active.erase(track);
@@ -309,6 +333,7 @@ void STB<T3D>::runInitPhase (int frame, std::vector<Image>& img_list)
                 ipr.saveObjInfo(address + "IPR_" + std::to_string(_first+i) + ".csv", _ipr_matched[i]);
             }
         }
+        // _ipr_matched.clear();
         
         // save all tracks
         saveTracksAll(address, frame);
@@ -318,32 +343,237 @@ void STB<T3D>::runInitPhase (int frame, std::vector<Image>& img_list)
 
 
 template<class T3D>
-void STB<T3D>::runConvPhase (int frame, std::vector<Image>& img_list)
+void STB<T3D>::runConvPhase (int frame, std::vector<Image>& img_list, bool is_update_img)
 {
+    // Initialize some variables
+    int n_sa = _short_track_active.size();
+    int n_la = _long_track_active.size();
+    int n_li = _long_track_inactive.size();
+    _a_sa = 0; _a_la = 0; _s_sa = 0; _s_la = 0; _a_li = 0;
+
+
+    // Prediction for active long tracks //
+    std::cout << "\tPrediction: ";
+    clock_t t_start, t_end;
+    t_start = clock();
+
+    std::vector<T3D> obj3d_list_pred(n_la);
+    std::vector<int> is_inRange(n_la, 1);
+
+    if (_n_thread>0)
+    {
+        omp_set_num_threads(_n_thread);
+    }
+    #pragma omp parallel for
+    for (int i = 0; i < n_la; i ++)
+    {
+        _long_track_active[i].predictNext(obj3d_list_pred[i]);
+        is_inRange[i] = _axis_limit.check(
+            obj3d_list_pred[i]._pt_center[0], 
+            obj3d_list_pred[i]._pt_center[1], 
+            obj3d_list_pred[i]._pt_center[2]
+        );
+    }
+
+    // Remove out-of-range tracks
+    for (int i = n_la-1; i >= 0; i --)
+    {
+        if (!is_inRange[i])
+        {
+            _exit_track.push_back(_long_track_active[i]);
+            _long_track_active.erase(_long_track_active.begin()+i);
+            obj3d_list_pred.erase(obj3d_list_pred.begin()+i);
+            _s_la ++;
+        }
+    }
+
+    t_end = clock();
+    std::cout << (double) (t_end - t_start)/CLOCKS_PER_SEC << " s. Done!" << std::endl;
+
+    // Shake prediction
+    int n_fail_shaking = 0;
+    Shake s (_cam_list, _shake_width, _ipr_param.ghost_threshold, _ipr_param.n_loop_shake, _n_thread);
+    if (obj3d_list_pred.size() > 0)
+    {
+        std::cout << "\tShake prediction: ";
+        t_start = clock();
+ 
+        s.runShake(obj3d_list_pred, _otf, img_list, false);
+
+        t_end = clock();
+        std::cout << (double) (t_end - t_start)/CLOCKS_PER_SEC << " s. ";
+
+        // Add the corrected particle position in nextFrame to its respective track
+        std::vector<int> trackID_keep = s._objID_keep;
+        for (int i = 0; i < trackID_keep.size(); i ++)
+        {
+            _long_track_active[trackID_keep[i]].addNext(obj3d_list_pred[i], frame);
+        }
+
+        // Remove the tracks that are not kept
+        std::vector<int> trackID_remove = s._objID_remove;
+        n_fail_shaking = trackID_remove.size();
+        for (int i = trackID_remove.size()-1; i >= 0; i --)
+        {
+            _long_track_inactive.push_back(_long_track_active[trackID_remove[i]]);
+            _long_track_active.erase(_long_track_active.begin()+trackID_remove[i]);
+            _s_la ++;
+            _a_li ++;
+        }
+
+        std::cout << "Finish updating active long tracks!" << std::endl;
+    }
+    else 
+    {
+        s._imgRes_list = img_list;
+    }
+
+
+    // IPR on residue images //
+    IPR ipr(_cam_list, s._imgRes_list, _ipr_param);
+    std::vector<T3D> obj3d_list;
+    ipr.runIPR(obj3d_list, _obj_param, _otf, _n_reduced);
+
+    // update img_list
+    if (is_update_img)
+    {
+        img_list = ipr._imgRes_list;
+    }
+
+    // Link each _short_track_active to an obj 
+    int n_obj3d = obj3d_list.size();
+    if (n_obj3d > 0)
+    {
+        std::cout << "\tLinking: ";
+        t_start = clock();
+
+        std::vector<int> link_id(n_sa, 0);
+        std::vector<int> is_obj_used(n_obj3d, 0);
+
+        if (_n_thread>0)
+        {
+            omp_set_num_threads(_n_thread);
+        }
+        #pragma omp parallel for
+        for (int i = 0; i < n_sa; i ++)
+        {
+            link_id[i] = linkShortTrack (_short_track_active[i], obj3d_list, 5);
+        }
+
+        // update _short_track_active and _is_tracked status 
+        for (int i = n_sa-1; i >= 0; i --)
+        {
+            if (link_id[i] != UNLINKED)
+            {
+                _short_track_active[i].addNext(obj3d_list[link_id[i]], frame);
+                obj3d_list[link_id[i]]._is_tracked = true;
+            }
+            else
+            {
+                _short_track_active.erase(_short_track_active.begin()+i);
+                _s_sa ++;
+            }
+        }
+
+        // move all active short tracks to long tracks if they have >= _n_initPhase particles
+        for (int i = _short_track_active.size()-1; i >= 0; i --)
+        {
+            if (_short_track_active[i]._obj3d_list.size() >= _n_initPhase)
+            {
+                _long_track_active.push_back(_short_track_active[i]);
+                _short_track_active.erase(_short_track_active.begin()+i);
+                _a_la ++;
+                _s_sa ++;
+            }
+        }
+
+        // add all the untracked candidates to a new short track
+        for (int i = 0; i < n_obj3d; i ++)
+        {
+            if (!obj3d_list[i]._is_tracked)
+            {
+                _short_track_active.push_back(Track<T3D> (obj3d_list[i], frame));
+                _a_sa ++;
+            }
+        }
+
+
+        t_end = clock();
+        std::cout << (double) (t_end - t_start)/CLOCKS_PER_SEC << " s. Done!" << std::endl;
+    }
+
+
+    // Prune and arrange the tracks //
+    int n_fail_lf = 0;
+    if (frame - _first > 10)
+    {
+        t_start = clock();
+
+        int n_la_new = _long_track_active.size();
+        std::vector<int> is_erase(n_la_new, 0);
+
+        if (_n_thread>0)
+        {
+            omp_set_num_threads(_n_thread);
+        }
+        #pragma omp parallel for
+        for (int i = 0; i < n_la_new; i ++)
+        {
+            if (!checkLinearFit(_long_track_active[i]))
+            {
+                is_erase[i] = 1;
+            }
+        }
+
+        // remove the tracks that are not linear    
+        for (int i = n_la_new-1; i >= 0; i --)
+        {
+            if (is_erase[i])
+            {
+                _long_track_inactive.push_back(_long_track_active[i]);
+                _long_track_active.erase(_long_track_active.begin()+i);
+                _s_la ++;
+                _a_li ++;
+                n_fail_lf ++;
+            }
+        }
+
+        t_end = clock();
+
+        std::cout << "Pruning time: " << (t_start-t_end)/CLOCKS_PER_SEC << "s" << std::endl;
+    }
+
+
+    // Print outputs
+    std::cout << "\tNo. of active short tracks: " << n_sa << " + " << _a_sa << " - " << _s_sa << " = " << _short_track_active.size() << std::endl;
+
+    std::cout << "\tNo. of active long tracks: " << n_la << " + " << _a_la << " - " << _s_la << " = " << _long_track_active.size() << std::endl;
     
+    std::cout << "\tNo. of exited tracks: " << _exit_track.size() << std::endl;
+
+    std::cout << "\tNo. of inactive Long tracks: " << n_li << " + " << _a_li << " = " << _long_track_inactive.size() << std::endl;
+
+    std::cout << "\tNo. of fail shaking intensity: " << n_fail_shaking << std::endl;
+    std::cout << "\tNo. of fail linear fit: " << n_fail_lf << std::endl;
+
+    // save all data every 500 frames
+    if (frame%500 == 0)
+    {
+        saveTracksAll(_output_folder+"ConvergeTrack/", frame);
+    }
 }
 
 
 // TODO: I donot update _is_tracked on the fly (to avoid conflict during parallelization), not sure whether this will affect the result
 // Note: I still update the _is_track status after makeLink, but set all possible links to be true
 template<class T3D>
-LinkStatus STB<T3D>::makeLink(Track<T3D>& track, int nextframe, Pt3D const& vel_curr, double radius)
+int STB<T3D>::makeLink(Track<T3D> const& track, int nextframe, Pt3D const& vel_curr, double radius)
 {
-    LinkStatus status;
-    status.active = false;
-    
     int m = nextframe-_first;
 
-    int obj_id = findNN(_ipr_matched[m], track._obj3d_list.back()._pt_center+vel_curr, radius);
+    int obj3d_id = findNN(_ipr_matched[m], track._obj3d_list.back()._pt_center+vel_curr, radius);
 
-    if (obj_id != UNLINKED)
-    {
-        track.addNext(_ipr_matched[m][obj_id], nextframe);
-        status.active = true;
-        status.obj3d_id = obj_id;
-    }
-
-    return status;
+    return obj3d_id;
 }
 
 
@@ -379,8 +609,8 @@ void STB<T3D>::startTrack (int frame, PredField& pf)
     int m = frame - _first;
     int n_obj3d = _ipr_matched[m].size();
     int n_obj3d_next = _ipr_matched[m+1].size();
+    Pt3D vel_curr;
 
-    std::vector<int> is_tracked_next(n_obj3d_next, 0);
     for (int i = 0; i < n_obj3d; i ++)
     {
         if (!_ipr_matched[m][i]._is_tracked)
@@ -390,26 +620,175 @@ void STB<T3D>::startTrack (int frame, PredField& pf)
             // Start a track for the untracked particle            
             Track<T3D> init_tr(_ipr_matched[m][i], frame);
 
-            Pt3D vel_curr;
             pf.getDisp(vel_curr, _ipr_matched[m][i]._pt_center);
-            LinkStatus status = makeLink(init_tr, frame+1, vel_curr, _r_objSearch);
+            int obj3d_id = makeLink(init_tr, frame+1, vel_curr, _r_objSearch);
 
-            if (status.active)
+            if (obj3d_id != UNLINKED)
             {
+                init_tr.addNext(_ipr_matched[m+1][obj3d_id], frame+1);  
                 _short_track_active.push_back(init_tr);
-                is_tracked_next[status.obj3d_id] = 1;
+                _ipr_matched[m+1][obj3d_id]._is_tracked = true;
             }
         }
     }
+}
 
-    // Update _is_tracked status for the next frame
-    for (int i = 0; i < n_obj3d_next; i ++)
+
+template<class T3D>
+int STB<T3D>::linkShortTrack (Track<T3D> const& track, std::vector<T3D> const& obj3d_list, int n_iter)
+{
+    int n_la = _long_track_active.size();
+    Pt3D est, vel;
+    double w, beta2;
+    int obj3d_id = UNLINKED;
+
+    double tot_weight = 0;
+    std::vector<double> weight;
+    int n_nearTracks = 0;
+    std::vector<Pt3D> disp;
+
+    std::vector<int> is_around(n_la, 0);
+    std::vector<double> dsqr(n_la, 0);
+    double rsqr, shift;
+    
+    for (int step = 0; step < n_iter; step ++)
     {
-        if (is_tracked_next[i])
+        rsqr = std::pow(std::pow(1.1, step) * 3 * _r_trackSearch, 2);
+        shift = std::pow(1.1, step) * _r_objSearch;
+        
+        vel *= 0;
+        beta2 = 1 / std::pow(std::pow(1.1, step) * 0.1 * _r_trackSearch, 2); // typical length scale
+        
+        // calculate the predictive vel. field as an avg. of particle vel from neighbouring tracks
+        // identify the neighbour tr (using 3*avg interpt dist.) and get their pt vel
+        int len = 0;
+        for (int j = 0; j < n_la; j ++)
         {
-            _ipr_matched[m+1][i]._is_tracked = true;
+            if (is_around[j])
+            {
+                continue;
+            }
+
+            if (step == 0)
+            {
+                dsqr[j] = myMATH::dist2(
+                    _long_track_active[j]._obj3d_list.back()._pt_center, 
+                    track._obj3d_list.back()._pt_center
+                );
+            }
+
+            if (dsqr[j] < rsqr)
+            {
+                is_around[j] = 1;
+                
+                w = 1/(1 + dsqr[j]*beta2);
+                tot_weight = tot_weight + w;
+                weight.push_back(w);
+
+                len = _long_track_active[j]._obj3d_list.size();
+                disp.push_back(
+                    _long_track_active[j]._obj3d_list[len-1]._pt_center - _long_track_active[j]._obj3d_list[len-2]._pt_center
+                );
+            }
+        }
+
+        n_nearTracks = weight.size();
+        if (n_nearTracks > 0)
+        {
+            for (int j = 0; j < n_nearTracks; j ++)
+            {
+                w = weight[j] / tot_weight;              
+                vel[0] += w * disp[j][0];
+                vel[1] += w * disp[j][1];
+                vel[2] += w * disp[j][2];
+            }
+
+            est = track._obj3d_list.back()._pt_center + vel;
+            obj3d_id = findNN(obj3d_list, est, _r_objSearch);
+        }
+        else
+        {
+            // if no neighbouring tracks are identified
+            est = track._obj3d_list.back()._pt_center;
+            obj3d_id = findNN(obj3d_list, est, shift);
         }
     }
+
+    return obj3d_id;
+}
+
+
+template<class T3D>
+bool STB<T3D>::checkLinearFit(Track<T3D> const& track)
+{
+    int len = track._obj3d_list.size();
+    int n_pts = _n_initPhase > 4 ? 4 : _n_initPhase;
+
+    if (len < n_pts)
+    {
+        return false;
+    }
+
+    Matrix<double> coeff(3, 2, 0);
+    Matrix<double> x_mat(n_pts, 2, 0);
+    Matrix<double> kernel(2, n_pts, 0);
+    Matrix<double> y_mat(n_pts, 1, 0);
+    Matrix<double> temp(2, 1, 0);
+
+    // prepare x_mat
+    for (int i = 0; i < n_pts; i ++)
+    {
+        x_mat(i, 0) = 1;
+        x_mat(i, 1) = i;
+    }
+
+    // calculate the kernel matrix
+    kernel = myMATH::inverse(x_mat.transpose() * x_mat) * x_mat.transpose();
+
+    // calculate coeff at each direction and the estimate point
+    Pt3D est;
+    for (int i = 0; i < 3; i ++)
+    {
+        for (int j = 0; j < n_pts; j ++)
+        {
+            y_mat(j, 0) = track._obj3d_list[len-n_pts+j]._pt_center[i];
+        }
+
+        temp = kernel * y_mat;
+        coeff(i, 0) = temp(0, 0);
+        coeff(i, 1) = temp(1, 0);
+        est[i] = coeff(i, 0) + (n_pts-1) * coeff(i, 1);
+    }
+
+    // calculate the residue
+    double res2 = myMATH::dist2(track._obj3d_list[len-1]._pt_center, est);
+    double err2_max = MAX_ERR_LINEARFIT * MAX_ERR_LINEARFIT;
+    double err2_min = 0.36 * err2_max;
+
+    std::cout << "residue: " << res2 << std::endl;
+
+    if (res2 > err2_max)
+    {
+        return false;
+    }
+    else if (res2 > err2_min)
+    {
+        // For those tracks that are at the edge of being deleted (res>0.6*err), check the whole track to see whether its error is large also
+        for (int i = 0; i < n_pts-1; i ++)
+        {
+            est[0] = coeff(0,0) + coeff(0,1) * i;
+            est[1] = coeff(1,0) + coeff(1,1) * i;
+            est[2] = coeff(2,0) + coeff(2,1) * i;
+
+            res2 += myMATH::dist2(track._obj3d_list[len-n_pts+i]._pt_center, est); 
+        }
+        if (res2 > n_pts*n_pts*err2_min)
+        {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 

@@ -43,4 +43,4 @@
 ###############################
 255 # max intensity for each pixel
 30 # 2D particle finder threshold
-2 # Particle radius [px]
+4 # Particle radius [px], for calculating residue image and shaking

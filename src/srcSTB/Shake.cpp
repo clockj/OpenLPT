@@ -12,19 +12,19 @@ void Shake::runShake(std::vector<Tracer3D>& tr3d_list, OTF const& otf, std::vect
 // TODO: try gradient descend for optimization
 void Shake::shakeTracers(std::vector<Tracer3D>& tr3d_list, OTF const& otf, std::vector<Image> const& imgOrig_list, bool tri_only)
 {
+    // update tr2d position
+    int n_tr3d = tr3d_list.size();
+    for (int i = 0; i < n_tr3d; i ++)
+    {
+        tr3d_list[i].projectTracer2D(_cam_list.useid_list, _cam_list.cam_list);
+    }
+
     // if only do triangulation, then skip the following steps
     if (tri_only)
     {
         calResImg(tr3d_list, otf, imgOrig_list);
         absResImg();
         return;
-    }
-
-    // update tr2d position
-    int n_tr3d = tr3d_list.size();
-    for (int i = 0; i < n_tr3d; i ++)
-    {
-        tr3d_list[i].projectTracer2D(_cam_list.useid_list, _cam_list.cam_list);
     }
 
     // Clear lists
@@ -664,6 +664,7 @@ double Shake::calTracerScore (Tracer3D const& tr3d, std::vector<PixelRange> cons
     
     std::vector<double> numerator_list(_n_cam_use, 0);
     std::vector<double> denominator_list(_n_cam_use, 0);
+    int n_outRange = 0;
     for (int id = 0; id < _n_cam_use; id ++)
     {
         std::vector<double> otf_param = otf.getOTFParam(
@@ -675,7 +676,11 @@ double Shake::calTracerScore (Tracer3D const& tr3d, std::vector<PixelRange> cons
         if (region_list[id].getNumOfCol() == 1 || 
             region_list[id].getNumOfRow() == 1)
         {
-            return 0;
+            n_outRange ++;
+            if (_n_cam_use-n_outRange < 2)
+            {
+                return 0;
+            } 
         }
 
         int i = 0;
@@ -809,8 +814,9 @@ void Shake::removeGhostResidue(std::vector<Tracer3D>& tr3d_list)
         }
     }
 
-    // reverse _objID_keep back
+    // reverse _objID_keep back to original order: small to large
     std::reverse(_objID_keep.begin(), _objID_keep.end());
+    std::reverse(_objID_remove.begin(), _objID_remove.end());
 
     std::cout << "\tShake::removeGhost: " << _n_ghost << " ghost tracers are removed." << std::endl;
 }

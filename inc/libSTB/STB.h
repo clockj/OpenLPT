@@ -25,11 +25,6 @@
 
 namespace fs = std::filesystem;
 
-struct LinkStatus
-{
-    bool active = false;
-    int obj3d_id = UNLINKED;
-};
 
 template<class T3D>
 class STB
@@ -38,7 +33,6 @@ public:
     std::vector<std::vector<T3D>> _ipr_matched;
 
     std::deque<Track<T3D>> _short_track_active;
-    std::deque<Track<T3D>> _short_track_inactive;
     std::deque<Track<T3D>> _long_track_active;
     std::deque<Track<T3D>> _long_track_inactive;
     std::deque<Track<T3D>> _exit_track;
@@ -55,7 +49,7 @@ public:
 
     // Process STB on frame frame_id
     // return img_list: residue images
-    void processFrame(int frame_id, std::vector<Image>& img_list);
+    void processFrame(int frame_id, std::vector<Image>& img_list, bool is_update_img = false);
 
     
 
@@ -98,20 +92,27 @@ private:
     std::vector<double> _obj_param;
     OTF _otf;
 
+    // Dummy variables to identify the no. of tracks added and subtracted 
+    int _a_sa = 0, _a_la = 0, _s_sa = 0, _s_la = 0, _a_li = 0;
+
 
     // FUNCTIONS //
     void createFolder (std::string const& folder);
 
     void loadObjParam (std::stringstream& config);
 
-    void runInitPhase (int frame_id, std::vector<Image>& img_list);
+    void runInitPhase (int frame_id, std::vector<Image>& img_list, bool is_update_img = false);
 
-    void runConvPhase (int frame_id, std::vector<Image>& img_list);
+    void runConvPhase (int frame_id, std::vector<Image>& img_list, bool is_update_img = false);
 
     // make all possible links for tracks
-    LinkStatus makeLink (Track<T3D>& track, int nextframe, Pt3D const& vel_curr, double radius);
+    int makeLink (Track<T3D> const& track, int nextframe, Pt3D const& vel_curr, double radius);
 
     void startTrack (int frame, PredField& pf);
+
+    int linkShortTrack (Track<T3D> const& track, std::vector<T3D> const& obj3d_list, int n_iter);
+
+    bool checkLinearFit (Track<T3D> const& track);
 
     // find nearest neighbor around a position
     int findNN (std::vector<T3D> const& obj3d_list, Pt3D const& pt3d_est, double radius);
