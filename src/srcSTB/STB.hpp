@@ -380,7 +380,11 @@ void STB<T3D>::runConvPhase (int frame, std::vector<Image>& img_list, bool is_up
     {
         if (!is_inRange[i])
         {
-            _exit_track.push_back(_long_track_active[i]);
+            if (_long_track_active[i]._n_obj3d >= LEN_LONG_TRACK)
+            {
+                _exit_track.push_back(_long_track_active[i]);
+            }
+            
             _long_track_active.erase(_long_track_active.begin()+i);
             obj3d_list_pred.erase(obj3d_list_pred.begin()+i);
             _s_la ++;
@@ -415,10 +419,15 @@ void STB<T3D>::runConvPhase (int frame, std::vector<Image>& img_list, bool is_up
         n_fail_shaking = trackID_remove.size();
         for (int i = trackID_remove.size()-1; i >= 0; i --)
         {
-            _long_track_inactive.push_back(_long_track_active[trackID_remove[i]]);
+            if (_long_track_active[trackID_remove[i]]._n_obj3d >= LEN_LONG_TRACK)
+            {
+                _long_track_inactive.push_back(_long_track_active[trackID_remove[i]]);
+
+                _a_li ++;
+            }
+
             _long_track_active.erase(_long_track_active.begin()+trackID_remove[i]);
             _s_la ++;
-            _a_li ++;
         }
 
         std::cout << "Finish updating active long tracks!" << std::endl;
@@ -478,7 +487,7 @@ void STB<T3D>::runConvPhase (int frame, std::vector<Image>& img_list, bool is_up
         // move all active short tracks to long tracks if they have >= _n_initPhase particles
         for (int i = _short_track_active.size()-1; i >= 0; i --)
         {
-            if (_short_track_active[i]._obj3d_list.size() >= _n_initPhase)
+            if (_short_track_active[i]._n_obj3d >= _n_initPhase)
             {
                 _long_track_active.push_back(_short_track_active[i]);
                 _short_track_active.erase(_short_track_active.begin()+i);
@@ -505,7 +514,8 @@ void STB<T3D>::runConvPhase (int frame, std::vector<Image>& img_list, bool is_up
 
     // Prune and arrange the tracks //
     int n_fail_lf = 0;
-    if (frame - _first > 10)
+    // if (frame - _first > _n_initPhase-1)
+    if (1)
     {
         t_start = clock();
 
@@ -530,10 +540,14 @@ void STB<T3D>::runConvPhase (int frame, std::vector<Image>& img_list, bool is_up
         {
             if (is_erase[i])
             {
-                _long_track_inactive.push_back(_long_track_active[i]);
+                if (_long_track_active[i]._obj3d_list.size() >= LEN_LONG_TRACK)
+                {
+                    _long_track_inactive.push_back(_long_track_active[i]);
+                    _a_li ++;
+                }
+
                 _long_track_active.erase(_long_track_active.begin()+i);
                 _s_la ++;
-                _a_li ++;
                 n_fail_lf ++;
             }
         }
@@ -560,6 +574,8 @@ void STB<T3D>::runConvPhase (int frame, std::vector<Image>& img_list, bool is_up
     if (frame%500 == 0)
     {
         saveTracksAll(_output_folder+"ConvergeTrack/", frame);
+        _long_track_inactive.clear();
+        _exit_track.clear();
     }
 }
 
@@ -580,10 +596,10 @@ int STB<T3D>::makeLink(Track<T3D> const& track, int nextframe, Pt3D const& vel_c
 template<class T3D>
 int STB<T3D>::findNN(std::vector<T3D> const& obj3d_list, Pt3D const& pt3d_est, double radius)
 {
-    double min_dist = radius;
+    double min_dist2 = radius*radius;
     int obj_id = UNLINKED;
 
-    double dist;
+    double dist2;
     for (int i = 0; i < obj3d_list.size(); i ++)
     {
         if (obj3d_list[i]._is_tracked)
@@ -591,10 +607,10 @@ int STB<T3D>::findNN(std::vector<T3D> const& obj3d_list, Pt3D const& pt3d_est, d
             continue;
         }
 
-        dist = myMATH::dist(obj3d_list[i]._pt_center, pt3d_est);
-        if (dist < min_dist)
+        dist2 = myMATH::dist2(obj3d_list[i]._pt_center, pt3d_est);
+        if (dist2 < min_dist2)
         {
-            min_dist = dist;
+            min_dist2 = dist2;
             obj_id = i;
         }
     }
@@ -765,7 +781,7 @@ bool STB<T3D>::checkLinearFit(Track<T3D> const& track)
     double err2_max = MAX_ERR_LINEARFIT * MAX_ERR_LINEARFIT;
     double err2_min = 0.36 * err2_max;
 
-    std::cout << "residue: " << res2 << std::endl;
+    // std::cout << "residue: " << res2 << std::endl;
 
     if (res2 > err2_max)
     {

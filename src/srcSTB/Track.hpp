@@ -12,7 +12,7 @@ Track<T3D>::Track(const T3D& obj3d, int t) : _n_obj3d(1)
 
 template<class T3D>
 Track<T3D>::Track(const Track& track) 
-    : _obj3d_list(track._obj3d_list), _t_list(track._t_list), _occluded(track._occluded), _n_obj3d(track._n_obj3d), _active(track._active) {}
+    : _obj3d_list(track._obj3d_list), _t_list(track._t_list), _n_obj3d(track._n_obj3d), _active(track._active) {}
 
 
 template<class T3D>
@@ -34,6 +34,15 @@ void Track<T3D>::addNext(const Track& track)
 template<>
 void Track<Tracer3D>::saveTrack(std::ofstream& output, int track_id, float fps, int n_cam_all)
 {    
+    if (_n_obj3d != _obj3d_list.size())
+    {
+        std::cerr << "Track<Tracer3D>::saveTrack error at line " << __LINE__ << ": _n_obj3d != _obj3d_list.size()" << std::endl;
+        std::cerr << "track_id: " << track_id << std::endl;
+        std::cerr << "_n_obj3d: " << _n_obj3d << std::endl;
+        std::cerr << "_obj3d_list.size(): " << _obj3d_list.size() << std::endl;
+        return;
+    }
+
     for (int i = 0; i < _n_obj3d; i ++)
     {
         output << track_id << "," << _t_list[i]/fps << ",";
@@ -48,7 +57,6 @@ Track<T3D>& Track<T3D>::operator=(const Track<T3D>& track)
 {
     _obj3d_list = track._obj3d_list;
     _t_list = track._t_list;
-    _occluded = track._occluded;
     _n_obj3d = track._n_obj3d;
     _active = track._active;
     return *this;
@@ -70,17 +78,16 @@ void Track<T3D>::predictNext(T3D& obj3d)
 template<class T3D>
 void Track<T3D>::predLMSWiener(T3D& obj3d)
 {
-    int n_obj3d = _obj3d_list.size();
     int order = 0;
 
-    if (n_obj3d < 2)
+    if (_n_obj3d < 2)
     {
         std::cerr << "Track<T3D>::predLMSWiener error at line " << __LINE__ << ": no enough points to predict" << std::endl;
         return;
     }
-    else if (n_obj3d < 6)
+    else if (_n_obj3d < 6)
     {
-        order = n_obj3d - 1;
+        order = _n_obj3d - 1;
     }
     else 
     {
@@ -94,7 +101,7 @@ void Track<T3D>::predLMSWiener(T3D& obj3d)
     {
         for (int j = 0; j < order+1; j ++)
         {
-            series[j] = _obj3d_list[n_obj3d-1-order + j]._pt_center[i];
+            series[j] = _obj3d_list[_n_obj3d-1-order + j]._pt_center[i];
         }
         
         // Wiener filter does badly near zero
@@ -137,6 +144,7 @@ void Track<T3D>::predLMSWiener(T3D& obj3d)
             error = series[order] - prediction;
             iter ++;
         }
+        // std::cout << "Prediction iter: " << iter << std::endl;
 
         prediction = 0;
         for (int j = 0; j < order; j ++)

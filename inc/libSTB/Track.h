@@ -19,8 +19,6 @@ class Track
 public:
     std::vector<T3D> _obj3d_list;
     std::vector<int> _t_list; // frame ID list
-    int _occluded = 0; // a counter keeping track of the number of frames this 
-                   // track hasn't had a real particle added to it.
     int _n_obj3d = 0;
     bool _active = true;
 

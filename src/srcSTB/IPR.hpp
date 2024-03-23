@@ -54,6 +54,11 @@ void IPR::runIPR(
             tr2d_list_all.push_back(tr2d_list);
 
             std::cout << tr2d_list.size() << ",";
+            if (tr2d_list.size() == 0)
+            {
+                std::cout << "\n\tQuit IPR: No tracer found in camera " << i << std::endl;
+                return;
+            }
         }
         std::cout << std::endl;
 
@@ -89,6 +94,11 @@ void IPR::runIPR(
         _imgRes_list = s._imgRes_list;
 
         std::cout << "  IPR step " << loop << ": find " << tr3d_list_all.size() << " particles. " << std::endl;
+
+        if (tr3d_list.size() == 0)
+        {
+            break;
+        }
     }
 
 
@@ -129,19 +139,17 @@ void IPR::runIPR(
 
 
 void IPR::reducedCamLoop(std::vector<Tracer3D>& tr3d_list_all, std::vector<double> const& tr2d_properties, 
-    OTF const& otf, std::vector<int> const& cam_id, int n_loop)
+    OTF const& otf, std::vector<int> const& camID_list, int n_loop)
 {
-    _cam_list.useid_list = cam_id;
-
-    // Clear output
-    tr3d_list_all.clear();
+    _cam_list.useid_list = camID_list;
+    int n_cam_use = camID_list.size();
 
     // Initialize stereo match parameters
     SMParam match_param;
     match_param.tor_2d = _param.tol_2d;
     match_param.tor_3d = _param.tol_3d;
     match_param.n_thread = _param.n_thread;
-    match_param.check_id = _param.check_id < _n_cam_all ? _param.check_id : _n_cam_all;
+    match_param.check_id = _param.check_id < n_cam_use ? _param.check_id : n_cam_use;
     match_param.check_radius = _param.check_radius;
     match_param.is_delete_ghost = true;
     match_param.is_update_inner_var = false;
@@ -158,18 +166,26 @@ void IPR::reducedCamLoop(std::vector<Tracer3D>& tr3d_list_all, std::vector<doubl
 
     // Start IPR loop
     ObjectFinder2D objfinder;
+    int cam_id;
     for (int loop = 0; loop < n_loop; loop ++)
     {
         // Step 1: identify 2D position from image
         std::vector<std::vector<Tracer2D>> tr2d_list_all;
         std::cout << "\tNumber of found tracers in each camera: ";
-        for (int i = 0; i < _n_cam_all; i ++)
+        for (int i = 0; i < n_cam_use; i ++)
         {
+            cam_id = _cam_list.useid_list[i];
+
             std::vector<Tracer2D> tr2d_list;
-            objfinder.findObject2D(tr2d_list, _imgRes_list[i], tr2d_properties);
+            objfinder.findObject2D(tr2d_list, _imgRes_list[cam_id], tr2d_properties);
             tr2d_list_all.push_back(tr2d_list);
 
             std::cout << tr2d_list.size() << ",";
+            if (tr2d_list.size() == 0)
+            {
+                std::cout << "\n\tQuit IPR Reduced camera: No tracer found in camera " << cam_id << std::endl;
+                return;
+            }
         }
         std::cout << std::endl;
 
@@ -204,7 +220,13 @@ void IPR::reducedCamLoop(std::vector<Tracer3D>& tr3d_list_all, std::vector<doubl
         // Update imgRes_list
         _imgRes_list = s._imgRes_list;
 
-        std::cout << "\tIPR step " << loop << ": find " << tr3d_list_all.size() << " particles. " << std::endl;
+        std::cout << "\tIPR reduced camera step " << loop << ": find " << tr3d_list_all.size() << " particles. " << std::endl;
+
+
+        if (tr3d_list.size() == 0)
+        {
+            break;
+        }
     }
     
 }

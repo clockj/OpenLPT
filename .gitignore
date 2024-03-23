@@ -9,6 +9,5 @@
 *.o
 /OpenLPT/
 /bin/
-/test/inputs/test_STB/tracks_12k5_coarse_250frames.mat
-
+/test/inputs/test_STB/*.mat
 

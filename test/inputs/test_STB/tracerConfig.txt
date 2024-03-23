@@ -3,7 +3,8 @@
 ############################
 ######### Initial Phase ############## 
 1 # Flag for using ipr in initialphase (or use .csv files) 
-10 # Search Radius for finding tracks using predictive field (vox)
+#10 # Search radius for connecting tracks to objects
+20 # Search radius for connecting tracks to objects
 4 # Number of frames for initial phase
 ######### Convergence Phase ############# 
 30 # Avg Interparticle spacing. (vox) to identify neighbour tracks 
@@ -12,8 +13,9 @@
 #########################
 ######### Shake #########
 #########################
-10 # shake width
-
+#0.01 # shake width
+#0.25 # shake width
+0.25 # shake width
 
 #################################
 ######### Predict Field #########
@@ -21,21 +23,23 @@
 51 # xgrid 
 51 # ygrid
 51 # zgrid
-10 # searchRadius
-
+#10 # searchRadius [voxel]
+25 # searchRadius [voxel]
 
 #######################
 ######### IPR #########
 #######################
 0 # Triangulation/IPR Only (No IPR/tracking)? 1 for only tri (no ipr or tracking), 2 for only tri+ipr (no tracking), otherwise with tri and ipr
 4   # No. of IPR loop
-1   # No. of Shake loop
-3   # ghost threshold
+#1   # No. of Shake loop
+6   # No. of Shake loop
+#500   # ghost threshold
+0.1 # ghost threshold
 1   # 2D tolerance [px]
 .6  # 3D tolerance [mm]
 
-0 # use reduced cams (apply IPR by removing 1 cam each time)? 1 for yes/ 0 for no
-2 # no. of outer loops for each reduced camera combination
+1 # number of reduced camera
+2 # no. of ipr loops for each reduced camera combination
 
 
 ###############################

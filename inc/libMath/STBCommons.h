@@ -22,11 +22,12 @@
 #define IMGPTINIT -10
 
 // Track prediction
-#define WIENER_MAX_ITER 1000
+#define WIENER_MAX_ITER 5000
 
 // STB parameters
 #define UNLINKED -1
 #define MAX_ERR_LINEARFIT 5e-2
+#define LEN_LONG_TRACK 7
 
 struct PixelRange 
 {

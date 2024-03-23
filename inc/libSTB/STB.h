@@ -34,7 +34,7 @@ public:
 
     std::deque<Track<T3D>> _short_track_active;
     std::deque<Track<T3D>> _long_track_active;
-    std::deque<Track<T3D>> _long_track_inactive;
+    std::deque<Track<T3D>> _long_track_inactive; // only save very long tracks
     std::deque<Track<T3D>> _exit_track;
 
     // FUNCTIONS //

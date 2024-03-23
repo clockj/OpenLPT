@@ -79,16 +79,16 @@ void Shake::shakeTracers(std::vector<Tracer3D>& tr3d_list, OTF const& otf, std::
             {
                 if (!is_ignore[i])
                 {
-                    // _score_list[i] = shakeOneTracer(tr3d_list[i], otf, delta, _score_list[i]);
-                    _score_list[i] = shakeOneTracerGrad(tr3d_list[i], otf, delta);
+                    _score_list[i] = shakeOneTracer(tr3d_list[i], otf, delta, _score_list[i]);
+                    // _score_list[i] = shakeOneTracerGrad(tr3d_list[i], otf, delta);
                 }
             }
         }
     }
 
     // remove ghost tracers
-    // removeGhost(tr3d_list);
-    removeGhostResidue(tr3d_list);
+    removeGhost(tr3d_list);
+    // removeGhostResidue(tr3d_list);
 
     // update residue image
     calResImg(tr3d_list, otf, imgOrig_list);
@@ -261,16 +261,16 @@ double Shake::shakeOneTracer(Tracer3D& tr3d, OTF const& otf, double delta, doubl
     // update the tracer score
     // sum up the score of all cam 
     // to delete ghost tracer 
-    // double tr_score = calTracerScore(
-    //     tr3d,
-    //     region_list,
-    //     imgAug_list, 
-    //     otf,
-    //     score_old
-    // );
-    // return tr_score;
+    double tr_score = calTracerScore(
+        tr3d,
+        region_list,
+        imgAug_list, 
+        otf,
+        score_old
+    );
+    return tr_score;
 
-    return residue;
+    // return residue;
 }
 
 
@@ -437,12 +437,13 @@ double Shake::updateTracer(Tracer3D& tr3d, std::vector<Image>& imgAug_list, std:
         }
         
         // update tr3d 2d match
-        // tr3d.projectTracer2D(_cam_list.useid_list, _cam_list.cam_list);
+        tr3d.projectTracer2D(_cam_list.useid_list, _cam_list.cam_list);
 
         // update imgAug_list and region_list
-        // updateImgAugList(imgAug_list, region_list, tr3d);
+        updateImgAugList(imgAug_list, region_list, tr3d);
     }
-    tr3d.projectTracer2D(_cam_list.useid_list, _cam_list.cam_list);
+
+    // tr3d.projectTracer2D(_cam_list.useid_list, _cam_list.cam_list);
     // updateImgAugList(imgAug_list, region_list, tr3d);
 
     return residue;
@@ -649,7 +650,7 @@ double Shake::calPointResidue (Pt3D const& pt3d, std::vector<PixelRange> const& 
         }
     }
 
-    // residue /= npts;
+    residue /= npts;
     return residue;
 }
 
@@ -664,7 +665,7 @@ double Shake::calTracerScore (Tracer3D const& tr3d, std::vector<PixelRange> cons
     
     std::vector<double> numerator_list(_n_cam_use, 0);
     std::vector<double> denominator_list(_n_cam_use, 0);
-    int n_outRange = 0;
+    // int n_outRange = 0;
     for (int id = 0; id < _n_cam_use; id ++)
     {
         std::vector<double> otf_param = otf.getOTFParam(
@@ -676,11 +677,13 @@ double Shake::calTracerScore (Tracer3D const& tr3d, std::vector<PixelRange> cons
         if (region_list[id].getNumOfCol() == 1 || 
             region_list[id].getNumOfRow() == 1)
         {
-            n_outRange ++;
-            if (_n_cam_use-n_outRange < 2)
-            {
-                return 0;
-            } 
+            // n_outRange ++;
+            // if (_n_cam_use-n_outRange < 2)
+            // {
+            //     return 0;
+            // } 
+
+            return 0;
         }
 
         int i = 0;
@@ -699,20 +702,14 @@ double Shake::calTracerScore (Tracer3D const& tr3d, std::vector<PixelRange> cons
         }
     }
 
-    // find outlier 
-    std::vector<int> is_outlier(_n_cam_use, 0);
-    myMATH::isOutlier(is_outlier, numerator_list);
 
     // calculate numerator and denominator
     double numerator = 0.0;     
     double denominator = 0.0;
     for (int id = 0; id < _n_cam_use; id ++)
     {
-        if (is_outlier[id] == 0) // if not outlier
-        {
-            numerator += numerator_list[id];
-            denominator += denominator_list[id];
-        }
+        numerator += numerator_list[id];
+        denominator += denominator_list[id];   
     }
 
     if (denominator < SMALLNUMBER)
@@ -768,6 +765,7 @@ void Shake::removeGhost(std::vector<Tracer3D>& tr3d_list)
 
     // reverse _objID_keep back
     std::reverse(_objID_keep.begin(), _objID_keep.end());
+    std::reverse(_objID_remove.begin(), _objID_remove.end());
 
 
     std::cout << "\tShake::removeGhost: " << _n_ghost << " ghost tracers are removed." << std::endl;
@@ -795,14 +793,16 @@ void Shake::removeGhostResidue(std::vector<Tracer3D>& tr3d_list)
     }
     std = std::sqrt(std / n_mean);
 
-    // std::cout << "mean score: " << mean << std::endl;
+    std::cout << "mean score: " << mean << std::endl;
+    std::cout << "std score: " << std << std::endl;
 
     // remove ghost tracers if the score is less than _min_score*mean
     // but _score_list is erased
     std::vector<Tracer3D> tr3d_list_new;
     for (int i = n_tr3d-1; i > -1; i --)
     {
-        if (_score_list[i] > mean + _score_min * std)
+        // if (_score_list[i] > mean + _score_min * std)
+        if (_score_list[i] > _score_min)
         {
             tr3d_list.erase(tr3d_list.begin() + i);
             _objID_remove.push_back(i);

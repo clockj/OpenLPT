@@ -24,40 +24,6 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -Wall         ")
 # set(CMAKE_C_FLAGS_RELEASE   "${CMAKE_C_FLAGS_RELEASE}   -Ofast -Wall         ")
 # set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -Wall         ")
 
-set(HEADERFILES
-    ${CMAKE_HOME_DIRECTORY}/inc/libMath/myMATH.h
-    ${CMAKE_HOME_DIRECTORY}/inc/libMath/STBCommons.h
-    ${CMAKE_HOME_DIRECTORY}/inc/libMath/Matrix.h
-    ${CMAKE_HOME_DIRECTORY}/inc/libMath/ImageIO.h
-    ${CMAKE_HOME_DIRECTORY}/inc/libMath/Camera.h
-    ${CMAKE_HOME_DIRECTORY}/inc/libObject/ObjectInfo.h
-    ${CMAKE_HOME_DIRECTORY}/inc/libObject/ObjectFinder.h
-    ${CMAKE_HOME_DIRECTORY}/inc/libSTB/StereoMatch.h
-    ${CMAKE_HOME_DIRECTORY}/inc/libSTB/OTF.h
-    ${CMAKE_HOME_DIRECTORY}/inc/libSTB/Shake.h
-    ${CMAKE_HOME_DIRECTORY}/inc/libSTB/IPR.h
-    # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/PredField.h
-    # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/Track.h
-    # ${CMAKE_HOME_DIRECTORY}/inc/libSTB/STB.h
-)
-
-set(SOURCEFILES main.cpp
-    ${CMAKE_HOME_DIRECTORY}/src/srcMath/myMATH.cpp
-    ${CMAKE_HOME_DIRECTORY}/src/srcMath/Matrix.hpp
-    ${CMAKE_HOME_DIRECTORY}/src/srcMath/ImageIO.cpp
-    ${CMAKE_HOME_DIRECTORY}/src/srcMath/Camera.cpp
-    ${CMAKE_HOME_DIRECTORY}/src/srcObject/ObjectInfo.cpp
-    ${CMAKE_HOME_DIRECTORY}/src/srcObject/ObjectFinder.hpp
-    ${CMAKE_HOME_DIRECTORY}/src/srcSTB/StereoMatch.hpp
-    ${CMAKE_HOME_DIRECTORY}/src/srcSTB/OTF.cpp
-    ${CMAKE_HOME_DIRECTORY}/src/srcSTB/Shake.cpp
-    ${CMAKE_HOME_DIRECTORY}/src/srcSTB/IPR.cpp
-    # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/PredField.hpp
-    # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/Track.hpp
-    # ${CMAKE_HOME_DIRECTORY}/src/srcSTB/STB.hpp
-)
-
-
 # Add executable target with source files listed in SOURCE_FILES variable
 include_directories("${CMAKE_HOME_DIRECTORY}/inc/libtiff")
 include_directories("${CMAKE_HOME_DIRECTORY}/inc/libMath")
@@ -149,12 +115,8 @@ set(CMAKE_INSTALL_TARGETS
 )
 install(TARGETS ${CMAKE_INSTALL_TARGETS} DESTINATION ${CMAKE_HOME_DIRECTORY}/bin/)
 
-# # add_executable(OpenLPT ${SOURCEFILES} ${HEADERFILES})
-# add_executable(OpenLPT main.cpp)
-# target_link_libraries(OpenLPT PUBLIC libMatrix)
-
-# add_subdirectory("${CMAKE_HOME_DIRECTORY}/inc/libtiff")
-# target_link_libraries(OpenLPT PUBLIC tiff)
+add_executable(OpenLPT main.cpp)
+target_link_libraries(OpenLPT PRIVATE ImageIO STB Matrix ObjectInfo ObjectFinder StereoMatch OTF Shake IPR PredField Track)
 
 
 # Enable testing with CTest

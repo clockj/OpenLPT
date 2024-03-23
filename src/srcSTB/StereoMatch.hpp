@@ -863,6 +863,7 @@ void StereoMatch::iterOnObjIDMap (
 {
     int camID_curr = _cam_list.useid_list[id];
     Pt3D pt3d;
+    double tor_2d_sqr = _param.tor_2d * _param.tor_2d;
 
     for (
         int k = 0; 
@@ -880,8 +881,8 @@ void StereoMatch::iterOnObjIDMap (
         bool in_range = true;
         for (int m = 0; m < id; m ++)
         {
-            double dist = myMATH::dist(tr2d_list[id][tr_id]._pt_center, sight2D_list[m]);
-            if (dist > _param.tor_2d)
+            double dist2 = myMATH::dist2(tr2d_list[id][tr_id]._pt_center, sight2D_list[m]);
+            if (dist2 > tor_2d_sqr)
             {
                 in_range = false;
                 break;
@@ -1038,7 +1039,8 @@ bool StereoMatch::checkReProject (
     Line2D sight2D;
     Pt2D pt2d_1;
     Pt2D pt2d_2;
-    double dist = 0;
+    double dist2 = 0;
+    double tor_2d_sqr = _param.tor_2d * _param.tor_2d;
 
     for (int i = 0; i < id; i ++)
     {
@@ -1049,9 +1051,9 @@ bool StereoMatch::checkReProject (
         sight2D.pt = pt2d_1;
         sight2D.unit_vector = myMATH::createUnitVector(pt2d_1, pt2d_2);
 
-        dist = myMATH::dist(tr2d_list[i][tracer_id_match[i]]._pt_center, sight2D);
+        dist2 = myMATH::dist2(tr2d_list[i][tracer_id_match[i]]._pt_center, sight2D);
 
-        if (dist > _param.tor_2d)
+        if (dist2 > tor_2d_sqr)
         {
             return false;
         }

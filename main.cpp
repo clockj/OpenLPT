@@ -1,138 +1,181 @@
+#include <string>
 #include <vector>
-// #include <deque>
-#include <typeinfo>
-#include <omp.h>
-#include <ctime>
-#include <cstring>
+#include <iostream>
+#include <fstream>
+#include <variant>
 
-#include "myMATH.h"
 #include "Matrix.h"
 #include "Camera.h"
 #include "ObjectInfo.h"
-#include "ImageIO.h"
-#include "ObjectFinder.h"
-// #include "StereoMatch.h"
-// #include "OTF.h"
-// #include "Shake.h"
-// #include "IPR.h"
-// #include "PredField.h"
-// #include "Track.h"
-// #include "STB.h"
+#include "STB.h"
 
-void LoadPtList(std::vector<Matrix<double>>& pt_list, std::string file_name)
+int main (int argc, char *argv[])
 {
-    std::string line;
-    int n_pt;
-    double value;
-
-    std::ifstream infile;
-    std::istringstream istream;
-    infile.open(file_name);
-
-    std::getline(infile, line);
-    istream.str(line);
-    istream >> n_pt;
-
-    pt_list = std::vector<Matrix<double>>(n_pt, Matrix<double>(3,1,0));
-
-    for (int i = 0; i < n_pt; i ++)
+    if (argc != 2)
     {
-        std::getline(infile, line);
-        std::istringstream istream_data;
-        istream_data.str(line);
-        for (int j = 0; j < 3; j ++)
-        {   
-            istream_data >> value;
-            pt_list[i](j,0) = value;
-            if (istream_data.peek() == ',')
+        std::cout << "Main Error: Invalid number of arguments!" << std::endl;
+        return 0;
+    }
+
+    // std::cout << "**************" << std::endl;
+    // std::cout << "OpenLPT start!" << std::endl;
+    // std::cout << "**************" << std::endl;
+    // std::cout << std::endl;
+
+
+    // Load config
+    std::string file = argv[1];
+    std::ifstream stb_config(file, std::ios::in);
+    if (!stb_config.is_open())
+    {
+        std::cout << "Main Error: Cannot open config file: '" << file << "'" << std::endl;
+        return 0;
+    }
+    std::cout << "Load OpenLPT config file: " << file << std::endl;
+
+    std::vector<std::string> lines;
+    std::string line;
+    while (std::getline(stb_config, line))
+    {
+        size_t commentpos = line.find('#');
+        if (commentpos > 0)
+        {
+            if (commentpos < std::string::npos)
             {
-                istream_data.ignore();
+                line.erase(commentpos);
             }
         }
+        else if (commentpos == 0)
+        {
+            continue;
+        }
 
+        lines.push_back(line);
     }
-    infile.close();
-};
+    stb_config.close();
 
+    std::stringstream parsed;
 
-int main()
-{
-    std::cout << "Simple test!" << std::endl;
+    // Load frame range
+    int frame_start, frame_end;
+    int line_id = 0;
+    parsed.str(lines[line_id]);
+    std::getline(parsed, line, ',');
+    frame_start = std::stoi(line);
+    std::getline(parsed, line, ',');
+    frame_end = std::stoi(line);
+    parsed.clear();
+    
+    // Load frame rate
+    line_id ++;
+    int fps = std::stoi(lines[line_id]);
 
-    // // for debug
-    // // OTF 
-    // AxisLimit limit;
-    // limit.x_min = -20; limit.x_max = 20;
-    // limit.y_min = -20; limit.y_max = 20;
-    // limit.z_min = -20; limit.z_max = 20;
-    // OTF otf(4, 3, limit);
+    // Load thread number
+    line_id ++;
+    int n_thread = std::stoi(lines[line_id]);
 
-    // // Predicted field
-    // std::cout << "PredField start!" << std::endl;
-    // std::vector<std::vector<Matrix<double>>> pt_list_all;
-    // // Matrix<double> mtx_pre("3Dpoints_pf_1.csv");
-    // Matrix<double> mtx_pre("3Dpoints_ipr_1.csv");
-    // std::vector<Matrix<double>> pt_list_pre(mtx_pre.GetDimX(), Matrix<double>(3,1,0));
-    // for (int i = 0; i < mtx_pre.GetDimX(); i ++)
-    // {
-    //     pt_list_pre[i](0,0) = mtx_pre(i,0);
-    //     pt_list_pre[i](1,0) = mtx_pre(i,1);
-    //     pt_list_pre[i](2,0) = mtx_pre(i,2);
-    // }
-    // std::cout << pt_list_pre.size() << std::endl;
-    // // Matrix<double> mtx_cur("3Dpoints_pf_2.csv");
-    // Matrix<double> mtx_cur("3Dpoints_ipr_2.csv");
-    // std::vector<Matrix<double>> pt_list_cur(mtx_cur.GetDimX(), Matrix<double>(3,1,0));
-    // for (int i = 0; i < mtx_cur.GetDimX(); i ++)
-    // {
-    //     pt_list_cur[i](0,0) = mtx_cur(i,0);
-    //     pt_list_cur[i](1,0) = mtx_cur(i,1);
-    //     pt_list_cur[i](2,0) = mtx_cur(i,2);
-    // }
-    // std::cout << pt_list_cur.size() << std::endl;
-    // pt_list_all.push_back(pt_list_pre);
-    // pt_list_all.push_back(pt_list_cur);
+    // Load cam files
+    line_id ++;
+    CamList cam_list;
+    int n_cam_all = std::stoi(lines[line_id]);
+    for (int i = 0; i < n_cam_all; i++)
+    {
+        line_id ++;
+        parsed.str(lines[line_id]);
+        
+        std::getline(parsed, line, ',');
+        cam_list.cam_list.push_back(Camera(line));
 
-    // std::vector<int> n_xyz = {21,21,21};
-    // double r = 25 * 40/1000; // 25 * (max-min)/1000
-    // std::vector<TracerInfo> useless;
-    // PredField<TracerInfo> pf (limit, n_xyz, pt_list_all[0], pt_list_all[1], r, useless);
-    // pf.SaveField("pf_disp_field.csv");
+        std::getline(parsed, line, ',');
+        cam_list.intensity_max.push_back(std::stoi(line));
 
-    // Matrix<double> disp_pred(3,1);
-    // disp_pred = pf.PtInterp(pt_list_all[1][0]);
-    // disp_pred.Print();
+        cam_list.useid_list.push_back(i);
 
-    // STB<TracerInfo> stb("./Data/stbConfig.txt");
-    // // STB<TracerInfo> stb("D:/SD00125_New/stbConfig.txt");
-    // // STB<TracerInfo> stb("D:/SD00125_New_updatesearch/stbConfig.txt");
-    // stb.Run();
+        parsed.clear();
+    }
 
-    // //Holo data analysis
-    // int n_frame = 100;
-    // std::vector<std::vector<Matrix<double>>> pt_list_all(n_frame);
-    // for (int i = 0; i < n_frame; i ++)
-    // {
-    //     // LoadPtList(pt_list_all[i], "D:/My Code/Tracking Code/Holography track/Case/Data/"+std::to_string(i+1)+".csv");
-    //     LoadPtList(pt_list_all[i], "D:/My Code/Tracking Code/Holography track/Case/Data_ml/"+std::to_string(i+1)+".csv");
-    // }
-    // std::cout << "Finish loading!" << std::endl;
-    // std::vector<ObjectInfo> useless;
-    // AxisLimit limit;
-    // limit._x_min = 1;
-    // limit._x_max = 306;
-    // limit._y_min = 1;
-    // limit._y_max = 882;
-    // limit._z_min = 1;
-    // limit._z_max = 1001;
-    // std::vector<int> n_xyz = {10,28,32};
-    // for (int i = 0; i < n_frame-1; i ++)
-    // {
-    //     PredField<ObjectInfo> pf(limit, n_xyz, pt_list_all[i], pt_list_all[i+1], 10, useless);
-    //     // pf.SaveField("D:/My Code/Tracking Code/Holography track/Case/DispField/"+std::to_string(i+1)+".csv");
-    //     pf.SaveField("D:/My Code/Tracking Code/Holography track/Case/DispField_ml/"+std::to_string(i+1)+".csv");
-    // }
+    // Load image io
+    std::vector<ImageIO> imgio_list;
+    for (int i = 0; i < n_cam_all; i++)
+    {
+        line_id ++;
+        imgio_list.push_back(ImageIO());
+        imgio_list[i].loadImgPath("", lines[line_id]);
+    }
 
-    std::cout << "Finish OpenLPT!" << std::endl;
+    // Load axis limit
+    line_id ++;
+    AxisLimit axis_limit;
+    parsed.str(lines[line_id]);
+    std::getline(parsed, line, ',');
+    axis_limit.x_min = std::stod(line);
+    std::getline(parsed, line, ',');
+    axis_limit.x_max = std::stod(line);
+    std::getline(parsed, line, ',');
+    axis_limit.y_min = std::stod(line);
+    std::getline(parsed, line, ',');
+    axis_limit.y_max = std::stod(line);
+    std::getline(parsed, line, ',');
+    axis_limit.z_min = std::stod(line);
+    std::getline(parsed, line, ',');
+    axis_limit.z_max = std::stod(line);
+    parsed.clear();
+
+    // Load vx_to_mm
+    line_id ++;
+    double vx_to_mm = std::stod(lines[line_id]);
+
+    // Load output folder path
+    line_id ++;
+    std::string output_folder = lines[line_id];
+
+    // Load STB
+    line_id ++;    
+    parsed.str(lines[line_id]);
+    std::vector<std::variant<STB<Tracer3D>>> stb_list;
+    int n_tr_class = 0;
+    while (std::getline(parsed, line, ','))
+    {
+        line_id ++;
+        if (line == "Tracer")
+        {
+            stb_list.push_back(STB<Tracer3D>(frame_start, frame_end, 1, vx_to_mm, n_thread, output_folder+"Tracer_"+std::to_string(n_tr_class)+'/', cam_list, axis_limit, lines[line_id]));
+
+            n_tr_class ++;
+        }
+        else
+        {
+            std::cout << "Main Error: Unknown object type: " << line << std::endl;
+            return 0;
+        }
+    }
+    parsed.clear();
+
+    // Start processing
+    std::vector<Image> img_list(n_cam_all);
+    for (int frame_id = frame_start; frame_id < frame_end+1; frame_id ++)
+    {
+        // load image
+        for (int i = 0; i < n_cam_all; i ++)
+        {
+            img_list[i] = imgio_list[i].loadImg(frame_id);
+        }
+
+        for (int i = 0; i < stb_list.size(); i ++)
+        {
+            std::visit(
+                [&](auto& stb) 
+                { 
+                    stb.processFrame(frame_id, img_list); 
+                }, 
+                stb_list[i]
+            );
+        }
+    }
+
+    std::cout << std::endl;
+    std::cout << "***************" << std::endl;
+    std::cout << "OpenLPT finish!" << std::endl;
+    std::cout << "***************" << std::endl;
     return 0;
 }
