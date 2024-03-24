@@ -16,7 +16,7 @@ void Shake::shakeTracers(std::vector<Tracer3D>& tr3d_list, OTF const& otf, std::
     int n_tr3d = tr3d_list.size();
     for (int i = 0; i < n_tr3d; i ++)
     {
-        tr3d_list[i].projectTracer2D(_cam_list.useid_list, _cam_list.cam_list);
+        tr3d_list[i].projectObject2D(_cam_list.useid_list, _cam_list.cam_list);
     }
 
     // if only do triangulation, then skip the following steps
@@ -80,7 +80,7 @@ void Shake::shakeTracers(std::vector<Tracer3D>& tr3d_list, OTF const& otf, std::
                 if (!is_ignore[i])
                 {
                     _score_list[i] = shakeOneTracer(tr3d_list[i], otf, delta, _score_list[i]);
-                    // _score_list[i] = shakeOneTracerGrad(tr3d_list[i], otf, delta);
+                    // _score_list[i] = shakeOneTracerGrad(tr3d_list[i], otf, delta, 1);
                 }
             }
         }
@@ -384,6 +384,11 @@ double Shake::updateTracer(Tracer3D& tr3d, std::vector<Image>& imgAug_list, std:
 
             tr3d._pt_center[i] = array_list[j];
             
+            // update tr3d 2d match
+            tr3d.projectObject2D(_cam_list.useid_list, _cam_list.cam_list);
+            // update imgAug_list and region_list
+            updateImgAugList(imgAug_list, region_list, tr3d);   
+
             residue_list[j] = calPointResidue(
                 tr3d._pt_center,
                 region_list,
@@ -437,13 +442,13 @@ double Shake::updateTracer(Tracer3D& tr3d, std::vector<Image>& imgAug_list, std:
         }
         
         // update tr3d 2d match
-        tr3d.projectTracer2D(_cam_list.useid_list, _cam_list.cam_list);
+        tr3d.projectObject2D(_cam_list.useid_list, _cam_list.cam_list);
 
         // update imgAug_list and region_list
         updateImgAugList(imgAug_list, region_list, tr3d);
     }
 
-    // tr3d.projectTracer2D(_cam_list.useid_list, _cam_list.cam_list);
+    // tr3d.projectObject2D(_cam_list.useid_list, _cam_list.cam_list);
     // updateImgAugList(imgAug_list, region_list, tr3d);
 
     return residue;
@@ -452,8 +457,13 @@ double Shake::updateTracer(Tracer3D& tr3d, std::vector<Image>& imgAug_list, std:
 
 double Shake::updateTracerGrad(Tracer3D& tr3d, std::vector<Image>& imgAug_list, std::vector<PixelRange>& region_list, OTF const& otf, double delta, double lr)
 {
+    AxisLimit limit(
+        tr3d._pt_center[0]-delta, tr3d._pt_center[0]+delta,
+        tr3d._pt_center[1]-delta, tr3d._pt_center[1]+delta,
+        tr3d._pt_center[2]-delta, tr3d._pt_center[2]+delta
+    );
+
     double residue_old, residue_new;
-    double limit_min, limit_max;
     Pt3D shift3d, grad;
 
     // initialize shift
@@ -462,13 +472,17 @@ double Shake::updateTracerGrad(Tracer3D& tr3d, std::vector<Image>& imgAug_list, 
     shift3d[0] = int(distribution(gen)) * 2 - 1;
     shift3d[1] = int(distribution(gen)) * 2 - 1;
     shift3d[2] = int(distribution(gen)) * 2 - 1;
-    shift3d = shift3d / shift3d.norm() * delta;
+    shift3d = shift3d / shift3d.norm() * delta * 0.1;
 
     // calculate current residue
     residue_old = calPointResidue(tr3d._pt_center, region_list, imgAug_list, otf);
 
-    double tor = 1e-6;
+    double residue_orig = residue_old; // for debug
+    Pt3D pt_center_orig = tr3d._pt_center; // for debug
+
+    double tor = 1e-4;
     int record_step = 0;
+    double norm_grad = std::pow(40/40, 2);
     for (int step = 0; step < 100; step ++)
     {
         // std::cout << std::endl;
@@ -477,80 +491,60 @@ double Shake::updateTracerGrad(Tracer3D& tr3d, std::vector<Image>& imgAug_list, 
         // std::cout << "tr3d._pt_center = " << tr3d._pt_center[0] << ", " << tr3d._pt_center[1] << ", " << tr3d._pt_center[2] << std::endl;
 
         // update tr3d
-        for (int i = 0; i < 3; i ++)
+        int check_step = 0;
+        while (
+            ! limit.check(
+                tr3d._pt_center[0] + shift3d[0],
+                tr3d._pt_center[1] + shift3d[1],
+                tr3d._pt_center[2] + shift3d[2]
+            )
+            && check_step < 10
+        )
         {
-            switch (i)
-            {
-                case 0:
-                    limit_min = otf._param.boundary.x_min;
-                    limit_max = otf._param.boundary.x_max;
-                    break;
-                case 1:
-                    limit_min = otf._param.boundary.y_min;
-                    limit_max = otf._param.boundary.y_max;
-                    break;
-                case 2:
-                    limit_min = otf._param.boundary.z_min;
-                    limit_max = otf._param.boundary.z_max;
-                    break;
-                default:
-                    std::cerr << "Shake::updateTracer: error at line " << __LINE__ << ".\n";
-                    throw error_range;
-            }
-
-            if (tr3d._pt_center[i] + shift3d[i] < limit_min)
-            {
-                shift3d[i] = limit_min - tr3d._pt_center[i];
-                tr3d._pt_center[i] = limit_min;
-            }
-            else if (tr3d._pt_center[i] + shift3d[i] > limit_max)
-            {
-                shift3d[i] = limit_max - tr3d._pt_center[i];
-                tr3d._pt_center[i] = limit_max;
-            }
-            else
-            {
-                tr3d._pt_center[i] += shift3d[i];
-            }
+            shift3d /= 10;
+            check_step ++;
         }
+        tr3d._pt_center += shift3d;
 
         // update tr2d
-        tr3d.projectTracer2D(_cam_list.useid_list, _cam_list.cam_list);
+        tr3d.projectObject2D(_cam_list.useid_list, _cam_list.cam_list);
+
+        // update imgAug_list and region_list
+        updateImgAugList(imgAug_list, region_list, tr3d);
 
         // calculate new residue
         residue_new = calPointResidue(tr3d._pt_center, region_list, imgAug_list, otf);
 
-        // std::cout << "residue_new = " << residue_new << std::endl;
-        // std::cout << "tr3d._pt_center = " << tr3d._pt_center[0] << ", " << tr3d._pt_center[1] << ", " << tr3d._pt_center[2] << std::endl;
-
         // calculate grad
-        int n_stop = 0;
         for (int i = 0; i < 3; i ++)
         {
-            if (std::fabs(shift3d[i]) < tor)
-            {
-                grad[i] = 0;
-                n_stop ++;
-            }
-            else
-            {
-                // grad[i] = (residue_new - residue_old) / shift3d[i] / 255;
-                grad[i] = (residue_new - residue_old) / shift3d[i] / 255 / 100;
-            }
+            grad[i] = (residue_new - residue_old) / shift3d[i];
         }
-        if (n_stop == 3)
+
+        // update shift 3d
+        shift3d = grad * norm_grad * (-lr);
+
+        // check if the possition is converged
+        if (shift3d.norm() < tor)
         {
             break;
         }
-
-        // update tr3d
-        shift3d = grad * (-lr);
 
         // update residue_old
         residue_old = residue_new;
         record_step ++;
     }
-    // std::cout << "step = " << record_step << ", shift3d.mag = " << shift3d.norm() << std::endl;
+
+    
+    if (residue_new < residue_orig)
+    {
+        std::cout << "step = " << record_step << ", shift3d.mag = " << shift3d.norm() << ", residue_orig = " << residue_orig << ", residue_new = " << residue_new <<  std::endl;
+    }
+    else
+    {
+        tr3d._pt_center = pt_center_orig;
+        residue_new = residue_orig;
+    }
     
     return residue_new;
 }
@@ -594,9 +588,9 @@ void Shake::updateImgAugList (std::vector<Image>& imgAug_list, std::vector<Pixel
             for (int col = region.col_min; col < region.col_max; col ++)
             {
                 bool judge = row <  row_max_old && 
-                                col <  col_max_old &&
-                                row >= row_min_old &&
-                                col >= col_min_old;
+                             col <  col_max_old &&
+                             row >= row_min_old &&
+                             col >= col_min_old;
                 if (judge)
                 {
                     imgAug_list[id](i,j) = imgAug_old(row-row_min_old, col-col_min_old);
@@ -665,7 +659,7 @@ double Shake::calTracerScore (Tracer3D const& tr3d, std::vector<PixelRange> cons
     
     std::vector<double> numerator_list(_n_cam_use, 0);
     std::vector<double> denominator_list(_n_cam_use, 0);
-    // int n_outRange = 0;
+    int n_outRange = 0;
     for (int id = 0; id < _n_cam_use; id ++)
     {
         std::vector<double> otf_param = otf.getOTFParam(
@@ -677,13 +671,12 @@ double Shake::calTracerScore (Tracer3D const& tr3d, std::vector<PixelRange> cons
         if (region_list[id].getNumOfCol() == 1 || 
             region_list[id].getNumOfRow() == 1)
         {
-            // n_outRange ++;
-            // if (_n_cam_use-n_outRange < 2)
-            // {
-            //     return 0;
-            // } 
-
-            return 0;
+            n_outRange ++;
+            if (_n_cam_use-n_outRange < 2)
+            {
+                return 0;
+            } 
+            // return 0;
         }
 
         int i = 0;
@@ -706,10 +699,22 @@ double Shake::calTracerScore (Tracer3D const& tr3d, std::vector<PixelRange> cons
     // calculate numerator and denominator
     double numerator = 0.0;     
     double denominator = 0.0;
+    double threshold = 50; // TODO: add input for this
+    int n_notfind = 0;
     for (int id = 0; id < _n_cam_use; id ++)
     {
+        if (numerator_list[id] < threshold)
+        {
+            n_notfind ++;
+            continue;
+        }
         numerator += numerator_list[id];
         denominator += denominator_list[id];   
+    }
+
+    if (_n_cam_use - n_notfind < 2)
+    {
+        return 0;
     }
 
     if (denominator < SMALLNUMBER)

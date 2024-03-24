@@ -10,7 +10,7 @@
 #include "OTF.h"
 
 #include <time.h>
-
+#include <random>
 
 // test stereomatch from image with deleting ghost
 bool test_function_1 ()
@@ -60,7 +60,7 @@ bool test_function_1 ()
     param.tor_3d = 2.4e-2;
     param.n_thread = 6;
     param.check_id = 3;
-    param.check_radius = 3;
+    param.check_radius = 3; // try 4
     param.is_delete_ghost = true;
     param.is_update_inner_var = false;
     StereoMatch stereo_match(param, cam_list);
@@ -77,6 +77,17 @@ bool test_function_1 ()
 
     // Shake
     std::vector<Tracer3D> tr3d_list_shake(tr3d_list);
+
+    // add noise
+    std::default_random_engine generator(1234);
+    std::normal_distribution<double> dist(0, 0.001);
+    for (int i = 0; i < tr3d_list_shake.size(); i ++)
+    {
+        tr3d_list_shake[i]._pt_center[0] += dist(generator);
+        tr3d_list_shake[i]._pt_center[1] += dist(generator);
+        tr3d_list_shake[i]._pt_center[2] += dist(generator);
+    }
+
     AxisLimit boundary;
     boundary.x_min = -20;
     boundary.x_max = 20;
@@ -88,10 +99,10 @@ bool test_function_1 ()
     otf.loadParam(4, 2, 2, 2, boundary);
 
     // Shake s (cam_list, 0.01, 0.1, 4, 6); // 0.25 vox, 1 vox = 0.04 mm
-    // Shake s (cam_list, 0.01, 0.7, 3, 6); // 0.25 vox, 1 vox = 0.04 mm
+    Shake s (cam_list, 0.01, 50, 10, 6); // 0.25 vox, 1 vox = 0.04 mm
     // Shake s (cam_list, 2*param.tor_3d, 3, 4, 6); // 0.25 vox, 1 vox = 0.04 mm
 
-    Shake s (cam_list, 1e-4, 3, 1, 6); // gradient descent
+    // Shake s (cam_list, 0.01, 1000, 1, 6); // gradient descent
 
     start = clock();
     s.runShake(tr3d_list_shake, otf, img_list, false); // 0.25 vox, 1 vox = 0.04 mm
@@ -109,7 +120,7 @@ bool test_function_1 ()
     int n_tr3d_find = tr3d_list.size();
     std::vector<int> is_mismatch(n_tr3d_real, 0);
     // double tor = param.tor_3d; // [mm]
-    double tor = 10e-3; // [mm]
+    double tor = 1e-3; // [mm]
     
     // before shake
     #pragma omp parallel for

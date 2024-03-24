@@ -50,6 +50,7 @@ public:
     Object3D (Object3D const& object) : _pt_center(object._pt_center) {};
     Object3D (Pt3D const& pt_center) : _pt_center(pt_center) {};
     void saveObject3D (std::ofstream& output, int n_cam_all) const {};
+    void projectObject2D (std::vector<int> const& camid_list, std::vector<Camera> const& cam_list_all) {};
     ~Object3D () {};
 };
 
@@ -85,7 +86,7 @@ public:
     // input:
     //  camid_list: camera id list (set _camid_list = camid_list)
     //  cam_list_all: all camera parameters, camid = 0, 1, 2, ...
-    void projectTracer2D (std::vector<int> const& camid_list, std::vector<Camera> const& cam_list_all);
+    void projectObject2D (std::vector<int> const& camid_list, std::vector<Camera> const& cam_list_all);
 
     void getTracer2D (Tracer2D& tracer2d, int cam_id);
 

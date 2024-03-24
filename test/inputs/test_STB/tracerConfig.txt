@@ -8,13 +8,11 @@
 4 # Number of frames for initial phase
 ######### Convergence Phase ############# 
 30 # Avg Interparticle spacing. (vox) to identify neighbour tracks 
-
+4 # Radius to find predicted particle (pixel)
 
 #########################
 ######### Shake #########
 #########################
-#0.01 # shake width
-#0.25 # shake width
 0.25 # shake width
 
 #################################
@@ -31,11 +29,9 @@
 #######################
 0 # Triangulation/IPR Only (No IPR/tracking)? 1 for only tri (no ipr or tracking), 2 for only tri+ipr (no tracking), otherwise with tri and ipr
 4   # No. of IPR loop
-#1   # No. of Shake loop
-6   # No. of Shake loop
-#500   # ghost threshold
+4   # No. of Shake loop
 0.1 # ghost threshold
-1   # 2D tolerance [px]
+1.5   # 2D tolerance [px]
 .6  # 3D tolerance [mm]
 
 1 # number of reduced camera

@@ -23,6 +23,8 @@ class ObjectFinder2D
 private:
     void findTracer2D(std::vector<Tracer2D>& tr2d_list, Image const& img, int max_intensity, int min_intensity, double r_px=2);
 
+    void findTracer2D(std::vector<Tracer2D>& tr2d_list, Image const& img, int max_intensity, int min_intensity, double r_px, PixelRange const& region);
+
 public:
     ObjectFinder2D() {};
     ~ObjectFinder2D() {};
@@ -32,6 +34,9 @@ public:
     //  output: a vector with all the particles positions （x_pixel(col_id), y_pixel(row_id))
     template <class T> 
     void findObject2D(std::vector<T>& obj2d_list, Image const& img, std::vector<double> const& properties);
+
+    template <class T>
+    void findObject2D(std::vector<T>& obj2d_list, Image const& img, std::vector<double> const& properties, PixelRange const& region);
 
 };
 

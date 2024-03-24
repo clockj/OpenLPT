@@ -76,6 +76,7 @@ private:
     double _r_objSearch; // mm, find object around a short track between two frames
     double _r_trackSearch; // mm, find tracks around a track
     int _n_initPhase; // number of frames for initial phase
+    double _r_predSearch; // px, radius to find predicted object
 
     // Shake parameters
     double _shake_width; // mm
@@ -109,6 +110,8 @@ private:
     int makeLink (Track<T3D> const& track, int nextframe, Pt3D const& vel_curr, double radius);
 
     void startTrack (int frame, PredField& pf);
+
+    bool findPredObj (T3D& obj3d, std::vector<Image> const& img_list);
 
     int linkShortTrack (Track<T3D> const& track, std::vector<T3D> const& obj3d_list, int n_iter);
 

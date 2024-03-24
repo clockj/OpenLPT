@@ -94,6 +94,22 @@ print([np.min(tracks[:,3]),np.max(tracks[:,3])])
 print([np.min(tracks[:,4]),np.max(tracks[:,4])])
 
 # %%
+# check the number of cameras that can be seen for each point 
+pts = tracks[:,0:3]
+npts = pts.shape[0]
+npts_cam = np.zeros(npts, dtype=np.int32)
+
+for i in range(ncam):
+    pts_proj = cv2.projectPoints(pts.reshape(npts,1,3), rotVecList[i], transVecList[i], camMatList[i], distCoeffList[i])[0].reshape(npts, 2)
+
+    judge = np.all((pts_proj[:,0] >= 1, pts_proj[:,0] < imgSizeList[i][1]-1, pts_proj[:,1] >= 1, pts_proj[:,1] < imgSizeList[i][0]-1), axis=0)
+    
+    npts_cam[judge] += 1
+    
+#%%
+
+    
+# %%
 # generate folders
 folder = 'imgFile/'
 

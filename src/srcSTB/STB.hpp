@@ -49,6 +49,7 @@ STB<T3D>::STB(int frame_start, int frame_end, float fps, double vx_to_mm, int n_
     parsed >> _r_objSearch; _r_objSearch *= _vx_to_mm; // mm
     parsed >> _n_initPhase; // number of frames for initial phase
     parsed >> _r_trackSearch; _r_trackSearch *= _vx_to_mm;
+    parsed >> _r_predSearch; // radius to find predicted object [px]
 
     if (_n_initPhase < 2)
     {
@@ -373,6 +374,13 @@ void STB<T3D>::runConvPhase (int frame, std::vector<Image>& img_list, bool is_up
             obj3d_list_pred[i]._pt_center[1], 
             obj3d_list_pred[i]._pt_center[2]
         );
+
+        // Project the predicted particle to all cameras
+        //  check if there is an actual particle in the image
+        if (is_inRange[i])
+        {
+            is_inRange[i] = findPredObj(obj3d_list_pred[i], img_list);
+        }
     }
 
     // Remove out-of-range tracks
@@ -647,6 +655,89 @@ void STB<T3D>::startTrack (int frame, PredField& pf)
             }
         }
     }
+}
+
+
+template<class T3D>
+bool STB<T3D>::findPredObj (T3D& obj3d, std::vector<Image> const& img_list)
+{
+    Pt2D pt2d;
+    PixelRange region;
+    int n_row, n_col;
+
+    std::vector<Line3D> sight3D_list;
+
+    for (int i = 0; i < _n_cam_all; i ++)
+    {
+        pt2d = _cam_list.cam_list[i].project(obj3d._pt_center);
+        n_row = _cam_list.cam_list[i].getNRow();
+        n_col = _cam_list.cam_list[i].getNCol();
+
+        // create search region
+        region.row_min = pt2d[1] - _r_predSearch;
+        region.row_max = pt2d[1] + _r_predSearch + 1;
+        region.col_min = pt2d[0] - _r_predSearch;
+        region.col_max = pt2d[0] + _r_predSearch + 1;
+
+        region.row_min = std::max(0, region.row_min);
+        region.row_max = std::min(n_row, region.row_max);
+        region.col_min = std::max(0, region.col_min);
+        region.col_max = std::min(n_col, region.col_max);
+
+        // find the object in the image
+        ObjectFinder2D objfinder;
+
+        if (typeid(T3D) == typeid(Tracer3D))
+        {
+            obj3d._tr2d_list.clear();
+            obj3d._camid_list.clear();
+
+            std::vector<Tracer2D> obj2d_list;
+            objfinder.findObject2D(obj2d_list, img_list[i], _obj_param, region);
+
+            if (obj2d_list.size() == 0)
+            {
+                continue;
+            }
+
+            // find nearest object
+            std::vector<double> dist2_list(obj2d_list.size(), 0);
+
+            for (int j = 0; j < obj2d_list.size(); j ++)
+            {
+                dist2_list[j] = myMATH::dist2(obj2d_list[j]._pt_center, pt2d);
+            }
+
+            int min_id = std::min_element(dist2_list.begin(), dist2_list.end()) - dist2_list.begin();
+
+            obj3d._tr2d_list.push_back(obj2d_list[min_id]);
+            obj3d._camid_list.push_back(i);
+            sight3D_list.push_back(_cam_list.cam_list[i].lineOfSight(obj2d_list[min_id]._pt_center));
+        }
+        else
+        {
+            std::cerr << "STB<T3D>::findPredObj error at line " << __LINE__ << std::endl;
+            std::cerr << "Object type is not supported!" << std::endl;
+            throw error_type;
+        }
+    }
+
+
+    // the object should be seen by at least 2 cameras
+    if (sight3D_list.size() < 2)
+    {
+        return false;
+    }
+
+    // triangulate the object
+    myMATH::triangulation(obj3d._pt_center, obj3d._error, sight3D_list);
+    if (obj3d._error > _ipr_param.tol_3d)
+    {
+        return false;
+    }
+
+
+    return true;
 }
 
 

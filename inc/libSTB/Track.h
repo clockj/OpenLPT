@@ -37,6 +37,7 @@ public:
     void addNext(Track const& t);
     
     // Predict the next position of the track
+    // but not update the obj2d list
     void predictNext(T3D& obj3d);
 
     // write the track to a file

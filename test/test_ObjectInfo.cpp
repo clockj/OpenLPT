@@ -171,7 +171,7 @@ bool test_function_2 ()
     }
     ////////////////////////
 
-    // test projectTracer2D
+    // test projectObject2D
     std::vector<Camera> cam_list_all;
     std::vector<int> camid_list_2 = {0, 1, 2, 3};
     for (int i = 0; i < 5; i ++)
@@ -179,12 +179,12 @@ bool test_function_2 ()
         Camera cam ("../test/inputs/test_ObjectInfo/cam"+std::to_string(i+1)+".txt");
         cam_list_all.push_back(cam);
     }
-    tr3d.projectTracer2D(camid_list_2, cam_list_all);
+    tr3d.projectObject2D(camid_list_2, cam_list_all);
     tracer2d_list = tr3d._tr2d_list;
     camid_list = tr3d._camid_list;
     if (tracer2d_list.size() != 4 || camid_list.size() != 4)
     {
-        std::cout << "test_function_2: projectTracer2D failed (line " << __LINE__ << ")" << std::endl;
+        std::cout << "test_function_2: projectObject2D failed (line " << __LINE__ << ")" << std::endl;
         std::cout << "tracer2d_list.size() = " << tracer2d_list.size() << std::endl;
         std::cout << "camid_list.size() = " << camid_list.size() << std::endl;
         return false;
@@ -193,7 +193,7 @@ bool test_function_2 ()
     {
         if (tracer2d_list[i]._pt_center != cam_list_all[i].project(tr3d._pt_center) || camid_list[i] != camid_list_2[i])
         {
-            std::cout << "test_function_2: projectTracer2D failed (line " << __LINE__ << ")" << std::endl;
+            std::cout << "test_function_2: projectObject2D failed (line " << __LINE__ << ")" << std::endl;
             return false;
         }
     }
