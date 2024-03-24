@@ -10,4 +10,4 @@
 /OpenLPT/
 /bin/
 /test/inputs/test_STB/*.mat
-
+test/results/**/*.csv
