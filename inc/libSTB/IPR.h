@@ -3,6 +3,8 @@
 
 #include <time.h>
 #include <vector>
+#include <algorithm>
+#include <random>
 
 #include "Matrix.h"
 #include "Camera.h"
@@ -18,6 +20,9 @@ struct IPRParam
     int n_thread = 6; // number of threads
     int n_loop_ipr = 4; // 
     int n_loop_ipr_reduced = 2; // number of shake times after reducing cameras
+
+    // Object finder parameters
+    int n_obj2d_max = 1e5; // maximum number of tracers in each camera
 
     // Stereo match parameters
     double tol_2d = 1.; // [px]

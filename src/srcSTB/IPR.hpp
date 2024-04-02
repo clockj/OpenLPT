@@ -51,9 +51,21 @@ void IPR::runIPR(
         {
             std::vector<Tracer2D> tr2d_list;
             objfinder.findObject2D(tr2d_list, _imgRes_list[i], tr2d_properties);
+            std::cout << tr2d_list.size();
+
+            // if tr2d_list is too large, randomly select some tracers
+            int seed = 1234;
+            if (tr2d_list.size() > _param.n_obj2d_max)
+            {
+                std::shuffle(tr2d_list.begin(), tr2d_list.end(), std::default_random_engine(seed));
+                tr2d_list.erase(tr2d_list.begin()+_param.n_obj2d_max, tr2d_list.end());
+                std::cout << "(" << _param.n_obj2d_max << ")";
+            }
+
             tr2d_list_all.push_back(tr2d_list);
 
-            std::cout << tr2d_list.size() << ",";
+            std::cout << ",";
+            
             if (tr2d_list.size() == 0)
             {
                 std::cout << "\n\tQuit IPR: No tracer found in camera " << i << std::endl;
@@ -178,9 +190,23 @@ void IPR::reducedCamLoop(std::vector<Tracer3D>& tr3d_list_all, std::vector<doubl
 
             std::vector<Tracer2D> tr2d_list;
             objfinder.findObject2D(tr2d_list, _imgRes_list[cam_id], tr2d_properties);
+
+            std::cout << tr2d_list.size();
+
+            // if tr2d_list is too large, randomly select some tracers
+            int seed = 123;
+            if (tr2d_list.size() > _param.n_obj2d_max)
+            {
+                std::shuffle(tr2d_list.begin(), tr2d_list.end(), std::default_random_engine(seed));
+                tr2d_list.erase(tr2d_list.begin()+_param.n_obj2d_max, tr2d_list.end());
+
+                std::cout << "(" << _param.n_obj2d_max << ")";
+            }
+
             tr2d_list_all.push_back(tr2d_list);
 
-            std::cout << tr2d_list.size() << ",";
+            std::cout << ",";
+            
             if (tr2d_list.size() == 0)
             {
                 std::cout << "\n\tQuit IPR Reduced camera: No tracer found in camera " << cam_id << std::endl;

@@ -9,7 +9,6 @@ void Shake::runShake(std::vector<Tracer3D>& tr3d_list, OTF const& otf, std::vect
 }
 
 
-// TODO: try gradient descend for optimization
 void Shake::shakeTracers(std::vector<Tracer3D>& tr3d_list, OTF const& otf, std::vector<Image> const& imgOrig_list, bool tri_only)
 {
     // update tr2d position

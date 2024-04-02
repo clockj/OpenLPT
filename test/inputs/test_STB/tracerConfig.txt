@@ -31,6 +31,7 @@
 4   # No. of IPR loop
 4   # No. of Shake loop
 0.1 # ghost threshold
+100000 # maximum number of tracers in each camera
 1.5   # 2D tolerance [px]
 .6  # 3D tolerance [mm]
 

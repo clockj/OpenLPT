@@ -5,9 +5,9 @@
 
 // test 
 template<class T>
-Matrix<T>::Matrix (int dim_row, int dim_col, std::initializer_list<std::initializer_list<T>> mtx)
+Matrix<T>::Matrix (std::initializer_list<std::initializer_list<T>> mtx)
 {
-    create(dim_row, dim_col);
+    create(mtx.size(), mtx.begin()[0].size());
 
     for (int i = 0; i < _dim_row; i ++)
     {

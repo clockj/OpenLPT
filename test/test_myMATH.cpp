@@ -291,7 +291,7 @@ bool test_function_9 ()
 bool test_function_10 ()
 {
     Matrix<double> mtx = myMATH::eye<double> (3);
-    Matrix<double> mtx_ans(3,3,{{1,0,0},{0,1,0},{0,0,1}});
+    Matrix<double> mtx_ans({{1,0,0},{0,1,0},{0,0,1}});
 
     if (mtx != mtx_ans)
     {
@@ -309,10 +309,10 @@ bool test_function_10 ()
 // test piecewise product
 bool test_function_11 ()
 {
-    Matrix<double> mtx1(3,3,{{1,2,3},{4,5,6},{7,8,9}});
-    Matrix<double> mtx2(3,3,{{9,8,7},{6,5,4},{3,2,1}});
+    Matrix<double> mtx1({{1,2,3},{4,5,6},{7,8,9}});
+    Matrix<double> mtx2({{9,8,7},{6,5,4},{3,2,1}});
     Matrix<double> mtx = myMATH::piecewiseProduct (mtx1, mtx2);
-    Matrix<double> mtx_ans(3,3,{{9,16,21},{24,25,24},{21,16,9}});
+    Matrix<double> mtx_ans({{9,16,21},{24,25,24},{21,16,9}});
 
     if (mtx != mtx_ans)
     {
@@ -330,11 +330,11 @@ bool test_function_11 ()
 // test matrix inverse
 bool test_function_12 ()
 {
-    Matrix<double> mtx(3,3,{{1,2,3},{4,5,6},{7,8,10}});
+    Matrix<double> mtx({{1,2,3},{4,5,6},{7,8,10}});
     
     Matrix<double> mtx_inv_gauss = myMATH::inverse (mtx, "gauss");
     Matrix<double> mtx_inv_det = myMATH::inverse (mtx, "det");
-    Matrix<double> mtx_inv_ans(3,3,
+    Matrix<double> mtx_inv_ans(
        {{-0.66666667, -1.33333333,  1.},
         {-0.66666667,  3.66666667, -2.},
         { 1.        , -2.        ,  1.}});
@@ -358,7 +358,7 @@ bool test_function_12 ()
         return false;
     }
 
-    Matrix<int> mtx_2(3,3,{{1,2,3},{4,5,6},{7,8,9}});
+    Matrix<int> mtx_2({{1,2,3},{4,5,6},{7,8,9}});
     try
     {
         Matrix<int> mtx_inv = myMATH::inverse (mtx_2, "gauss");
@@ -371,10 +371,10 @@ bool test_function_12 ()
     }
     
     // test 2x2 matrix
-    Matrix<double> mtx_3(2,2,{{1,2},{3,4}});
+    Matrix<double> mtx_3({{1,2},{3,4}});
     mtx_inv_gauss = myMATH::inverse (mtx_3, "gauss");
     mtx_inv_det = myMATH::inverse (mtx_3, "det");
-    mtx_inv_ans = Matrix<double>(2,2,{{-2,1},{1.5,-0.5}});
+    mtx_inv_ans = Matrix<double>({{-2,1},{1.5,-0.5}});
 
     if (mtx_inv_gauss != mtx_inv_ans)
     {
@@ -403,7 +403,7 @@ bool test_function_12 ()
 // test matrix trace
 bool test_function_13 ()
 {
-    Matrix<double> mtx(3,3,{{1,2,3},{4,5,6},{7,8,9}});
+    Matrix<double> mtx({{1,2,3},{4,5,6},{7,8,9}});
     double trace = myMATH::trace (mtx);
     double trace_ans = 15;
 
@@ -477,11 +477,11 @@ bool test_function_14 ()
 // test isLocalMax
 bool test_function_15 ()
 {
-    Matrix<double> img(5,5,{{1,0,0,0,0},
-                            {0,1,2,1,0},
-                            {0,2,3,2,0},
-                            {0,1,2,1,0},
-                            {0,0,0,0,0}});
+    Matrix<double> img({{1,0,0,0,0},
+                        {0,1,2,1,0},
+                        {0,2,3,2,0},
+                        {0,1,2,1,0},
+                        {0,0,0,0,0}});
     bool is_localmax = myMATH::isLocalMax (img, 2, 2);
     bool is_localmax_ans = true;
     if (is_localmax != is_localmax_ans)

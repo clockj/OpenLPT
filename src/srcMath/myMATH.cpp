@@ -72,18 +72,34 @@ double triLinearInterp(AxisLimit const& grid_limit, std::vector<double> const& v
     double y_d = (y - y_0) / (y_1 - y_0);
     double z_d = (z - z_0) / (z_1 - z_0);
 
-    if (x_d > 1 || x_d < 0 || 
-        y_d > 1 || y_d < 0 || 
-        z_d > 1 || z_d < 0)
+    if (x_d > 1+SMALLNUMBER || x_d < -SMALLNUMBER || 
+        y_d > 1+SMALLNUMBER || y_d < -SMALLNUMBER || 
+        z_d > 1+SMALLNUMBER || z_d < -SMALLNUMBER)
     {
         std::cerr << "myMATH::TriLinearInterp error: out of range" 
                   << "(x,y,z) = (" 
                   << x << ","
                   << y << ","
                   << z << ")"
+                  << "(xd,yd,zd) = ("
+                  << x_d << ","
+                  << y_d << ","
+                  << z_d << ")"
+                  << "(x0,y0,z0) = ("
+                  << x_0 << ","
+                  << y_0 << ","
+                  << z_0 << ")"
+                  << "(x1,y1,z1) = ("
+                  << x_1 << ","
+                  << y_1 << ","
+                  << z_1 << ")"
                   << std::endl;
         throw error_range;
     }
+
+    x_d = std::max(0.0, std::min(1.0, x_d));
+    y_d = std::max(0.0, std::min(1.0, y_d));
+    z_d = std::max(0.0, std::min(1.0, z_d));
 
     double c_00 = c_000 * (1 - x_d) + c_100 * x_d;
     double c_01 = c_001 * (1 - x_d) + c_101 * x_d;

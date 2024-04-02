@@ -117,7 +117,7 @@ std::vector<double> OTF::getOTFParam(int cam_id, Pt3D const& pt3d) const
         _param.boundary.y_max
     );
     double pt3d_z = std::min(
-        std::max(pt3d[1], _param.boundary.z_min),
+        std::max(pt3d[2], _param.boundary.z_min),
         _param.boundary.z_max
     );
     

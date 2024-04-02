@@ -3,6 +3,118 @@
 
 #include "STB.h"
 
+// Auxiliary functions //
+
+// Calibrate OTF parameters
+// Gaussian intensity: 
+//  projection center: (xc,yc), x=col, y=row
+//  dx =  (x-xc)*cos(alpha) + (y-yc)*sin(alpha)
+//  dy = -(x-xc)*sin(alpha) + (y-yc)*sin(alpha)
+//  I(x,y) = a * exp( - b*dx^2 - c*dx^2 )
+//  - ln(I) + ln(a) = b*dx^2 + c*dy^2
+//  a = mean(I_c) + 2*std(I_c)
+// Assume a,b,c,alpha are the same in the view volume, alpha=0
+//  nx,ny,nz = 2,2,2
+// otf_param: need to be initialized before calling this function
+void calibOTFParam (OTFParam& otf_param, int cam_id, int radius, std::vector<std::vector<Tracer2D>> const& tr2d_list, std::vector<Image> const& imgList)
+{
+    // check if the camera is valid
+    if (cam_id < 0 || cam_id >= otf_param.a.getDimRow())
+    {
+        std::cerr << "calibOTFParam error at line " << __LINE__ << ":\n" << "Invalid camera id: " << cam_id << "; total number of cameras: " << otf_param.a.getDimRow() << std::endl;
+        throw error_size;
+    }
+
+    // check if the number of tracers is the same as the number of images
+    if (tr2d_list.size() != imgList.size())
+    {
+        std::cerr << "calibOTFParam error at line " << __LINE__ << ":\n" << "The number of tracer lists is not the same as the number of images!" << "Number of tracer list: " << tr2d_list.size() << ". Number of img: " << imgList.size() << std::endl;
+        throw error_size;
+    }
+
+    std::vector<double> I_list;
+    std::vector<double> a_list;
+    std::vector<std::vector<double>> coeff_list;
+    std::vector<double> coeff(2,0);
+    double xc, yc;
+    int n_row, n_col;
+    int row_min, row_max, col_min, col_max;
+    for (int i = 0; i < imgList.size(); i ++)
+    {
+        n_row = imgList[i].getDimRow();
+        n_col = imgList[i].getDimCol();
+
+        for (int j = 0; j < tr2d_list[i].size(); j ++)
+        {
+            xc = tr2d_list[i][j]._pt_center[0];
+            yc = tr2d_list[i][j]._pt_center[1];
+
+            a_list.push_back(imgList[i](std::round(yc), std::round(xc)));
+
+            row_min = std::max(0, (int) yc - radius);
+            row_max = std::min(n_row, (int) yc + radius + 1);
+            col_min = std::max(0, (int) xc - radius);
+            col_max = std::min(n_col, (int) xc + radius + 1);
+
+            for (int row = row_min; row < row_max; row ++)
+            {
+                for (int col = col_min; col < col_max; col ++)
+                {
+                    I_list.push_back(imgList[i](row, col));
+                    coeff[0] = (std::pow(col-xc, 2));
+                    coeff[1] = (std::pow(row-yc, 2));
+                    coeff_list.push_back(coeff);
+                }
+            }
+        }
+    }
+
+    // a = mean(I_c) + 2.*std(I_c)
+    double a;
+    double a_mean = 0;
+    double a_std = 0;
+    int n_a = a_list.size();
+    for (int i = 0; i < n_a; i ++)
+    {
+        a_mean += a_list[i];
+    }
+    a_mean /= n_a;
+    for (int i = 0; i < n_a; i ++)
+    {
+        a_std += std::pow(a_list[i] - a_mean, 2);
+    }
+    a_std = std::sqrt(a_std / n_a);
+    a = a_mean + 2 * a_std;  
+
+    // estimate the coefficients
+    int n_coeff = coeff_list.size();
+    double logI;
+    Matrix<double> coeff_mat(n_coeff, 2, 0);
+    Matrix<double> logI_mat(n_coeff, 1, 0);
+    for (int i = 0; i < n_coeff; i ++)
+    {
+        for (int j = 0; j < 2; j ++)
+        {
+            coeff_mat(i, j) = coeff_list[i][j];
+        }
+
+        logI = I_list[i] < LOGSMALLNUMBER ? std::log(LOGSMALLNUMBER) : std::log(I_list[i]);
+        logI_mat(i, 0) = - logI + std::log(a);
+    }
+    Matrix<double> coeff_est = myMATH::inverse(coeff_mat.transpose() * coeff_mat) * coeff_mat.transpose() * logI_mat;
+
+    for (int i = 0; i < 8; i ++)
+    {
+        otf_param.a(cam_id, i) = a;
+        otf_param.b(cam_id, i) = coeff_est(0, 0);
+        otf_param.c(cam_id, i) = coeff_est(1, 0);
+        otf_param.alpha(cam_id, i) = 0;
+    }
+}
+
+
+// Member functions of STB //
+
 template<class T3D>
 STB<T3D>::STB(int frame_start, int frame_end, float fps, double vx_to_mm, int n_thread, std::string const& output_folder, CamList const& cam_list, AxisLimit const& axis_limit,  std::string const& file)
     : _first(frame_start), _last(frame_end), _fps(fps), _vx_to_mm(vx_to_mm), _n_thread(n_thread), _output_folder(output_folder), _cam_list(cam_list), _n_cam_all(cam_list.cam_list.size()), _axis_limit(axis_limit)
@@ -83,6 +195,7 @@ STB<T3D>::STB(int frame_start, int frame_end, float fps, double vx_to_mm, int n_
     parsed >> _ipr_param.n_loop_ipr;
     parsed >> _ipr_param.n_loop_shake;
     parsed >> _ipr_param.ghost_threshold;
+    parsed >> _ipr_param.n_obj2d_max; // maximum number of tracers in each camera
     parsed >> _ipr_param.tol_2d; // [px]
     parsed >> _ipr_param.tol_3d; _ipr_param.tol_3d *= _vx_to_mm;
     parsed >> _n_reduced;
@@ -102,6 +215,57 @@ STB<T3D>::STB(int frame_start, int frame_end, float fps, double vx_to_mm, int n_
     loadObjParam(parsed);
 
     std::cout << std::endl;
+}
+
+
+template<class T3D>
+void STB<T3D>::calibrateOTF(int cam_id, int n_obj2d_max, int r_otf_calib, std::vector<Image> const& img_list)
+{
+    if (cam_id < 0 || cam_id >= _n_cam_all)
+    {
+        std::cerr << "STB<T3D>::calibrateOTF error at line" << __LINE__ << ":\n"
+                  << "Camera ID " << cam_id << " is out of range: " << "0 ~ " << _n_cam_all-1 << std::endl;
+        throw error_range;
+    }
+
+    if (typeid(T3D) == typeid(Tracer3D))
+    {
+        std::vector<std::vector<Tracer2D>> tr2d_list_all;
+        ObjectFinder2D objfinder;
+
+        std::cout << "Camera " << cam_id << std::endl;
+        std::cout << "\tNumber of found tracers in each image: ";
+        for (int j = 0; j < img_list.size(); j ++)
+        {
+            std::vector<Tracer2D> tr2d_list;
+            objfinder.findObject2D(tr2d_list, img_list[j], _obj_param);
+
+            std::cout << tr2d_list.size();
+
+            // if tr2d_list is too large, randomly select some tracers
+            int seed = 123;
+            if (tr2d_list.size() > n_obj2d_max)
+            {
+                std::shuffle(tr2d_list.begin(), tr2d_list.end(), std::default_random_engine(seed));
+                tr2d_list.erase(tr2d_list.begin()+n_obj2d_max, tr2d_list.end());
+
+                std::cout << "(" << n_obj2d_max << ")";
+            }
+            else if (tr2d_list.size() == 0)
+            {
+                std::cerr << "Quit OTF calibration: No tracer found in camera " << cam_id << std::endl;
+                throw error_size;
+            }
+
+            std::cout << ",";
+
+            tr2d_list_all.push_back(tr2d_list);
+        }
+
+        std::cout << std::endl;
+
+        calibOTFParam(_otf._param, cam_id, r_otf_calib, tr2d_list_all, img_list);
+    }
 }
 
 
@@ -945,5 +1109,6 @@ void STB<T3D>::saveTracksAll(std::string const& folder, int frame)
     file = "LongTrackInactive_" + s + ".csv";
     saveTracks(folder + file, _long_track_inactive);
 }
+
 
 #endif

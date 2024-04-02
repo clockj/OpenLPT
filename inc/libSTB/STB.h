@@ -45,13 +45,15 @@ public:
     // destructor
     ~STB() {};
 
-    enum TrackType{ Inactive = 0, ActiveShort = 1, ActiveLong = 2, Exit = 3, InactiveLong = 4, Buffer = 5};
+
+    // Calibrate otf
+    void calibrateOTF (int cam_id, int n_obj2d_max, int r_otf_calib, std::vector<Image> const& img_list);
+
 
     // Process STB on frame frame_id
     // return img_list: residue images
     void processFrame(int frame_id, std::vector<Image>& img_list, bool is_update_img = false);
 
-    
 
     // save tracks of one status
     void saveTracks (std::string const& file, std::deque<Track<T3D>>& tracks);

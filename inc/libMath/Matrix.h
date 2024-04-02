@@ -42,11 +42,11 @@ class Matrix
 public:
     // Constructor
     Matrix () {};
-    Matrix (const Matrix<T>& mtx); // deep copy
+    Matrix (Matrix<T> const& mtx); // deep copy
     Matrix (int dim_row, int dim_col, T val);
 
     // dim_row, dim_col must be compatible with mtx
-    Matrix (int dim_row, int dim_col, std::initializer_list<std::initializer_list<T>> mtx); 
+    Matrix (std::initializer_list<std::initializer_list<T>> mtx); 
 
     // Load matrix from .csv file
     explicit Matrix (std::string file_name); 
@@ -112,9 +112,9 @@ class Pt3D : public Matrix<double>
 {
 public:
     Pt3D () : Matrix<double>(3,1,0) {};
-    Pt3D (double x, double y, double z) : Matrix<double>(3,1,{{x},{y},{z}}) {};
+    Pt3D (double x, double y, double z) : Matrix<double>({{x},{y},{z}}) {};
     Pt3D (const Pt3D& pt) : Matrix<double>(pt) {};
-    Pt3D (const Matrix<double>& mtx) : Matrix<double>(3,1,{{mtx[0]},{mtx[1]},{mtx[2]}}) {};
+    Pt3D (const Matrix<double>& mtx) : Matrix<double>({{mtx[0]},{mtx[1]},{mtx[2]}}) {};
     explicit Pt3D (std::string file_name) : Matrix<double>(file_name) {};
     explicit Pt3D (std::istream& is) : Matrix<double>(3,1,is) {};
 };
@@ -123,9 +123,9 @@ class Pt2D : public Matrix<double>
 {
 public:
     Pt2D () : Matrix<double>(2,1,0) {};
-    Pt2D (double x, double y) : Matrix<double>(2,1,{{x},{y}}) {};
+    Pt2D (double x, double y) : Matrix<double>({{x},{y}}) {};
     Pt2D (const Pt2D& pt) : Matrix<double>(pt) {};
-    Pt2D (const Matrix<double>& mtx) : Matrix<double>(2,1,{{mtx[0]},{mtx[1]}}) {};
+    Pt2D (const Matrix<double>& mtx) : Matrix<double>({{mtx[0]},{mtx[1]}}) {};
     explicit Pt2D (std::string file_name) : Matrix<double>(file_name) {};
     explicit Pt2D (std::istream& is) : Matrix<double>(2,1,is) {};
 };
@@ -151,7 +151,7 @@ class Image : public Matrix<double>
 public:
     Image () : Matrix<double>(1,1,0) {};
     Image (int dim_row, int dim_col, double val) : Matrix<double>(dim_row, dim_col, val) {};
-    Image (int dim_row, int dim_col, std::initializer_list<std::initializer_list<double>> mtx) : Matrix<double>(dim_row, dim_col, mtx) {};
+    Image (std::initializer_list<std::initializer_list<double>> mtx) : Matrix<double>(mtx) {};
     Image (const Image& mtx) : Matrix<double>(mtx) {};
     Image (const Matrix<double>& mtx) : Matrix<double>(mtx) {};
     explicit Image (std::string file_name) : Matrix<double>(file_name) {};

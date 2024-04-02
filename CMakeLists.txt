@@ -96,8 +96,11 @@ add_library(STB SHARED ${CMAKE_HOME_DIRECTORY}/src/srcSTB/STB.hpp)
 set_target_properties(STB PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(STB PUBLIC Matrix myMath ObjectInfo ObjectFinder StereoMatch OTF Shake IPR PredField Track)
 
+# exe
+add_executable(OpenLPT main.cpp)
+target_link_libraries(OpenLPT PRIVATE ImageIO STB Matrix ObjectInfo ObjectFinder StereoMatch OTF Shake IPR PredField Track)
 
-# install libraries
+# install libraries and exe
 set(CMAKE_INSTALL_TARGETS
     Matrix
     myMath
@@ -112,12 +115,9 @@ set(CMAKE_INSTALL_TARGETS
     PredField
     Track
     STB
+    OpenLPT
 )
 install(TARGETS ${CMAKE_INSTALL_TARGETS} DESTINATION ${CMAKE_HOME_DIRECTORY}/bin/)
-
-add_executable(OpenLPT main.cpp)
-target_link_libraries(OpenLPT PRIVATE ImageIO STB Matrix ObjectInfo ObjectFinder StereoMatch OTF Shake IPR PredField Track)
-
 
 # Enable testing with CTest
 enable_testing()
@@ -273,3 +273,12 @@ add_executable(test_STB
 )
 target_link_libraries(test_STB PRIVATE ImageIO STB Matrix ObjectInfo ObjectFinder StereoMatch OTF Shake IPR PredField Track)
 add_test(test_STB test_STB)
+
+
+# test PIVChallenge
+add_executable(test_PIVChallenge
+    ${CMAKE_HOME_DIRECTORY}/test/test_PIVChallenge.cpp
+    ${TESTHEADERFILES}
+)
+target_link_libraries(test_PIVChallenge PRIVATE ImageIO STB Matrix ObjectInfo ObjectFinder StereoMatch OTF Shake IPR PredField Track)
+add_test(test_PIVChallenge test_PIVChallenge)

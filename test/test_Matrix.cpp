@@ -43,7 +43,7 @@ bool test_function_1 ()
         row_id ++;
     }
 
-    Matrix<double> mtx_2(3, 3, {{1,2,3},{4,5,6},{7,8,9}});
+    Matrix<double> mtx_2({{1,2,3},{4,5,6},{7,8,9}});
     for (int i = 0; i < mtx_2.getDimRow(); i ++)
     {
         for (int j = 0; j < mtx_2.getDimCol(); j ++)
@@ -91,7 +91,7 @@ bool test_function_1 ()
 // test assign and get value 
 bool test_function_2 ()
 {
-    Matrix<double> mtx_1(3,3, {{1,2,3},{4,5,6},{7,8,9}});
+    Matrix<double> mtx_1({{1,2,3},{4,5,6},{7,8,9}});
     if (mtx_1(1,1) != 5)
     {
         std::cout << "mtx_1(1,1) = " << mtx_1(1,1) << ", ans = " << 5 << std::endl;
@@ -124,7 +124,7 @@ bool test_function_2 ()
 // test get row and col
 bool test_function_3 ()
 {
-    Matrix<double> mtx_1(3,3, {{1,2,3},{4,5,6},{7,8,9}});
+    Matrix<double> mtx_1({{1,2,3},{4,5,6},{7,8,9}});
 
     std::vector<double> row = mtx_1.getRow(1);
     std::vector<double> ans = {4,5,6};
@@ -182,7 +182,7 @@ bool test_function_4 ()
 // test magnitude operations
 bool test_function_5 ()
 {
-    Matrix<double> mtx_1(3,3, {{1,2,3},{4,5,6},{7,8,9}});
+    Matrix<double> mtx_1({{1,2,3},{4,5,6},{7,8,9}});
     double norm = mtx_1.norm();
     std::stringstream ss;
     ss << std::fixed << std::setprecision(4) << norm;
@@ -199,7 +199,7 @@ bool test_function_5 ()
 // test matrix operations 
 bool test_function_6 ()
 {
-    Matrix<double> mtx_1(3,3, {{1,2,3},{4,5,6},{7,8,9}});
+    Matrix<double> mtx_1({{1,2,3},{4,5,6},{7,8,9}});
 
     Matrix<double> mtx_2 = mtx_1;
     for (int i = 0; i < mtx_2.getDimRow(); i ++)
@@ -241,7 +241,7 @@ bool test_function_6 ()
     }
 
     Matrix<double> mtx_5 = mtx_1 * mtx_2;
-    Matrix<double> ans_5(3, 3, {{30,36,42},{66,81,96},{102,126,150}});
+    Matrix<double> ans_5({{30,36,42},{66,81,96},{102,126,150}});
     for (int i = 0; i < mtx_5.getDimRow(); i ++)
     {
         for (int j = 0; j < mtx_5.getDimCol(); j ++)
@@ -350,10 +350,10 @@ bool test_function_6 ()
         }
     }
 
-    Matrix<double> mtx_13(3,4, {{1,2,3,4},{5,6,7,8},{9,10,11,12}});
-    Matrix<double> mtx_14(4,3, {{1,2,3},{4,5,6},{7,8,9},{10,11,12}});
+    Matrix<double> mtx_13({{1,2,3,4},{5,6,7,8},{9,10,11,12}});
+    Matrix<double> mtx_14({{1,2,3},{4,5,6},{7,8,9},{10,11,12}});
     Matrix<double> mtx_15 = mtx_13 * mtx_14;
-    Matrix<double> ans_15(3,3, {{70,80,90},{158,184,210},{246,288,330}});
+    Matrix<double> ans_15({{70,80,90},{158,184,210},{246,288,330}});
     for (int i = 0; i < mtx_15.getDimRow(); i ++)
     {
         for (int j = 0; j < mtx_15.getDimCol(); j ++)
@@ -366,9 +366,9 @@ bool test_function_6 ()
         }
     }
 
-    Matrix<double> mtx_16(3,3, {{1,2,3},{4,5,6},{7,8,9}});
+    Matrix<double> mtx_16({{1,2,3},{4,5,6},{7,8,9}});
     Matrix<double> mtx_17 = mtx_16.transpose();
-    Matrix<double> ans_17(3,3, {{1,4,7},{2,5,8},{3,6,9}});
+    Matrix<double> ans_17({{1,4,7},{2,5,8},{3,6,9}});
     for (int i = 0; i < mtx_17.getDimRow(); i ++)
     {
         for (int j = 0; j < mtx_17.getDimCol(); j ++)
@@ -381,7 +381,7 @@ bool test_function_6 ()
         }
     }
 
-    Matrix<double> mtx_18(3,3, {{1,2,3},{4,5,6},{7,8,9}});
+    Matrix<double> mtx_18({{1,2,3},{4,5,6},{7,8,9}});
     Matrix<double> mtx_19 = mtx_18;
     if (mtx_18 != mtx_19)
     {
@@ -425,7 +425,7 @@ bool test_function_7 ()
         }
     }
 
-    Matrix<double> mtx_1(3,3, {{1,2,3},{4,5,6},{7,8,9}});
+    Matrix<double> mtx_1({{1,2,3},{4,5,6},{7,8,9}});
     Pt3D pt_2 = (mtx_1 * pt_1);
     std::vector<double> ans = {42,96,150};
     for (int i = 0; i < 3; i ++)
@@ -457,7 +457,7 @@ bool test_function_7 ()
         }
     }
 
-    Matrix<double> mtx_2(2,2, {{1,2},{3,4}});
+    Matrix<double> mtx_2({{1,2},{3,4}});
     Pt2D pt_4 = (mtx_2 * pt_3);
     ans = {15,33};
     for (int i = 0; i < 2; i ++)

@@ -60,7 +60,6 @@ public:
     // Output: (a,b,c,alpha)
     std::vector<double> getOTFParam(int cam_id, Pt3D const& pt_world) const;
 
-    // TODO: add self-calibration code.
 };
 
 #endif

@@ -125,8 +125,8 @@ void PredField::setGrid()
     _dz = (_param.limit.z_max - _param.limit.z_min)/(_param.nz-1);
 
     _grid_x = myMATH::linspace(_param.limit.x_min, _param.limit.x_max, _param.nx);
-    _grid_y = myMATH::linspace(_param.limit.x_min, _param.limit.x_max, _param.nx);
-    _grid_z = myMATH::linspace(_param.limit.x_min, _param.limit.x_max, _param.nx);
+    _grid_y = myMATH::linspace(_param.limit.y_min, _param.limit.y_max, _param.ny);
+    _grid_z = myMATH::linspace(_param.limit.z_min, _param.limit.z_max, _param.nz);
 
     // set parameters for displacement statistics
     _nBin_tot = _param.nBin_x * _param.nBin_y * _param.nBin_z;
