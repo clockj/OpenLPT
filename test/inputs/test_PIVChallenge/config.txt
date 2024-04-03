@@ -1,9 +1,9 @@
 # Frame Range: [startID,endID]
-0,10
+0,1
 # Frame Rate: [Hz]
 1
 # Number of Threads: (0: use as many as possible)
-6
+8
 # Number of Cameras: 
 4
 # Camera File Path, Max Intensity

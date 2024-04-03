@@ -128,6 +128,30 @@ bool test_function_1 ()
         {
             stb_list.push_back(STB<Tracer3D>(frame_start, frame_end, 1, vx_to_mm, n_thread, output_folder+"Tracer_"+std::to_string(n_tr_class)+'/', cam_list, axis_limit, lines[line_id]));
 
+            // Calibrate OTF // 
+            std::cout << "Start Calibrating OTF!" << std::endl;
+            int n_otf_calib = 1;
+            int n_obj2d_max = 1000;
+            int r_otf_calib = 2; // [px]
+            std::vector<Image> img_list(n_otf_calib);
+
+            std::visit(
+                [&](auto& stb) 
+                { 
+                    for (int i = 0; i < n_cam_all; i ++)
+                    {
+                        for (int j = 0; j < n_otf_calib; j ++)
+                        {
+                            img_list[j] = imgio_list[i].loadImg(frame_start + j);
+                        }
+                        stb.calibrateOTF(i, n_obj2d_max, r_otf_calib, img_list); 
+                    }
+                }, 
+                stb_list[n_tr_class]
+            );
+
+            std::cout << "Finish Calibrating OTF!\n" << std::endl;
+
             n_tr_class ++;
         }
         else
@@ -323,8 +347,8 @@ bool test_function_2 ()
 
 int main()
 {
-    // IS_TRUE(test_function_1());
-    IS_TRUE(test_function_2());
+    IS_TRUE(test_function_1());
+    // IS_TRUE(test_function_2());
 
     return 0;
 }

@@ -73,6 +73,7 @@ void calibOTFParam (OTFParam& otf_param, int cam_id, int radius, std::vector<std
     double a;
     double a_mean = 0;
     double a_std = 0;
+    double a_max = *std::max_element(a_list.begin(), a_list.end());
     int n_a = a_list.size();
     for (int i = 0; i < n_a; i ++)
     {
@@ -84,7 +85,8 @@ void calibOTFParam (OTFParam& otf_param, int cam_id, int radius, std::vector<std
         a_std += std::pow(a_list[i] - a_mean, 2);
     }
     a_std = std::sqrt(a_std / n_a);
-    a = a_mean + 2 * a_std;  
+    a = std::min(a_mean + 2 * a_std, a_max);  
+    std::cout << "\ta_mean = " << a_mean << "; a_std = " << a_std << "; a_max = " << a_max << "; a = " << a << std::endl;
 
     // estimate the coefficients
     int n_coeff = coeff_list.size();
@@ -265,6 +267,8 @@ void STB<T3D>::calibrateOTF(int cam_id, int n_obj2d_max, int r_otf_calib, std::v
         std::cout << std::endl;
 
         calibOTFParam(_otf._param, cam_id, r_otf_calib, tr2d_list_all, img_list);
+
+        std::cout << "\t(a,b,c,alpha) = " << _otf._param.a(cam_id,0) << "," << _otf._param.b(cam_id,0) << ","  << _otf._param.c(cam_id,0) << "," << _otf._param.alpha(cam_id,0) << std::endl;
     }
 }
 

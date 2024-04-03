@@ -28,14 +28,14 @@
 ######### IPR #########
 #######################
 0 # Triangulation/IPR Only (No IPR/tracking)? 1 for only tri (no ipr or tracking), 2 for only tri+ipr (no tracking), otherwise with tri and ipr
-4   # No. of IPR loop
-4   # No. of Shake loop
+6   # No. of IPR loop
+3   # No. of Shake loop
 0.1 # ghost threshold
-30000 # maximum number of tracers in each camera
-1.   # 2D tolerance [px]
+80000 # maximum number of tracers in each camera
+1.0   # 2D tolerance [px]
 .6  # 3D tolerance [mm]
 
-1 # number of reduced camera
+0 # number of reduced camera
 2 # no. of ipr loops for each reduced camera combination
 
 
@@ -43,5 +43,5 @@
 ######### Object Info #########
 ###############################
 65535 # max intensity for each pixel
-30 # 2D particle finder threshold
+1500 # 2D particle finder threshold
 4 # Particle radius [px], for calculating residue image and shaking
