@@ -88,7 +88,7 @@ bool test_function_2 ()
 
 int main ()
 {
-    fs::create_directory("../test/results/test_ObjectFinder/");
+    fs::create_directories("../test/results/test_ObjectFinder/");
 
     IS_TRUE(test_function_1());
     IS_TRUE(test_function_2());

@@ -347,7 +347,7 @@ bool test_function_2 ()
 
 int main()
 {
-    fs::create_directory("../test/results/test_PIVChallenge/");
+    fs::create_directories("../test/results/test_PIVChallenge/");
 
     IS_TRUE(test_function_1());
     // IS_TRUE(test_function_2());

@@ -44,7 +44,7 @@ bool test_function_1 ()
 
 int main ()
 {
-    fs::create_directory("../test/results/test_Track/");
+    fs::create_directories("../test/results/test_Track/");
 
     IS_TRUE(test_function_1());
 

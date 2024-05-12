@@ -211,7 +211,7 @@ bool test_function_1 ()
 
 int main ()
 {
-    fs::create_directory("../test/results/test_Shake/");
+    fs::create_directories("../test/results/test_Shake/");
 
     IS_TRUE(test_function_1());
 

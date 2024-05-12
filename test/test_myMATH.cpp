@@ -649,7 +649,7 @@ bool test_function_17 ()
 
 int main()
 {
-    fs::create_directory("../test/results/test_myMATH/");
+    fs::create_directories("../test/results/test_myMATH/");
 
     IS_TRUE(test_function_1());
     IS_TRUE(test_function_2());
