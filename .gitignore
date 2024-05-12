@@ -10,5 +10,5 @@
 /OpenLPT/
 /bin/
 /test/inputs/test_STB/*.mat
-/test/results/test_STB/Tracer_0/*.csv
+/test/results/*/*.csv
 git-filter-repo
