@@ -123,6 +123,8 @@ bool test_function_1 ()
 
 int main ()
 {
+    fs::create_directory("../test/results/test_IPR/");
+
     IS_TRUE(test_function_1());
 
     return 0;

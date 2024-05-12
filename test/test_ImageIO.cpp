@@ -83,6 +83,8 @@ bool test_function_3 ()
 
 int main ()
 {
+    fs::create_directory("../test/results/test_ImageIO/");
+
     IS_TRUE(test_function_1());
     IS_TRUE(test_function_2());
     IS_TRUE(test_function_3());

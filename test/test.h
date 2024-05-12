@@ -1,4 +1,5 @@
 #include <iostream>
+namespace fs = std::filesystem;
 
 // If parameter is not true, test fails
 // This check function would be provided by the test framework
