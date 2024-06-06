@@ -1,4 +1,5 @@
 #include <iostream>
+#include <filesystem>
 namespace fs = std::filesystem;
 
 // If parameter is not true, test fails
