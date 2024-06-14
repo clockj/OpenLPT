@@ -16,7 +16,7 @@ int main (int argc, char *argv[])
 {
     if (argc != 2)
     {
-        std::cout << "Main Error: Invalid number of arguments!" << std::endl;
+        std::cerr << "Main Error: Invalid number of arguments!" << std::endl;
         return 0;
     }
 
@@ -168,7 +168,7 @@ int main (int argc, char *argv[])
         }
         else
         {
-            std::cout << "Error: Unknown object type: " << line << std::endl;
+            std::cerr << "Error: Unknown object type: " << line << std::endl;
             return false;
         }
     }

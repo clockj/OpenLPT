@@ -11,7 +11,7 @@ void Tracer3D::addTracer2D(std::vector<Tracer2D> const& tracer2d_list, std::vect
 {
     if (tracer2d_list.size() != camid_list.size())
     {
-        std::cout << "Tracer3D::addTracer2D: tracer2d_list.size() != camid_list.size()" << std::endl;
+        std::cerr << "Tracer3D::addTracer2D: tracer2d_list.size() != camid_list.size()" << std::endl;
         throw error_size;
     }
 
@@ -65,7 +65,7 @@ void Tracer3D::updateTracer2D(std::vector<Tracer2D> const& tracer2d_list, std::v
 {
     if (tracer2d_list.size() != camid_list.size())
     {
-        std::cout << "Tracer3D::updateTracer2D: tracer2d_list.size() != camid_list.size()" << std::endl;
+        std::cerr << "Tracer3D::updateTracer2D: tracer2d_list.size() != camid_list.size()" << std::endl;
         throw error_size;
     }
 
