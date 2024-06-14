@@ -4,10 +4,13 @@
 #include <fstream>
 #include <variant>
 
+#include "STBCommons.h"
+#include "ImageIO.h"
 #include "Matrix.h"
 #include "Camera.h"
 #include "ObjectInfo.h"
 #include "STB.h"
+
 
 int main (int argc, char *argv[])
 {
@@ -22,17 +25,16 @@ int main (int argc, char *argv[])
     std::cout << "**************" << std::endl;
     std::cout << std::endl;
 
-
     // Load config
-    std::string file = argv[1];
-    std::ifstream stb_config(file, std::ios::in);
-    if (!stb_config.is_open())
-    {
-        std::cout << "Main Error: Cannot open config file: '" << file << "'" << std::endl;
-        return 0;
-    }
-    std::cout << "Load OpenLPT config file: " << file << std::endl;
+    int frame_start, frame_end, fps, n_thread;
+    CamList cam_list;
+    int n_cam_all;
+    AxisLimit axis_limit;
+    double vx_to_mm;
 
+    std::string file = argv[1];
+    std::cout << "Load config file: " << file << std::endl;
+    std::ifstream stb_config(file, std::ios::in);
     std::vector<std::string> lines;
     std::string line;
     while (std::getline(stb_config, line))
@@ -45,7 +47,7 @@ int main (int argc, char *argv[])
                 line.erase(commentpos);
             }
         }
-        else if (commentpos == 0)
+        else
         {
             continue;
         }
@@ -57,7 +59,6 @@ int main (int argc, char *argv[])
     std::stringstream parsed;
 
     // Load frame range
-    int frame_start, frame_end;
     int line_id = 0;
     parsed.str(lines[line_id]);
     std::getline(parsed, line, ',');
@@ -68,16 +69,15 @@ int main (int argc, char *argv[])
     
     // Load frame rate
     line_id ++;
-    int fps = std::stoi(lines[line_id]);
+    fps = std::stoi(lines[line_id]);
 
     // Load thread number
     line_id ++;
-    int n_thread = std::stoi(lines[line_id]);
+    n_thread = std::stoi(lines[line_id]);
 
     // Load cam files
     line_id ++;
-    CamList cam_list;
-    int n_cam_all = std::stoi(lines[line_id]);
+    n_cam_all = std::stoi(lines[line_id]);
     for (int i = 0; i < n_cam_all; i++)
     {
         line_id ++;
@@ -105,7 +105,6 @@ int main (int argc, char *argv[])
 
     // Load axis limit
     line_id ++;
-    AxisLimit axis_limit;
     parsed.str(lines[line_id]);
     std::getline(parsed, line, ',');
     axis_limit.x_min = std::stod(line);
@@ -123,7 +122,7 @@ int main (int argc, char *argv[])
 
     // Load vx_to_mm
     line_id ++;
-    double vx_to_mm = std::stod(lines[line_id]);
+    vx_to_mm = std::stod(lines[line_id]);
 
     // Load output folder path
     line_id ++;
@@ -147,6 +146,7 @@ int main (int argc, char *argv[])
             int n_obj2d_max = 1000;
             int r_otf_calib = 2; // [px]
             std::vector<Image> img_list(n_otf_calib);
+
             std::visit(
                 [&](auto& stb) 
                 { 
@@ -168,8 +168,8 @@ int main (int argc, char *argv[])
         }
         else
         {
-            std::cout << "Main Error: Unknown object type: " << line << std::endl;
-            return 0;
+            std::cout << "Error: Unknown object type: " << line << std::endl;
+            return false;
         }
     }
     parsed.clear();
@@ -189,7 +189,7 @@ int main (int argc, char *argv[])
             std::visit(
                 [&](auto& stb) 
                 { 
-                    stb.processFrame(frame_id, img_list, true); 
+                    stb.processFrame(frame_id, img_list); 
                 }, 
                 stb_list[i]
             );
