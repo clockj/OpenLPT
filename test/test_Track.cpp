@@ -26,7 +26,7 @@ bool test_function_1 ()
     int n_cam_all = 10;
     int fps = 1;
     std::ofstream output("../test/results/test_Track/test_function_1.csv");
-    output << "track_id,t,world_x,world_y,world_z,error";
+    output << "TrackID,FrameID,WorldX,WorldY,WorldZ,Error,Ncam";
     for (int i = 0; i < n_cam_all; i ++)
     {
         output << ",cam" << i << "_x(col),cam" << i << "_y(row)";

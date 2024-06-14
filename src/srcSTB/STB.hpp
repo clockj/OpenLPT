@@ -1079,7 +1079,7 @@ void STB<T3D>::saveTracks (std::string const& file, std::deque<Track<T3D>>& trac
         throw error_io;
     }
 
-    output << "track_id,t,world_x,world_y,world_z,error";
+    output << "TrackID,FrameID,WorldX,WorldY,WorldZ,Error,Ncam";
     for (int i = 0; i < _n_cam_all; i ++)
     {
         output << ",cam" << i << "_x(col),cam" << i << "_y(row)";

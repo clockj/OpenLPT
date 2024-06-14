@@ -33,7 +33,7 @@ struct IPRParam
     // Shake parameters
     int n_loop_shake = 1; // number of shake times, using gradient descent
     double shake_width = 2.4e-2; // [mm]
-    double ghost_threshold = 3; // Ghost threshold: remove residue > mean + ghost_threshold * std
+    double ghost_threshold = 0.1; // Ghost threshold: remove residue > mean + ghost_threshold * std
 };
 
 
@@ -69,7 +69,7 @@ public:
     {
         std::ofstream file(filename);
 
-        file << "world_x,world_y,world_z,error";
+        file << "WorldX,WorldY,WorldZ,Error,Ncam";
         for (int i = 0; i < _n_cam_all; i ++)
         {
             file << "," << "cam" << i << "_" << "x(col)" 

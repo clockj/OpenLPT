@@ -622,7 +622,7 @@ void StereoMatch::saveTracerInfo (std::string path, std::vector<Tracer3D> const&
     std::ofstream file;
     file.open(path, std::ios::out);
 
-    file << "world_x,world_y,world_z,error";
+    file << "WorldX,WorldY,WorldZ,Error,Ncam";
 
     int n_cam_all = _cam_list.cam_list.size();
     for (int i = 0; i < n_cam_all; i ++)
