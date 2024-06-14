@@ -36,7 +36,20 @@ pacman -S mingw-w64-x86_64-toolchain
 
 
 ### Install OpenLPT
-After finishing the above steps, OpenLPT 2.0 can be installed by running (Windows users can use **powershell** to run the following commands):
+
+#### Install by python
+
+A python code is provided to build the project. Users just need to **specify the path to gcc, g++, powershell/bash and the option of generator in the code**. 
+For Windows users, if you follow the above steps, then there is no need to change the option of generator.
+
+After that, it can be installed by running
+```bash
+python build.py
+```
+
+#### Install by command line
+
+OpenLPT 2.0 can also be installed by using command line (Windows users can use **powershell** to run the following commands):
 
 ```bash
 git clone https://github.com/clockj/OpenLPT.git
@@ -51,7 +64,7 @@ cmake --build ./build --config Release --target all
 cmake --install ./build
 ```
 
-Note: Depending on the gcc toolchain, the option after **-G** can also be **"Unix Makefiles"** or **Ninja**. If you are a Linux user, you probably do not need to specify this option.
+Note: Depending on the compiler toolchain, the option after **-G** can also be **"Unix Makefiles"** or **Ninja**. If you are a Linux user, you probably do not need to specify this option.
 
 In order to run the excusable program in the command line, users sometimes needs to change the permission to run scripts.
 

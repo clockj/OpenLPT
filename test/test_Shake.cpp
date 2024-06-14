@@ -98,8 +98,8 @@ bool test_function_1 ()
     OTF otf;
     otf.loadParam(4, 2, 2, 2, boundary);
 
-    // Shake s (cam_list, 0.01, 0.1, 4, 6); // 0.25 vox, 1 vox = 0.04 mm
-    Shake s (cam_list, 0.01, 50, 10, 6); // 0.25 vox, 1 vox = 0.04 mm
+    Shake s (cam_list, 0.01, 0.1, 4, 6); // 0.25 vox, 1 vox = 0.04 mm
+    // Shake s (cam_list, 0.01, 50, 10, 6); // 0.25 vox, 1 vox = 0.04 mm
     // Shake s (cam_list, 2*param.tor_3d, 3, 4, 6); // 0.25 vox, 1 vox = 0.04 mm
 
     // Shake s (cam_list, 0.01, 1000, 1, 6); // gradient descent
