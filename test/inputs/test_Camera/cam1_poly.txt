@@ -1,0 +1,21 @@
+# Camera Model: (PINHOLE/POLYNOMIAL)
+POLYNOMIAL
+# Calibration Error: 
+None
+# Image Size: (n_row,n_col)
+1024,1024
+# Reference Plane: (REF_X/REF_Y/REF_Z,coordinate,coordinate)
+REF_Z,1,5
+# Number of Coefficients: 
+4
+# U_Coeff,X_Power,Y_Power,Z_Power
+105.8,0,0,0
+100.6,3,2,1
+20.5,3,0,2
+14,2,3,1
+# V_Coeff,X_Power,Y_Power,Z_Power
+105.8,0,0,0
+500.6,3,2,1
+30.5,3,0,2
+14,2,3,1
+

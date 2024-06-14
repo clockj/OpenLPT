@@ -1,0 +1,28 @@
+# Frame Range: [startID,endID]
+0,1
+# Frame Rate: [Hz]
+1
+# Number of Threads: (0: use as many as possible)
+8
+# Number of Cameras: 
+4
+# Camera File Path, Max Intensity
+../test/inputs/test_PIVChallenge/camFile/cam1.txt,65535
+../test/inputs/test_PIVChallenge/camFile/cam2.txt,65535
+../test/inputs/test_PIVChallenge/camFile/cam3.txt,65535
+../test/inputs/test_PIVChallenge/camFile/cam4.txt,65535
+# Image File Path
+../test/inputs/test_PIVChallenge/imgFile/cam1ImageNames.txt
+../test/inputs/test_PIVChallenge/imgFile/cam2ImageNames.txt
+../test/inputs/test_PIVChallenge/imgFile/cam3ImageNames.txt
+../test/inputs/test_PIVChallenge/imgFile/cam4ImageNames.txt
+# View Volume: (xmin,xmax,ymin,ymax,zmin,zmax)
+-102.4,102.4,-12.8,12.8,-8.8,8.8
+# Voxel to MM: e.g. use 1000^3 voxel, (xmax-xmin)/1000
+0.04
+# Output Folder Path: 
+../test/results/test_PIVChallenge/
+# Object Types: 
+Tracer
+# STB Config Files:
+../test/inputs/test_PIVChallenge/tracerConfig.txt

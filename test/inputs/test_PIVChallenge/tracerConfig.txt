@@ -1,0 +1,47 @@
+############################
+######### Tracking #########
+############################
+######### Initial Phase ############## 
+1 # Flag for using ipr in initialphase (or use .csv files) 
+#10 # Search radius for connecting tracks to objects
+20 # Search radius for connecting tracks to objects
+4 # Number of frames for initial phase
+######### Convergence Phase ############# 
+30 # Avg Interparticle spacing. (vox) to identify neighbour tracks 
+4 # Radius to find predicted particle (pixel)
+
+#########################
+######### Shake #########
+#########################
+0.25 # shake width
+
+#################################
+######### Predict Field #########
+#################################
+205 # xgrid 
+26 # ygrid
+18 # zgrid
+#10 # searchRadius [voxel]
+25 # searchRadius [voxel]
+
+#######################
+######### IPR #########
+#######################
+0 # Triangulation/IPR Only (No IPR/tracking)? 1 for only tri (no ipr or tracking), 2 for only tri+ipr (no tracking), otherwise with tri and ipr
+6   # No. of IPR loop
+3   # No. of Shake loop
+0.1 # ghost threshold
+80000 # maximum number of tracers in each camera
+1.0   # 2D tolerance [px]
+.6  # 3D tolerance [mm]
+
+0 # number of reduced camera
+2 # no. of ipr loops for each reduced camera combination
+
+
+###############################
+######### Object Info #########
+###############################
+65535 # max intensity for each pixel
+1500 # 2D particle finder threshold
+4 # Particle radius [px], for calculating residue image and shaking

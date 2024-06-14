@@ -1,0 +1,14 @@
+#ignore
+/x64/
+/out/
+/build/
+/.metadata/
+/.settings/
+/.vscode/
+/.vs/
+*.o
+/OpenLPT/
+/bin/
+/test/inputs/test_STB/*.mat
+/test/results/*
+git-filter-repo
