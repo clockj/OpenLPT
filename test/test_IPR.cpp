@@ -121,11 +121,138 @@ bool test_function_1 ()
 }
 
 
+bool test_function_2 ()
+{
+    std::cout << "test_function_2" << std::endl;
+
+    CamList cam_list;
+    for (int i = 0; i < 4; i ++)
+    {
+        Camera cam("../test/inputs/test_IPR/cam" + std::to_string(i+1) + ".txt");
+        cam_list.cam_list.push_back(cam);
+        cam_list.intensity_max.push_back(255); // default
+        cam_list.useid_list.push_back(i);
+    }
+
+    // load image path
+    std::vector<ImageIO> imgio_list;
+    for (int i = 0; i < 4; i ++)
+    {
+        ImageIO imgio;
+        imgio.loadImgPath("../test/inputs/test_IPR/", "cam" + std::to_string(i+1) + "ImageNames" + ".txt");
+        imgio_list.push_back(imgio);
+    }
+
+    // load image
+    std::vector<Image> img_list;
+    for (int i = 0; i < 4; i ++)
+    {
+        img_list.push_back(imgio_list[i].loadImg(0));
+    }
+
+    // IPR
+    AxisLimit boundary;
+    boundary.x_min = -20;
+    boundary.x_max = 20;
+    boundary.y_min = -20;
+    boundary.y_max = 20;
+    boundary.z_min = -20;
+    boundary.z_max = 20;
+    OTF otf;
+    otf.loadParam(4, 2, 2, 2, boundary);
+
+    std::vector<double> tr2d_properties = {255, 30};
+    std::vector<Tracer3D> tr3d_list;
+
+    IPR ipr(cam_list, img_list, IPRParam());
+    
+    // // creat reduced camera list
+    // std::deque<std::vector<int>> cam_id_all;
+    // std::vector<int> cam_id;
+    // ipr.createCamID(cam_id_all, cam_id, 0, 3);
+    // for (int i = 0; i < cam_id_all.size(); i ++)
+    // {
+    //     std::vector<int> cam_id = cam_id_all[i];
+    //     std::cout << "cam_id = ";
+    //     for (int j = 0; j < cam_id.size(); j ++)
+    //     {
+    //         std::cout << cam_id[j] << " ";
+    //     }
+    //     std::cout << std::endl;
+    //     ipr.reducedCamLoop(tr3d_list, tr2d_properties, otf, cam_id, 2);
+    // }
+    // ipr.saveObjInfo("../test/results/test_IPR/tr3d_img_ipr_reduced.csv", tr3d_list);
+
+    clock_t start, end;
+    ipr.runIPR(tr3d_list, tr2d_properties, otf, 1);
+
+    // save tracer info after shaking
+    ipr.saveObjInfo("../test/results/test_IPR/tr3d_img_ipr_reduced.csv", tr3d_list);
+
+    std::cout << std::endl;
+
+    // load solution: pt3d_list
+    Matrix<double> pt3d_list_sol("../test/solutions/test_IPR/pt3d_list_img.csv");
+
+    // check match correctness
+    int n_tr3d_real = pt3d_list_sol.getDimRow();
+    int n_tr3d_find = tr3d_list.size();
+    std::vector<int> is_mismatch(n_tr3d_real, 0);
+    // double tor = param.tor_3d; // [mm]
+    double tor = 10e-3; // [mm]
+    
+    // after IPR
+    #pragma omp parallel for
+    for (int i = 0; i < n_tr3d_real; i ++)
+    {
+        Pt3D pt3d;
+        pt3d[0] = pt3d_list_sol(i, 0);
+        pt3d[1] = pt3d_list_sol(i, 1);
+        pt3d[2] = pt3d_list_sol(i, 2);
+        
+        std::vector<double> error_list(n_tr3d_find, 0);
+
+        for (int j = 0; j < n_tr3d_find; j ++)
+        {
+            error_list[j] = myMATH::dist(pt3d, tr3d_list[j]._pt_center);
+        }
+                
+        std::vector<double>::iterator minIt = std::min_element(error_list.begin(), error_list.end());
+
+        if (*minIt > tor)
+        {
+            is_mismatch[i] = 1;
+        }
+    }
+    
+    int n_mismatch = 0;
+    for (int i = 0; i < n_tr3d_real; i ++)
+    {
+        n_mismatch += is_mismatch[i];
+    }
+
+    double notfind_rate = double(n_mismatch) / n_tr3d_real * 100; // [%]   
+    double correct_rate = double(n_tr3d_real-n_mismatch) / n_tr3d_find * 100; // [%]
+    std::cout << "After IPR with 1 reduced camera" << std::endl;
+    std::cout << "n_tr3d_real = " << n_tr3d_real << std::endl;
+    std::cout << "n_tr3d_find = " << n_tr3d_find << std::endl;
+    std::cout << "n_mismatch = " << n_mismatch << std::endl;
+    std::cout << "notfind_rate = " << notfind_rate << "%" << std::endl;
+    std::cout << "correct_rate = " << correct_rate << "%" << std::endl;
+
+
+    std::cout << "test_function_2 passed\n" << std::endl;
+
+    return true;
+}
+
+
 int main ()
 {
     fs::create_directories("../test/results/test_IPR/");
 
     IS_TRUE(test_function_1());
+    IS_TRUE(test_function_2());
 
     return 0;
 }

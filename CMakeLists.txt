@@ -29,7 +29,9 @@ include_directories("${CMAKE_HOME_DIRECTORY}/inc/libtiff")
 include_directories("${CMAKE_HOME_DIRECTORY}/inc/libMath")
 include_directories("${CMAKE_HOME_DIRECTORY}/src/srcMath")
 include_directories("${CMAKE_HOME_DIRECTORY}/inc/libObject")
+include_directories("${CMAKE_HOME_DIRECTORY}/inc/libObject/Sphere")
 include_directories("${CMAKE_HOME_DIRECTORY}/src/srcObject")
+include_directories("${CMAKE_HOME_DIRECTORY}/src/srcObject/Sphere")
 include_directories("${CMAKE_HOME_DIRECTORY}/inc/libSTB")
 include_directories("${CMAKE_HOME_DIRECTORY}/src/srcSTB")
 
@@ -65,6 +67,10 @@ target_link_libraries(Camera PUBLIC Matrix myMath)
 
 add_library(ObjectInfo SHARED ${CMAKE_HOME_DIRECTORY}/src/srcObject/ObjectInfo.cpp)
 target_link_libraries(ObjectInfo PUBLIC Matrix Camera)
+
+# Sphere object 
+add_library(SphereInfo SHARED ${CMAKE_HOME_DIRECTORY}/src/srcObject/Sphere/SphereInfo.cpp)
+target_link_libraries(SphereInfo PUBLIC Matrix Camera)
 
 add_library(ObjectFinder SHARED ${CMAKE_HOME_DIRECTORY}/src/srcObject/ObjectFinder.hpp)
 set_target_properties(ObjectFinder PROPERTIES LINKER_LANGUAGE CXX)
@@ -107,6 +113,7 @@ set(CMAKE_INSTALL_TARGETS
     ImageIO
     Camera
     ObjectInfo
+    SphereInfo
     ObjectFinder
     StereoMatch
     OTF
@@ -179,6 +186,15 @@ add_executable(test_ObjectInfo
 target_link_libraries(test_ObjectInfo PRIVATE ObjectInfo Camera)
 add_test(test_ObjectInfo test_ObjectInfo)
 set_tests_properties(test_ObjectInfo
+                     PROPERTIES FAIL_REGULAR_EXPRESSION "failed on line")
+# test SphereInfo
+add_executable(test_SphereInfo 
+    ${CMAKE_HOME_DIRECTORY}/test/test_SphereInfo.cpp
+    ${TESTHEADERFILES}
+)
+target_link_libraries(test_SphereInfo PRIVATE SphereInfo Camera)
+add_test(test_SphereInfo test_SphereInfo)
+set_tests_properties(test_SphereInfo
                      PROPERTIES FAIL_REGULAR_EXPRESSION "failed on line")
 
 
