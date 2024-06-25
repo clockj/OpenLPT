@@ -35,7 +35,7 @@
 1.5   # 2D tolerance [px]
 .6  # 3D tolerance [mm]
 
-1 # number of reduced camera
+2 # number of reduced camera
 2 # no. of ipr loops for each reduced camera combination
 
 
