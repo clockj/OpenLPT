@@ -144,7 +144,7 @@ int main (int argc, char *argv[])
             std::cout << "Start Calibrating OTF!" << std::endl;
             int n_otf_calib = 1;
             int n_obj2d_max = 1000;
-            int r_otf_calib = 2; // [px]
+            int r_otf_calib = 4; // [px]
             std::vector<Image> img_list(n_otf_calib);
 
             std::visit(
