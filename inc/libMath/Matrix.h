@@ -78,7 +78,8 @@ public:
     // Get matrix info
     int  getDimRow () const;
     int  getDimCol () const;
-    void print   (int precision = 3) const;
+    void print (int precision = 3) const;
+    const T* data() const;
 
     // Matrix output 
     void write (std::string file_name);
