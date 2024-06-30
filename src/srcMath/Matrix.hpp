@@ -27,10 +27,11 @@ Matrix<T>::Matrix(int dim_row, int dim_col, T val)
 {
     create(dim_row, dim_col);
 
-    for (int i = 0; i < _n; i ++)
-    {
-        _mtx[i] = val;
-    }
+    // for (int i = 0; i < _n; i ++)
+    // {
+    //     _mtx[i] = val;
+    // }
+    std::fill(_mtx, _mtx + _n, val);
 }
 
 template<class T> 
@@ -302,6 +303,22 @@ const T* Matrix<T>::data() const
     return _mtx;
 }
 
+template<class T>
+void Matrix<T>::setData(const T* data, int size)
+{
+    if (size != _n)
+    {
+        std::cerr << "Matrix<T>::setData error: The size of input data does not match the size of matrix!" << std::endl;
+        throw error_size;
+    }
+
+    // for (int i = 0; i < _n; i ++)
+    // {
+    //     _mtx[i] = data[i];
+    // }
+    std::copy(data, data + _n, _mtx);
+}
+
 template<class T> 
 double Matrix<T>::norm()
 {
@@ -540,16 +557,57 @@ Matrix<T>& Matrix<T>::operator*= (Matrix<T> const& mtx)
         // _mtx.resize(_n);
     }
 
-    for (int i = 0; i < _n; i ++)
-    {
-        _mtx[i] = res._mtx[i];
-    }
-    // TODO: try memcpy
-    // std::memcpy(_mtx, res._mtx, _n * sizeof(T));
+    // for (int i = 0; i < _n; i ++)
+    // {
+    //     _mtx[i] = res._mtx[i];
+    // }
+    std::copy(res._mtx, res._mtx + _n, _mtx);
 
     return *this;
 }
 
+
+template<class T>
+Matrix<T> Matrix<T>::operator+ (T delta)
+{
+    Matrix<T> res(*this);
+    for (int i = 0; i < _n; i ++)
+    {
+        res._mtx[i] += delta;
+    }
+    return res;
+}
+
+template<class T>
+Matrix<T>& Matrix<T>::operator+= (T delta)
+{
+    for (int i = 0; i < _n; i ++)
+    {
+        _mtx[i] += delta;
+    }
+    return *this;
+}
+
+template<class T>
+Matrix<T> Matrix<T>::operator- (T delta)
+{
+    Matrix<T> res(*this);
+    for (int i = 0; i < _n; i ++)
+    {
+        res._mtx[i] -= delta;
+    }
+    return res;
+}
+
+template<class T>
+Matrix<T>& Matrix<T>::operator-= (T delta)
+{
+    for (int i = 0; i < _n; i ++)
+    {
+        _mtx[i] -= delta;
+    }
+    return *this;
+}
 
 template<class T> 
 Matrix<T> Matrix<T>::operator* (T ratio)
