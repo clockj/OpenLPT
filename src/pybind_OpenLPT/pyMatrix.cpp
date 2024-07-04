@@ -28,6 +28,7 @@ py::array_t<T> matrix_to_numpy(Matrix<T> const& mat)
     return array;
 }
 
+
 template <typename T>
 Matrix<T> numpy_to_matrix(const py::array_t<T>& array) 
 {
@@ -43,6 +44,7 @@ Matrix<T> numpy_to_matrix(const py::array_t<T>& array)
     mat.setData(ptr, rows * cols);
     return mat;
 }
+
 
 void init_Matrix(py::module &m) 
 {

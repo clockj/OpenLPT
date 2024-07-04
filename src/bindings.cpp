@@ -5,8 +5,13 @@
 
 namespace py = pybind11;
 
+// Submodule: math
 void init_Matrix(py::module &);
+void init_ImageIO(py::module &);
+void init_Camera(py::module &);
 
+
+// Redirect std::cout to Python's sys.stdout
 class PythonStreamRedirector : public std::streambuf 
 {
 public:
@@ -60,12 +65,18 @@ private:
 };
 
 
+// Define the module
 PYBIND11_MODULE(pyOpenLPT, m) 
 {
+    // Redirect std::cout to Python's sys.stdout
     py::class_<PythonStreamRedirector>(m, "PythonStreamRedirector")
         .def(py::init<>());
 
+    // Submodule: math
     py::module m_math = m.def_submodule("math", "Math module");
-
     init_Matrix(m_math);
+    init_ImageIO(m_math);
+    init_Camera(m_math);
+
+    
 }
