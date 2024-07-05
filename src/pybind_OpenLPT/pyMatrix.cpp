@@ -53,7 +53,6 @@ void init_Matrix(py::module &m)
         .def(py::init<Matrix<double> const&>())
         .def(py::init<int, int, double>())
         .def(py::init<std::string>())
-        .def(py::init<int, int, std::istream&>())
         .def("__setitem__", [](Matrix<double> &self, int id, float val) {self[id] = val;})
         .def("__setitem__", [](Matrix<double> &self, std::pair<int,int> index, float val) {
             self(index.first,index.second) = val;
@@ -66,12 +65,9 @@ void init_Matrix(py::module &m)
         .def("getCol", &Matrix<double>::getCol)
         .def("getDimRow", &Matrix<double>::getDimRow)
         .def("getDimCol", &Matrix<double>::getDimCol)
-        .def("print", &Matrix<double>::print)
+        .def("print", &Matrix<double>::print, py::arg("precision") = 3)
         .def("write", [](Matrix<double> &self, std::string file_name) {
             self.write(file_name);
-        })
-        .def("write", [](Matrix<double> &self, std::ostream& os) {
-            self.write(os);
         })
         .def("norm", &Matrix<double>::norm)
         .def("__eq__", &Matrix<double>::operator==)
@@ -130,7 +126,6 @@ void init_Matrix(py::module &m)
         .def(py::init<Pt3D const&>())
         .def(py::init<Matrix<double> const&>())
         .def(py::init<std::string>())
-        .def(py::init<std::istream&>())
         .doc() = "Pt3D class";
 
     py::class_<Pt2D, Matrix<double>>(m, "Pt2D")
@@ -139,7 +134,6 @@ void init_Matrix(py::module &m)
         .def(py::init<Pt2D const&>())
         .def(py::init<Matrix<double> const&>())
         .def(py::init<std::string>())
-        .def(py::init<std::istream&>())
         .doc() = "Pt2D class";
 
     py::class_<Line3D>(m, "Line3D")

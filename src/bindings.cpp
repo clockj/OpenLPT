@@ -14,6 +14,10 @@ void init_ImageIO(py::module &);
 void init_Camera(py::module &);
 void init_myMath(py::module &);
 
+// Submodule: object 
+void init_ObjectInfo(py::module &);
+// void init_ObjectFinder(py::module &);
+
 
 // Redirect std::cout to Python's sys.stdout
 class PythonStreamRedirector : public std::streambuf 
@@ -88,4 +92,9 @@ PYBIND11_MODULE(pyOpenLPT, m)
     init_myMath(m_math);
     init_Camera(m_math);
     
+
+    // Submodule: object
+    py::module m_object = m.def_submodule("object", "Object module");
+    init_ObjectInfo(m_object);
+    // init_ObjectFinder(m_object);
 }

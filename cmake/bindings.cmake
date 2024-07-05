@@ -1,4 +1,5 @@
 # Compile static lib to be used in the pybind11 module
+# Math module
 add_library(bindMatrix INTERFACE ${CMAKE_SOURCE_DIR}/src/srcMath/Matrix.hpp)
 set_property(TARGET bindMatrix PROPERTY LINKER_LANGUAGE CXX)
 
@@ -12,6 +13,10 @@ target_link_libraries(bindmyMath PUBLIC bindMatrix)
 add_library(bindCamera STATIC ${CMAKE_SOURCE_DIR}/src/srcMath/Camera.cpp)
 target_link_libraries(bindCamera PUBLIC bindmyMath)
 
+# Object module
+add_library(bindObjectInfo STATIC ${CMAKE_SOURCE_DIR}/src/srcObject/ObjectInfo.cpp)
+
+
 
 # Create pybind11 module
 set(BINDINGS_SRC
@@ -21,12 +26,14 @@ set(BINDINGS_SRC
     ${CMAKE_SOURCE_DIR}/src/pybind_OpenLPT/pyImageIO.cpp
     ${CMAKE_SOURCE_DIR}/src/pybind_OpenLPT/pymyMath.cpp
     ${CMAKE_SOURCE_DIR}/src/pybind_OpenLPT/pyCamera.cpp
+    ${CMAKE_SOURCE_DIR}/src/pybind_OpenLPT/pyObjectInfo.cpp
 )
 set(BINDINGS_LIB
     bindMatrix
     bindImageIO
     bindmyMath
     bindCamera
+    bindObjectInfo
 )
 pybind11_add_module(pyOpenLPT ${BINDINGS_SRC})
 target_link_libraries(pyOpenLPT PRIVATE ${BINDINGS_LIB})
