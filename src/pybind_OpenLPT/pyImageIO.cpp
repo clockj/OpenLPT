@@ -14,7 +14,7 @@ void init_ImageIO(py::module &m)
         .def_readwrite("n_col", &ImageParam::n_col)
         .def_readwrite("bits_per_sample", &ImageParam::bits_per_sample)
         .def_readwrite("n_channel", &ImageParam::n_channel)
-        .doc() = "ImageParam class";
+        .doc() = "ImageParam struct";
 
     py::class_<ImageIO>(m, "ImageIO")
         .def(py::init<>())

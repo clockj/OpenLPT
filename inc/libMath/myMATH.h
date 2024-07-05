@@ -124,7 +124,7 @@ Pt2D createUnitVector (Pt2D const& pt1, Pt2D const& pt2);
 double dot (Pt3D const& pt1, Pt3D const& pt2);
 double dot (Pt2D const& pt1, Pt2D const& pt2);
 
-// TODO: add dist2
+
 // Calculate the distance square between two points
 double dist2 (Pt3D const& pt1, Pt3D const& pt2);
 double dist2 (Pt2D const& pt1, Pt2D const& pt2);

@@ -16,13 +16,16 @@ target_link_libraries(bindCamera PUBLIC bindmyMath)
 # Create pybind11 module
 set(BINDINGS_SRC
     ${CMAKE_SOURCE_DIR}/src/bindings.cpp
+    ${CMAKE_SOURCE_DIR}/src/pybind_OpenLPT/pySTBCommons.cpp
     ${CMAKE_SOURCE_DIR}/src/pybind_OpenLPT/pyMatrix.cpp
     ${CMAKE_SOURCE_DIR}/src/pybind_OpenLPT/pyImageIO.cpp
+    ${CMAKE_SOURCE_DIR}/src/pybind_OpenLPT/pymyMath.cpp
     ${CMAKE_SOURCE_DIR}/src/pybind_OpenLPT/pyCamera.cpp
 )
 set(BINDINGS_LIB
     bindMatrix
     bindImageIO
+    bindmyMath
     bindCamera
 )
 pybind11_add_module(pyOpenLPT ${BINDINGS_SRC})
