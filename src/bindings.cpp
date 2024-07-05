@@ -16,7 +16,7 @@ void init_myMath(py::module &);
 
 // Submodule: object 
 void init_ObjectInfo(py::module &);
-// void init_ObjectFinder(py::module &);
+void init_ObjectFinder(py::module &);
 
 
 // Redirect std::cout to Python's sys.stdout
@@ -96,5 +96,5 @@ PYBIND11_MODULE(pyOpenLPT, m)
     // Submodule: object
     py::module m_object = m.def_submodule("object", "Object module");
     init_ObjectInfo(m_object);
-    // init_ObjectFinder(m_object);
+    init_ObjectFinder(m_object);
 }
