@@ -18,6 +18,10 @@ void init_myMath(py::module &);
 void init_ObjectInfo(py::module &);
 void init_ObjectFinder(py::module &);
 
+// Submodule: stb
+void init_StereoMatch(py::module &);
+// void init_IPR(py::module &);
+
 
 // Redirect std::cout to Python's sys.stdout
 class PythonStreamRedirector : public std::streambuf 
@@ -97,4 +101,10 @@ PYBIND11_MODULE(pyOpenLPT, m)
     py::module m_object = m.def_submodule("object", "Object module");
     init_ObjectInfo(m_object);
     init_ObjectFinder(m_object);
+
+
+    // Submodule: stb
+    py::module m_stb = m.def_submodule("stb", "STB module");
+    init_StereoMatch(m_stb);
+    // init_IPR(m_stb);
 }

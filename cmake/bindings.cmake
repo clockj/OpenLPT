@@ -25,7 +25,12 @@ set_property(TARGET bindObjectFinder PROPERTY LINKER_LANGUAGE CXX)
 
 
 # STB module 
+# Find openmp package
+add_library(bindStereoMatch INTERFACE ${CMAKE_SOURCE_DIR}/src/srcSTB/StereoMatch.hpp )
+set_property(TARGET bindStereoMatch PROPERTY LINKER_LANGUAGE CXX)
 
+# add_library(bindIPR INTERFACE ${CMAKE_SOURCE_DIR}/src/srcSTB/IPR.hpp)
+# set_property(TARGET bindIPR PROPERTY LINKER_LANGUAGE CXX)
 
 
 # Create pybind11 module
@@ -38,6 +43,8 @@ set(BINDINGS_SRC
     ${CMAKE_SOURCE_DIR}/src/pybind_OpenLPT/pyCamera.cpp
     ${CMAKE_SOURCE_DIR}/src/pybind_OpenLPT/pyObjectInfo.cpp
     ${CMAKE_SOURCE_DIR}/src/pybind_OpenLPT/pyObjectFinder.cpp
+    ${CMAKE_SOURCE_DIR}/src/pybind_OpenLPT/pyStereoMatch.cpp
+    # ${CMAKE_SOURCE_DIR}/src/pybind_OpenLPT/pyIPR.cpp
 )
 set(BINDINGS_LIB
     bindMatrix
@@ -46,6 +53,8 @@ set(BINDINGS_LIB
     bindCamera
     bindObjectInfo
     bindObjectFinder
+    bindStereoMatch
+    # bindIPR
 )
 pybind11_add_module(pyOpenLPT ${BINDINGS_SRC})
 target_link_libraries(pyOpenLPT PRIVATE ${BINDINGS_LIB})

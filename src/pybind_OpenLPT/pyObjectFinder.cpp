@@ -20,6 +20,9 @@ void init_ObjectFinder(py::module &m)
             self.findObject2D(obj2d_list, img, properties, region);
             return obj2d_list;
         })
+        .def("to_dict", [](ObjectFinder2D const& self){
+            return py::dict();
+        })
         .doc() = "ObjectFinder2D class";
 
 }

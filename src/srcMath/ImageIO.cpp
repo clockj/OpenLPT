@@ -405,7 +405,7 @@ void ImageIO::setImgParam (ImageParam const& img_param)
 }
 
 
-ImageParam ImageIO::getImgParam ()
+ImageParam ImageIO::getImgParam () const
 {
     ImageParam img_param;
     img_param.n_row = _n_row;

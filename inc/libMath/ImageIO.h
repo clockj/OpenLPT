@@ -88,10 +88,13 @@ public:
     void setImgParam (ImageParam const& img_param);
 
     // Get image info
-    ImageParam getImgParam ();
+    ImageParam getImgParam () const;
       
     // Get current image index
-    int getCurrImgID () {return _img_id;};
+    int getCurrImgID () const {return _img_id;};
+
+    // Get image path
+    std::vector<std::string> getImgPath () const {return _img_path;};
 };
 
 #endif

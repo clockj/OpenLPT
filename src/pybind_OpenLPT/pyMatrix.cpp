@@ -8,6 +8,7 @@
 #include "Matrix.h"
 
 namespace py = pybind11;
+using namespace pybind11::literals;
 
 template <class T>
 py::array_t<T> matrix_to_numpy(Matrix<T> const& mat) 
@@ -118,6 +119,11 @@ void init_Matrix(py::module &m)
         .def("__itruediv__", &Matrix<double>::operator/=)
         .def("transpose", &Matrix<double>::transpose)
         .def_property_readonly("T", &Matrix<double>::transpose) 
+        .def("to_dict", [](Matrix<double> const& self){
+            return py::dict(
+                "data (no_access)"_a=matrix_to_numpy<double>(self)
+            );
+        })
         .doc() = "Matrix<double> class";
     
     py::class_<Pt3D, Matrix<double>>(m, "Pt3D")
@@ -141,6 +147,12 @@ void init_Matrix(py::module &m)
         .def(py::init<const Pt3D&, const Pt3D&>())
         .def_readwrite("pt", &Line3D::pt)
         .def_readwrite("unit_vector", &Line3D::unit_vector)
+        .def("to_dict", [](Line3D const& self){
+            return py::dict(
+                "pt"_a=self.pt, 
+                "unit_vector"_a=self.unit_vector
+            );
+        })
         .doc() = "Line3D struct";
 
     py::class_<Line2D>(m, "Line2D")
@@ -148,6 +160,12 @@ void init_Matrix(py::module &m)
         .def(py::init<const Pt2D&, const Pt2D&>())
         .def_readwrite("pt", &Line2D::pt)
         .def_readwrite("unit_vector", &Line2D::unit_vector)
+        .def("to_dict", [](Line2D const& self){
+            return py::dict(
+                "pt"_a=self.pt, 
+                "unit_vector"_a=self.unit_vector
+            );
+        })
         .doc() = "Line2D struct";
 
     py::class_<Image, Matrix<double>>(m, "Image")

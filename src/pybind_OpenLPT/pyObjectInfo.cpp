@@ -8,7 +8,7 @@
 #include "ObjectInfo.h"
 
 namespace py = pybind11;
-
+using namespace pybind11::literals;
 
 void init_ObjectInfo(py::module &m) 
 {
@@ -17,6 +17,11 @@ void init_ObjectInfo(py::module &m)
         .def(py::init<Object2D const&>())
         .def(py::init<Pt2D const&>())
         .def_readwrite("_pt_center", &Object2D::_pt_center)
+        .def("to_dict", [](Object2D const& self){
+            return py::dict(
+                "_pt_center"_a=self._pt_center
+            );
+        })
         .doc() = "Object2D class";
 
     py::class_<Tracer2D, Object2D>(m, "Tracer2D")
@@ -24,6 +29,12 @@ void init_ObjectInfo(py::module &m)
         .def(py::init<Tracer2D const&>())
         .def(py::init<Pt2D const&>())
         .def_readwrite("_r_px", &Tracer2D::_r_px)
+        .def("to_dict", [](Tracer2D const& self){
+            return py::dict(
+                "_pt_center"_a=self._pt_center, 
+                "_r_px"_a=self._r_px
+            );
+        })
         .doc() = "Tracer2D class";
 
     py::class_<Object3D>(m, "Object3D")
@@ -32,6 +43,12 @@ void init_ObjectInfo(py::module &m)
         .def(py::init<Pt3D const&>())
         .def_readwrite("_pt_center", &Object3D::_pt_center)
         .def_readwrite("_is_tracked", &Object3D::_is_tracked)
+        .def("to_dict", [](Object3D const& self){
+            return py::dict(
+                "_pt_center"_a=self._pt_center, 
+                "_is_tracked"_a=self._is_tracked
+            );
+        })
         .doc() = "Object3D class";
 
     py::class_<Tracer3D, Object3D>(m, "Tracer3D")
@@ -71,5 +88,15 @@ void init_ObjectInfo(py::module &m)
             std::ofstream output(file, is_append ? std::ios::app : std::ios::out);
             self.saveObject3D(output, n_cam_all);
         }, py::arg("file"), py::arg("n_cam_all"), py::arg("is_append")=true)
+        .def("to_dict", [](Tracer3D const& self){
+            return py::dict(
+                "_pt_center"_a=self._pt_center, 
+                "_is_tracked"_a=self._is_tracked, 
+                "_n_2d"_a=self._n_2d, 
+                "_error"_a=self._error, 
+                "_camid_list"_a=self._camid_list, 
+                "_tr2d_list"_a=self._tr2d_list
+            );
+        })
         .doc() = "Tracer3D class";
 }

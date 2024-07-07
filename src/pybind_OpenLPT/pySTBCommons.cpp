@@ -2,7 +2,7 @@
 #include "STBCommons.h"
 
 namespace py = pybind11;
-
+using namespace pybind11::literals;
 
 void init_STBCommons(py::module &m)
 {
@@ -17,6 +17,14 @@ void init_STBCommons(py::module &m)
         .def("setRange", &PixelRange::setRange)
         .def("getNumOfRow", &PixelRange::getNumOfRow)
         .def("getNumOfCol", &PixelRange::getNumOfCol)
+        .def("to_dict", [](PixelRange const& self){
+            return py::dict(
+                "row_min"_a=self.row_min, 
+                "row_max"_a=self.row_max, 
+                "col_min"_a=self.col_min, 
+                "col_max"_a=self.col_max
+            );
+        })
         .doc() = "PixelRange struct";
 
     py::class_<AxisLimit>(m, "AxisLimit")
@@ -25,6 +33,14 @@ void init_STBCommons(py::module &m)
         .def_readwrite("x_max", &AxisLimit::x_max)
         .def_readwrite("y_min", &AxisLimit::y_min)
         .def_readwrite("y_max", &AxisLimit::y_max)
+        .def("to_dict", [](AxisLimit const& self){
+            return py::dict(
+                "x_min"_a=self.x_min, 
+                "x_max"_a=self.x_max, 
+                "y_min"_a=self.y_min, 
+                "y_max"_a=self.y_max
+            );
+        })
         .doc() = "AxisLimit struct";
 
     py::enum_<ErrorTypeID>(m, "ErrorTypeID")
