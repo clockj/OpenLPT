@@ -37,10 +37,11 @@ lpt.run(config_file)
 
 ### Install OpenLPT
 
-Create a python environment and install dependencies
+Create a python environment and install dependencies 
+(for **Windows** users, it is suggested to use **Anaconda Prompt** finish the following steps).
 ```bash
 # use conda
-conda create -n OpenLPT 
+conda create -n OpenLPT python=3.9
 conda activate OpenLPT
 pip install -r requirements.txt
 conda deactivate
