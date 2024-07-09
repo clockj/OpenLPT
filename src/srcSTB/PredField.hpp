@@ -3,6 +3,9 @@
 
 #include "PredField.h"
 
+PredField::PredField (PredField const& pf) : _param(pf._param), _disp_field(pf._disp_field), _nGrid_tot(pf._nGrid_tot), _dx(pf._dx), _dy(pf._dy), _dz(pf._dz), _grid_x(pf._grid_x), _grid_y(pf._grid_y), _grid_z(pf._grid_z), _nBin_tot(pf._nBin_tot), _m_xyz(pf._m_xyz), _c_xyz(pf._c_xyz) {}
+
+
 template<class T3D>
 PredField::PredField (PFParam const& param, std::vector<T3D> const& obj3d_list_prev, std::vector<T3D> const& obj3d_list_curr) : _param(param)
 {

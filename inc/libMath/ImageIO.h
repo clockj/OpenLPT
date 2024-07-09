@@ -66,6 +66,8 @@ private:
     int _img_id = -1;          // current image index
     std::vector<std::string> _img_path; // path to all images of one camera
 
+    void init ();
+
 public:
     ImageIO () {};
     ImageIO (const ImageIO& img_io); // deep copy

@@ -86,11 +86,7 @@ void init_Camera(py::module &m)
         .def_readwrite("_poly_param", &Camera::_poly_param)
         .def(py::init<>())
         .def(py::init<const Camera&>())
-        .def(py::init<std::istream&>())
         .def(py::init<std::string>())
-        .def("loadParameters", [](Camera &self, std::istream& is) {
-            self.loadParameters(is);
-        })
         .def("loadParameters", [](Camera &self, std::string filename) {
             self.loadParameters(filename);
         })

@@ -52,7 +52,7 @@ bool test_function_1 ()
     OTF otf;
     otf.loadParam(4, 2, 2, 2, boundary);
 
-    std::vector<double> tr2d_properties = {255, 30};
+    std::vector<double> tr2d_properties = {255, 30, 2};
     std::vector<Tracer3D> tr3d_list;
 
     IPR ipr(cam_list, img_list, IPRParam());
@@ -161,7 +161,7 @@ bool test_function_2 ()
     OTF otf;
     otf.loadParam(4, 2, 2, 2, boundary);
 
-    std::vector<double> tr2d_properties = {255, 30};
+    std::vector<double> tr2d_properties = {255, 30, 2};
     std::vector<Tracer3D> tr3d_list;
 
     IPR ipr(cam_list, img_list, IPRParam());

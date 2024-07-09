@@ -20,7 +20,12 @@ void init_ObjectFinder(py::module &);
 
 // Submodule: stb
 void init_StereoMatch(py::module &);
-// void init_IPR(py::module &);
+void init_OTF(py::module &);
+void init_Shake(py::module &);
+void init_IPR(py::module &);
+void init_PredField(py::module &);
+void init_Track(py::module &);
+void init_STB(py::module &);
 
 
 // Redirect std::cout to Python's sys.stdout
@@ -106,5 +111,10 @@ PYBIND11_MODULE(pyOpenLPT, m)
     // Submodule: stb
     py::module m_stb = m.def_submodule("stb", "STB module");
     init_StereoMatch(m_stb);
-    // init_IPR(m_stb);
+    init_OTF(m_stb);
+    init_Shake(m_stb);
+    init_IPR(m_stb);
+    init_PredField(m_stb);
+    init_Track(m_stb);
+    init_STB(m_stb);
 }

@@ -6,6 +6,21 @@ ImageIO::ImageIO (const ImageIO& img)
 {}
 
 
+void ImageIO::init ()
+{
+    _n_row = 0;
+    _n_col = 0;
+    _bits_per_sample = 0;
+    _n_channel = 0;
+    _is_tiled = 0;
+    _tile_height0 = 0;
+    _tile_width0 = 0;
+    _img_orientation = ORIENTATION_TOPLEFT;
+    _img_id = -1;
+    _img_path.clear();
+}
+
+
 void ImageIO::loadImgPath (std::string folder_path, std::string file_img_path)
 {
     std::ifstream infile(folder_path + file_img_path, std::ios::in);
@@ -16,8 +31,10 @@ void ImageIO::loadImgPath (std::string folder_path, std::string file_img_path)
         throw error_io;
     }
 
-    std::string line;
+    // Initialize image path
+    init();
 
+    std::string line;
     while (std::getline(infile, line)) 
     {
         _img_path.push_back(folder_path + line);
