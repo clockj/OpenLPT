@@ -31,9 +31,11 @@ lpt.run(config_file)
 ## Installation - Python Version
 
 ### Pre-request
-[CMake](https://cmake.org/),
-[Anaconda](https://www.anaconda.com/) or
+1. [CMake](https://cmake.org/)
+2. [Anaconda](https://www.anaconda.com/) or
 [Miniconda](https://docs.anaconda.com/miniconda/)
+3. [Visual Studio](https://visualstudio.microsoft.com/). **Note: install the c++ development tools**
+
 
 ### Install OpenLPT
 

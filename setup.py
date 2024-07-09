@@ -3,6 +3,7 @@ import os
 import subprocess
 import sys
 import platform
+import pybind11
 from setuptools import setup, Extension, find_packages
 from setuptools.command.build_ext import build_ext
 
@@ -26,7 +27,8 @@ class CMakeBuild(build_ext):
     def build_extension(self, ext):
         extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
         cmake_args = ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + extdir,
-                      '-DPYTHON_EXECUTABLE=' + sys.executable]
+                      '-DPYTHON_EXECUTABLE=' + sys.executable, 
+                      '-Dpybind11_DIR=' + pybind11.get_cmake_dir()]
 
         cfg = 'Debug' if self.debug else 'Release'
         build_args = ['--config', cfg]
