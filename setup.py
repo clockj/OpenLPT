@@ -75,7 +75,8 @@ setup(
     zip_safe=False,
     install_requires=[
         'pybind11>=2.6.0',
-        'numpy>=1.16.0'
+        'numpy>=1.16.0',
+        'pandas>=1.0.0'
     ],
     packages=find_packages(),
     include_package_data=True,

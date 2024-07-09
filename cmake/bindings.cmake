@@ -45,16 +45,13 @@ set_property(TARGET bindTrack PROPERTY LINKER_LANGUAGE CXX)
 add_library(bindSTB INTERFACE ${CMAKE_SOURCE_DIR}/src/srcSTB/STB.hpp)
 set_property(TARGET bindSTB PROPERTY LINKER_LANGUAGE CXX)
 
+include_directories(${CMAKE_SOURCE_DIR}/src/)
+include_directories(${CMAKE_SOURCE_DIR}/src/pybind_OpenLPT/)
 
 # Create pybind11 module
 set(BINDINGS_SRC
     ${CMAKE_SOURCE_DIR}/src/bindings.cpp
-    ${CMAKE_SOURCE_DIR}/src/pybind_OpenLPT/pySTBCommons.cpp
-    ${CMAKE_SOURCE_DIR}/src/pybind_OpenLPT/pyMatrix.cpp
-    ${CMAKE_SOURCE_DIR}/src/pybind_OpenLPT/pyImageIO.cpp
-    ${CMAKE_SOURCE_DIR}/src/pybind_OpenLPT/pymyMath.cpp
-    ${CMAKE_SOURCE_DIR}/src/pybind_OpenLPT/pyCamera.cpp
-    ${CMAKE_SOURCE_DIR}/src/pybind_OpenLPT/pySTB.cpp
+    ${CMAKE_SOURCE_DIR}/src/pybind_OpenLPT/pyInterface.cpp
 )
 set(BINDINGS_LIB
     bindMatrix

@@ -1,10 +1,3 @@
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
-
-#include "myMATH.h"
-
-namespace py = pybind11;
-
 
 void init_myMath(py::module& m)
 {

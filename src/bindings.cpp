@@ -7,6 +7,7 @@ namespace py = pybind11;
 
 // STBCommons struct and constants
 void init_STBCommons(py::module &);
+void init_OpenLPT(py::module &);
 
 // Submodule: math
 void init_Matrix(py::module &);
@@ -92,7 +93,7 @@ PYBIND11_MODULE(pyOpenLPT, m)
     
     // STBCommons struct and constants
     init_STBCommons(m);
-
+    init_OpenLPT(m);
 
     // Submodule: math
     py::module m_math = m.def_submodule("math", "Math module");

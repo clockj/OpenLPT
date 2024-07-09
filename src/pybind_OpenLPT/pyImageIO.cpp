@@ -1,10 +1,3 @@
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
-
-#include "ImageIO.h"
-
-namespace py = pybind11;
-using namespace pybind11::literals;
 
 void init_ImageIO(py::module &m) 
 {
@@ -27,6 +20,7 @@ void init_ImageIO(py::module &m)
     py::class_<ImageIO>(m, "ImageIO")
         .def(py::init<>())
         .def(py::init<ImageIO const&>())
+        .def(py::init<std::string, std::string>())
         .def("loadImgPath", &ImageIO::loadImgPath)
         .def("loadImg", &ImageIO::loadImg)
         .def("saveImg", &ImageIO::saveImg)

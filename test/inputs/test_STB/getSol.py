@@ -110,6 +110,7 @@ for i in range(ncam):
 
     
 # %%
+ncam = 4
 # generate folders
 folder = 'imgFile/'
 
@@ -123,12 +124,16 @@ frame_range = [0, 49]
 
 # generate image file names
 format_str = '../test/inputs/test_STB/imgFile/cam{:d}/img{:05d}.tif\n'
+# format_str_python = '../../test/inputs/test_STB/imgFile/cam{:d}/img{:05d}.tif\n'
+
 for i in range(ncam):
     file = folder + 'cam' + str(i+1) + 'ImageNames.txt'
+    # file = folder + 'cam' + str(i+1) + 'ImageNames_python.txt'
     
     with open(file, 'w') as f:
         for j in range(frame_range[0], frame_range[1]+1):
             f.write(format_str.format(i+1, j))
+            # f.write(format_str_python.format(i+1, j))
         
 
 # # generate tiff images

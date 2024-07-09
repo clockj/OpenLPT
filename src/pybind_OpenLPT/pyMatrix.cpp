@@ -1,14 +1,3 @@
-#include <pybind11/pybind11.h>
-#include <pybind11/numpy.h>
-#include <pybind11/stl.h>
-#include <iostream>
-#include <string>
-#include <sstream>
-#include <fstream>
-#include "Matrix.h"
-
-namespace py = pybind11;
-using namespace pybind11::literals;
 
 template <class T>
 py::array_t<T> matrix_to_numpy(Matrix<T> const& mat) 

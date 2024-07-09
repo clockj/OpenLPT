@@ -1,17 +1,3 @@
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
-
-#include <iostream>
-#include <string>
-#include <sstream>
-#include <fstream>
-
-#include "myMATH.h"
-#include "Matrix.h"
-#include "Camera.h"
-
-namespace py = pybind11;
-using namespace pybind11::literals;
 
 void init_Camera(py::module &m) 
 {

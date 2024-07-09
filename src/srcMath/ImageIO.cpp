@@ -5,6 +5,10 @@ ImageIO::ImageIO (const ImageIO& img)
     : _n_row(img._n_row), _n_col(img._n_col), _bits_per_sample(img._bits_per_sample), _n_channel(img._n_channel), _is_tiled(img._is_tiled), _tile_height0(img._tile_height0), _tile_width0(img._tile_width0), _img_orientation(img._img_orientation), _img_id(img._img_id), _img_path(img._img_path)
 {}
 
+ImageIO::ImageIO (std::string folder_path, std::string file_img_path)
+{
+    loadImgPath(folder_path, file_img_path);
+}
 
 void ImageIO::init ()
 {

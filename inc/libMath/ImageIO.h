@@ -70,6 +70,7 @@ private:
 
 public:
     ImageIO () {};
+    ImageIO (std::string folder_path, std::string file_img_path);
     ImageIO (const ImageIO& img_io); // deep copy
     ~ImageIO () {};
 

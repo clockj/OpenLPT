@@ -1,8 +1,3 @@
-#include <pybind11/pybind11.h>
-#include "STBCommons.h"
-
-namespace py = pybind11;
-using namespace pybind11::literals;
 
 void init_STBCommons(py::module &m)
 {
