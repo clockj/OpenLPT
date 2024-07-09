@@ -15,6 +15,7 @@
 #include <iomanip>
 #include <math.h>
 #include <limits>
+#include <algorithm>
 
 #include <iostream>
 #include <string>
@@ -78,7 +79,9 @@ public:
     // Get matrix info
     int  getDimRow () const;
     int  getDimCol () const;
-    void print   (int precision = 3) const;
+    void print (int precision = 3) const;
+    const T* data() const;
+    void setData (const T* data, int size);
 
     // Matrix output 
     void write (std::string file_name);
@@ -97,6 +100,10 @@ public:
     Matrix<T>& operator-= (Matrix<T> const& mtx);
     Matrix<T>  operator*  (Matrix<T> const& mtx) const;
     Matrix<T>& operator*= (Matrix<T> const& mtx);
+    Matrix<T>  operator+  (T delta);
+    Matrix<T>& operator+= (T delta);
+    Matrix<T>  operator-  (T delta);
+    Matrix<T>& operator-= (T delta);
     Matrix<T>  operator*  (T ratio);
     Matrix<T>& operator*= (T ratio);
     Matrix<T>  operator/  (T ratio);

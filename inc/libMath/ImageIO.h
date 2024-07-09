@@ -66,8 +66,11 @@ private:
     int _img_id = -1;          // current image index
     std::vector<std::string> _img_path; // path to all images of one camera
 
+    void init ();
+
 public:
     ImageIO () {};
+    ImageIO (std::string folder_path, std::string file_img_path);
     ImageIO (const ImageIO& img_io); // deep copy
     ~ImageIO () {};
 
@@ -88,10 +91,13 @@ public:
     void setImgParam (ImageParam const& img_param);
 
     // Get image info
-    ImageParam getImgParam ();
+    ImageParam getImgParam () const;
       
     // Get current image index
-    int getCurrImgID () {return _img_id;};
+    int getCurrImgID () const {return _img_id;};
+
+    // Get image path
+    std::vector<std::string> getImgPath () const {return _img_path;};
 };
 
 #endif

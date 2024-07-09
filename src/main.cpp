@@ -11,15 +11,8 @@
 #include "ObjectInfo.h"
 #include "STB.h"
 
-
-int main (int argc, char *argv[])
+void run (std::string file)
 {
-    if (argc != 2)
-    {
-        std::cerr << "Main Error: Invalid number of arguments!" << std::endl;
-        return 0;
-    }
-
     std::cout << "**************" << std::endl;
     std::cout << "OpenLPT start!" << std::endl;
     std::cout << "**************" << std::endl;
@@ -32,7 +25,6 @@ int main (int argc, char *argv[])
     AxisLimit axis_limit;
     double vx_to_mm;
 
-    std::string file = argv[1];
     std::cout << "Load config file: " << file << std::endl;
     std::ifstream stb_config(file, std::ios::in);
     std::vector<std::string> lines;
@@ -144,7 +136,7 @@ int main (int argc, char *argv[])
             std::cout << "Start Calibrating OTF!" << std::endl;
             int n_otf_calib = 1;
             int n_obj2d_max = 1000;
-            int r_otf_calib = 2; // [px]
+            int r_otf_calib = 4; // [px]
             std::vector<Image> img_list(n_otf_calib);
 
             std::visit(
@@ -169,7 +161,7 @@ int main (int argc, char *argv[])
         else
         {
             std::cerr << "Error: Unknown object type: " << line << std::endl;
-            return false;
+            return;
         }
     }
     parsed.clear();
@@ -200,5 +192,18 @@ int main (int argc, char *argv[])
     std::cout << "***************" << std::endl;
     std::cout << "OpenLPT finish!" << std::endl;
     std::cout << "***************" << std::endl;
+}
+
+int main (int argc, char *argv[])
+{
+    if (argc != 2)
+    {
+        std::cerr << "Main Error: Invalid number of arguments!" << std::endl;
+        return 0;
+    }
+
+    std::string file = argv[1];
+    run(file);
+
     return 0;
 }

@@ -2,7 +2,7 @@
 import subprocess
 import os
 
-
+#%%
 # enter the path to gcc and g++ compilers
 gcc = "D:/msys2/mingw64/bin/gcc.exe"
 gpp = "D:/msys2/mingw64/bin/g++.exe"

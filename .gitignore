@@ -11,4 +11,6 @@
 /bin/
 /test/inputs/test_STB/*.mat
 /test/results/*
+pyOpenLPT.egg-info/
+pyOpenLPT/*
 git-filter-repo

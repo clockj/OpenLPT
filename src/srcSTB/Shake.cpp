@@ -383,10 +383,10 @@ double Shake::updateTracer(Tracer3D& tr3d, std::vector<Image>& imgAug_list, std:
 
             tr3d._pt_center[i] = array_list[j];
             
-            // update tr3d 2d match
-            tr3d.projectObject2D(_cam_list.useid_list, _cam_list.cam_list);
-            // update imgAug_list and region_list
-            updateImgAugList(imgAug_list, region_list, tr3d);   
+            // // update tr3d 2d match
+            // tr3d.projectObject2D(_cam_list.useid_list, _cam_list.cam_list);
+            // // update imgAug_list and region_list
+            // updateImgAugList(imgAug_list, region_list, tr3d);   
 
             residue_list[j] = calPointResidue(
                 tr3d._pt_center,
@@ -442,7 +442,6 @@ double Shake::updateTracer(Tracer3D& tr3d, std::vector<Image>& imgAug_list, std:
         
         // update tr3d 2d match
         tr3d.projectObject2D(_cam_list.useid_list, _cam_list.cam_list);
-
         // update imgAug_list and region_list
         updateImgAugList(imgAug_list, region_list, tr3d);
     }

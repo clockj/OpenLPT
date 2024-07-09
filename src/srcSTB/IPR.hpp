@@ -103,6 +103,8 @@ void IPR::runIPR(
         tr3d_list_all.insert(tr3d_list_all.end(), tr3d_list.begin(), tr3d_list.end());
 
         // Update imgRes_list
+        // Note: s._imgRes_list in shake is the same size as n_cam_use, but _imgRes_list in IPR is the same size as _n_cam_all.
+        // Since there is no reduced camera here, s._imgRes_list is the same as _imgRes_list.
         _imgRes_list = s._imgRes_list;
 
         std::cout << "  IPR step " << loop << ": find " << tr3d_list_all.size() << " particles. " << std::endl;
@@ -129,17 +131,23 @@ void IPR::runIPR(
             throw error_range;
         }
 
-        std::cout << "\tStart reduced camera loop!" << std::endl;
+        std::cout << "Start reduced camera loop!" << std::endl;
 
-        // Generate all possible cam_id
-        std::deque<std::vector<int>> cam_id_all;
-        std::vector<int> cam_id;
-        createCamID (cam_id_all, cam_id, 0, n_rest);
-
-        for (int i = 0; i < cam_id_all.size(); i ++)
+        for (int n_reduced_cur = 1; n_reduced_cur <= n_reduced; n_reduced_cur ++)
         {
-            reducedCamLoop(tr3d_list_all, tr2d_properties, otf, cam_id_all[i], _param.n_loop_ipr_reduced);
-        }
+            int n_rest_cur = _n_cam_all - n_reduced_cur;
+            std::cout << "Reduce: " << n_reduced_cur << " cam:" << std::endl;
+
+            // Generate all possible cam_id
+            std::deque<std::vector<int>> cam_id_all;
+            std::vector<int> cam_id;
+            createCamID (cam_id_all, cam_id, 0, n_rest_cur);
+
+            for (int i = 0; i < cam_id_all.size(); i ++)
+            {
+                reducedCamLoop(tr3d_list_all, tr2d_properties, otf, cam_id_all[i], _param.n_loop_ipr_reduced);
+            }
+        } 
     }
 
     // reset cam id list
@@ -243,11 +251,18 @@ void IPR::reducedCamLoop(std::vector<Tracer3D>& tr3d_list_all, std::vector<doubl
         // Save tracer info after shaking
         tr3d_list_all.insert(tr3d_list_all.end(), tr3d_list.begin(), tr3d_list.end());
 
+
         // Update imgRes_list
-        _imgRes_list = s._imgRes_list;
+        // Note: s._imgRes_list in shake is the same size as n_cam_use, but _imgRes_list in IPR is the same size as _n_cam_all
+        // Since there is reduced camera here, s._imgRes_list is not the same as _imgRes_list
+        for (int i = 0; i < n_cam_use; i ++)
+        {
+            cam_id = _cam_list.useid_list[i];
+            _imgRes_list[cam_id] = s._imgRes_list[i];
+        }
+
 
         std::cout << "\tIPR reduced camera step " << loop << ": find " << tr3d_list_all.size() << " particles. " << std::endl;
-
 
         if (tr3d_list.size() == 0)
         {

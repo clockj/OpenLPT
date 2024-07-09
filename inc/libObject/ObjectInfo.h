@@ -30,7 +30,7 @@ public:
 class Tracer2D : public Object2D
 {
 public:
-    int _r_px = 2; // [px], for shaking
+    double _r_px = 2; // [px], for shaking
 
     Tracer2D () {};
     Tracer2D (Tracer2D const& tracer) : Object2D(tracer), _r_px(tracer._r_px) {};

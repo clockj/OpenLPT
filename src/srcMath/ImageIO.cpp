@@ -5,6 +5,25 @@ ImageIO::ImageIO (const ImageIO& img)
     : _n_row(img._n_row), _n_col(img._n_col), _bits_per_sample(img._bits_per_sample), _n_channel(img._n_channel), _is_tiled(img._is_tiled), _tile_height0(img._tile_height0), _tile_width0(img._tile_width0), _img_orientation(img._img_orientation), _img_id(img._img_id), _img_path(img._img_path)
 {}
 
+ImageIO::ImageIO (std::string folder_path, std::string file_img_path)
+{
+    loadImgPath(folder_path, file_img_path);
+}
+
+void ImageIO::init ()
+{
+    _n_row = 0;
+    _n_col = 0;
+    _bits_per_sample = 0;
+    _n_channel = 0;
+    _is_tiled = 0;
+    _tile_height0 = 0;
+    _tile_width0 = 0;
+    _img_orientation = ORIENTATION_TOPLEFT;
+    _img_id = -1;
+    _img_path.clear();
+}
+
 
 void ImageIO::loadImgPath (std::string folder_path, std::string file_img_path)
 {
@@ -16,8 +35,10 @@ void ImageIO::loadImgPath (std::string folder_path, std::string file_img_path)
         throw error_io;
     }
 
-    std::string line;
+    // Initialize image path
+    init();
 
+    std::string line;
     while (std::getline(infile, line)) 
     {
         _img_path.push_back(folder_path + line);
@@ -405,7 +426,7 @@ void ImageIO::setImgParam (ImageParam const& img_param)
 }
 
 
-ImageParam ImageIO::getImgParam ()
+ImageParam ImageIO::getImgParam () const
 {
     ImageParam img_param;
     img_param.n_row = _n_row;

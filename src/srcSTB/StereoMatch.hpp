@@ -1034,7 +1034,8 @@ bool StereoMatch::checkReProject (
     std::vector<std::vector<Tracer2D>> const& tr2d_list
 )
 {
-    Line3D sight3D = _cam_list.cam_list[id].lineOfSight(tr2d_list[id][tr_id]._pt_center);
+    int camID_curr = _cam_list.useid_list[id];
+    Line3D sight3D = _cam_list.cam_list[camID_curr].lineOfSight(tr2d_list[id][tr_id]._pt_center);
 
     Line2D sight2D;
     Pt2D pt2d_1;

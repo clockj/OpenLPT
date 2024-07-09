@@ -38,6 +38,9 @@ public:
     PFParam _param;
     Matrix<double> _disp_field; // _nGrid_tot*3
 
+    // Constructor
+    PredField (PredField const& pf);
+
     template<class T3D>
     PredField (PFParam const& param, std::vector<T3D> const& obj3d_list_prev, std::vector<T3D> const& obj3d_list_curr);
     PredField (PFParam const& param, std::vector<Pt3D> const& pt3d_list_prev, std::vector<Pt3D> const& pt3d_list_curr);

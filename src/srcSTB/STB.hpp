@@ -567,6 +567,30 @@ void STB<T3D>::runConvPhase (int frame, std::vector<Image>& img_list, bool is_up
         }
     }
 
+    // Remove repeated tracks
+    double repeat_thres_2 = 4 * _ipr_param.tol_3d * _ipr_param.tol_3d;
+    for (int i = 0; i < obj3d_list_pred.size()-1; i ++)
+    {
+        for (int j = i+1; j < obj3d_list_pred.size(); )
+        {
+            if (myMATH::dist2(obj3d_list_pred[i]._pt_center, obj3d_list_pred[j]._pt_center) < repeat_thres_2)
+            {
+                if (_long_track_active[j]._n_obj3d >= LEN_LONG_TRACK)
+                {
+                    _long_track_inactive.push_back(_long_track_active[j]);
+                }
+
+                _long_track_active.erase(_long_track_active.begin()+j);
+                obj3d_list_pred.erase(obj3d_list_pred.begin()+j);
+                _s_la ++;
+            }
+            else
+            {
+                j ++;
+            }
+        }
+    }
+
     t_end = clock();
     std::cout << (double) (t_end - t_start)/CLOCKS_PER_SEC << " s. Done!" << std::endl;
 

@@ -31,8 +31,8 @@ void Track<T3D>::addNext(const Track& track)
     _n_obj3d = _obj3d_list.size();
 }
 
-template<>
-void Track<Tracer3D>::saveTrack(std::ofstream& output, int track_id, float fps, int n_cam_all)
+template<class T3D>
+void Track<T3D>::saveTrack(std::ofstream& output, int track_id, float fps, int n_cam_all)
 {    
     if (_n_obj3d != _obj3d_list.size())
     {
