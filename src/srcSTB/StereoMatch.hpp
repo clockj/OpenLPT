@@ -13,6 +13,14 @@ StereoMatch::StereoMatch(SMParam const& param, CamList const& cam_list)
                   << std::endl;
         throw error_size;
     }
+    else if (param.check_id > _n_cam_use)
+    {
+        std::cerr << "StereoMatch::StereoMatch error at line " << __LINE__ << ": \n"
+                  << "param.check_id = " << param.check_id 
+                  << " > _n_cam_use = " << _n_cam_use 
+                  << std::endl;
+        throw error_size;
+    }
 }
 
 void StereoMatch::clearAll()
