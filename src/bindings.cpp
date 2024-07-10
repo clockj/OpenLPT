@@ -30,17 +30,18 @@ void init_STB(py::module &);
 
 
 // Redirect std::cout to Python's sys.stdout
-class PythonStreamRedirector : public std::streambuf 
-{
+class PythonStreamRedirector : public std::streambuf {
 public:
-    PythonStreamRedirector() : default_buffer(std::cout.rdbuf()) 
+    PythonStreamRedirector() : default_cout_buffer(std::cout.rdbuf()), default_cerr_buffer(std::cerr.rdbuf())
     {
         std::cout.rdbuf(this);
+        std::cerr.rdbuf(this);
     }
 
     ~PythonStreamRedirector() 
     {
-        std::cout.rdbuf(default_buffer);
+        std::cout.rdbuf(default_cout_buffer);
+        std::cerr.rdbuf(default_cerr_buffer);
     }
 
 protected:
@@ -52,10 +53,8 @@ protected:
         } 
         else 
         {
-            std::string s(1, static_cast<char>(c));
-            
-            py::module_::import("sys").attr("stdout").attr("write")(s);
-
+            char z = c;
+            py::module_::import("sys").attr("stderr").attr("write")(std::string(1, z));
             return c;
         }
     }
@@ -63,24 +62,14 @@ protected:
     virtual std::streamsize xsputn(const char* s, std::streamsize n) override 
     {
         std::string str(s, n);
-        if (!str.empty()) 
-        {  
-            py::module_::import("sys").attr("stdout").attr("write")(str);
-        }
+        py::module_::import("sys").attr("stderr").attr("write")(str);
         return n;
     }
 
 private:
-    std::streambuf* default_buffer;
-
-    void print_buffer() 
-    {
-        std::string buffer = std::string(pbase(), pptr() - pbase());
-        py::module_::import("sys").attr("stdout").attr("write")(buffer);
-        py::print(buffer);
-        setp(pbase(), epptr());
-    }
-};
+    std::streambuf* default_cout_buffer;
+    std::streambuf* default_cerr_buffer;
+}
 
 
 // Define the module
