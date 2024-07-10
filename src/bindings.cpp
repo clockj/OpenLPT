@@ -69,7 +69,7 @@ protected:
 private:
     std::streambuf* default_cout_buffer;
     std::streambuf* default_cerr_buffer;
-}
+};
 
 
 // Define the module
