@@ -22,6 +22,7 @@
 #include <fstream>
 #include <sstream>
 #include <filesystem>
+#include <algorithm>
 
 namespace fs = std::filesystem;
 
@@ -42,12 +43,14 @@ public:
     // constructor
     STB(int frame_start, int frame_end, float fps, double vx_to_mm, int n_thread, std::string const& output_folder, CamList const& cam_list, AxisLimit const& axis_limit,  std::string const& file);
 
+    STB(const STB& stb);
+
     // destructor
     ~STB() {};
 
 
     // Calibrate otf
-    void calibrateOTF (int cam_id, int n_obj2d_max, int r_otf_calib, std::vector<Image> const& img_list);
+    void calibrateOTF (int cam_id, int n_obj2d_max, double r_otf_calib, std::vector<Image> const& img_list);
 
 
     // Process STB on frame frame_id
@@ -61,12 +64,16 @@ public:
     // save all tracks at any status
     void saveTracksAll(std::string const& folder, int frame);
 
+
+    // get obj param
+    std::vector<double> getObjParam() const;
+
 private:
     int _first = 0; // first frame ID
     int _last = 0; // last frame ID
     float _fps = 1; // frame rate
     double _vx_to_mm; // voxel to mm, 1[vx]=_vx_to_mm[mm]
-    int _n_thread;
+    int _n_thread = 0;
     std::string _output_folder;
     
     CamList _cam_list;
@@ -90,6 +97,7 @@ private:
     bool _ipr_only = false;
     IPRParam _ipr_param;
     int _n_reduced = 0;
+    double _tol_2d_overlap = 0.5; // [px], overlap tolerance for 2D object
 
     // Object parameters
     std::vector<double> _obj_param;
@@ -107,6 +115,13 @@ private:
     void runInitPhase (int frame_id, std::vector<Image>& img_list, bool is_update_img = false);
 
     void runConvPhase (int frame_id, std::vector<Image>& img_list, bool is_update_img = false);
+    
+    // remove overlap IPR objects
+    void removeOverlap (std::vector<T3D>& obj3d_list);
+    void removeOverlapTracer (std::vector<Tracer3D>& obj3d_list);
+
+    // find repeated prediction objects
+    void findRepeatObj (std::vector<int>& is_repeat, std::vector<T3D> const& obj3d_list, double tol_3d);
 
     // make all possible links for tracks
     int makeLink (Track<T3D> const& track, int nextframe, Pt3D const& vel_curr, double radius);
@@ -114,6 +129,7 @@ private:
     void startTrack (int frame, PredField& pf);
 
     bool findPredObj (T3D& obj3d, std::vector<Image> const& img_list);
+    bool checkObj2D (T3D& obj3d);
 
     int linkShortTrack (Track<T3D> const& track, std::vector<T3D> const& obj3d_list, int n_iter);
 

@@ -106,6 +106,36 @@ void OTF::loadParam (std::string otf_file)
     setGrid();
 }
 
+void OTF::saveParam (std::string otf_file)
+{
+    std::ofstream outfile(otf_file);
+
+    if (!outfile.is_open())
+    {
+        std::cerr << "OTF::saveParam error at line" << __LINE__ << ":\n"
+                  << "Cannot open file " << otf_file << std::endl;
+        throw error_io;
+    }
+
+    outfile << "# Size: (n_cam,nx,ny,nz,n_grid)" << std::endl;
+    outfile << _param.n_cam << ',' << _param.nx << ',' << _param.ny << ',' << _param.nz << ',' << _param.n_grid << std::endl;
+
+    outfile << "# Boundary: (xmin,xmax,ymin,ymax,zmin,zmax)" << std::endl;
+    outfile << _param.boundary.x_min << ',' << _param.boundary.x_max << ',' << _param.boundary.y_min << ',' << _param.boundary.y_max << ',' << _param.boundary.z_min << ',' << _param.boundary.z_max << std::endl;
+
+    outfile << "# a: (n_cam,n_grid)" << std::endl;
+    _param.a.write(outfile);
+
+    outfile << "# b: (n_cam,n_grid)" << std::endl;
+    _param.b.write(outfile);
+
+    outfile << "# c: (n_cam,n_grid)" << std::endl;
+    _param.c.write(outfile);
+
+    outfile << "# alpha: (n_cam,n_grid)" << std::endl;
+    _param.alpha.write(outfile);
+}
+
 std::vector<double> OTF::getOTFParam(int cam_id, Pt3D const& pt3d) const
 { 
     double pt3d_x = std::min(

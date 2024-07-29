@@ -85,6 +85,7 @@ void Tracer3D::projectObject2D(std::vector<int> const& camid_list, std::vector<C
     {
         cam_id = _camid_list[i];
         _tr2d_list[i]._pt_center = cam_list_all[cam_id].project(_pt_center);
+        _tr2d_list[i]._r_px = _r2d_px;
     }
 }
 

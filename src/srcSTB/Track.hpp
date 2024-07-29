@@ -80,10 +80,14 @@ void Track<T3D>::predLMSWiener(T3D& obj3d)
 {
     int order = 0;
 
-    if (_n_obj3d < 2)
+    if (_n_obj3d < 3)
     {
-        std::cerr << "Track<T3D>::predLMSWiener error at line " << __LINE__ << ": no enough points to predict" << std::endl;
+        std::cerr << "Track<T3D>::predLMSWiener error at line " << __LINE__ << ": no enough points to predict " << _n_obj3d << "<" << 3 << std::endl;
         return;
+    }
+    else if (_n_obj3d < 4)
+    {
+        order = 3;
     }
     else if (_n_obj3d < 6)
     {
@@ -132,6 +136,7 @@ void Track<T3D>::predLMSWiener(T3D& obj3d)
 
         int iter = 0;
         while (std::fabs(error) > SMALLNUMBER && iter < WIENER_MAX_ITER)
+        // while (std::fabs(error) > SMALLNUMBER)
         {
             // Update parameters and calculate the prediction using the new filter param
             prediction = 0;
@@ -156,7 +161,16 @@ void Track<T3D>::predLMSWiener(T3D& obj3d)
             prediction -= shift;
         }
         obj3d._pt_center[i] = prediction;
-    }  
+    } 
+
+    if (typeid(T3D) == typeid(Tracer3D))
+    {
+        obj3d._r2d_px = _obj3d_list[_n_obj3d-1]._r2d_px;
+    } 
+    else
+    {
+        std::cerr << "Error: predictNext not implemented for this type" << std::endl;
+    }
 
 }
 

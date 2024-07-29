@@ -132,12 +132,13 @@ bool test_function_1 ()
             std::cout << "Start Calibrating OTF!" << std::endl;
             int n_otf_calib = 1;
             int n_obj2d_max = 1000;
-            int r_otf_calib = 4; // [px]
+            // int r_otf_calib = 2; // [px]
             std::vector<Image> img_list(n_otf_calib);
 
             std::visit(
                 [&](auto& stb) 
                 { 
+                    double r_otf_calib = stb.getObjParam()[2];
                     for (int i = 0; i < n_cam_all; i ++)
                     {
                         for (int j = 0; j < n_otf_calib; j ++)
@@ -312,7 +313,7 @@ bool test_function_2 ()
 
             ObjectFinder2D objfinder;
             std::vector<Tracer2D> tr2d_list;
-            objfinder.findObject2D(tr2d_list, img_list[j], {double(cam_list.intensity_max[i]), 30., 4.});
+            objfinder.findObject2D(tr2d_list, img_list[j], {double(cam_list.intensity_max[i]), 30., 2.});
 
             std::cout << tr2d_list.size();
 
@@ -364,7 +365,7 @@ bool test_function_2 ()
         img_orig = imgio_list[i].loadImg(frame_id);
 
         std::vector<Tracer2D> tr2d_list;
-        objfinder.findObject2D(tr2d_list, img_orig, {double(cam_list.intensity_max[i]), 30., 4.});
+        objfinder.findObject2D(tr2d_list, img_orig, {double(cam_list.intensity_max[i]), 30., 2.});
 
         // calculate residue image
         a = otf._param.a(i,0);

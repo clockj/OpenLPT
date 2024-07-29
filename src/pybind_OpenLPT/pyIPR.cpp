@@ -32,9 +32,9 @@ void init_IPR(py::module &m)
             return tr3d_list_all;
         
         }, py::arg("tr2d_properties"), py::arg("otf"), py::arg("n_reduced") = 0)
-        .def("reducedCamLoop", [](IPR& self, std::vector<double> const& tr2d_properties, OTF const& otf, std::vector<int> const& cam_id, int n_cam){
+        .def("reducedCamLoop", [](IPR& self, std::vector<double> const& tr2d_properties, OTF const& otf, std::deque<std::vector<int>> const& cam_id_all, int n_cam){
             std::vector<Tracer3D> tr3d_list_all;
-            self.reducedCamLoop(tr3d_list_all, tr2d_properties, otf, cam_id, n_cam);
+            self.reducedCamLoop(tr3d_list_all, tr2d_properties, otf, cam_id_all, n_cam);
             return tr3d_list_all;
         })
         .def("createCamID", [](IPR& self, std::vector<int> cam_id, int id, int n_rest){
