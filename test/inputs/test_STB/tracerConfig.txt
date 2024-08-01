@@ -3,8 +3,8 @@
 ############################
 ######### Initial Phase ############## 
 1 # Flag for using ipr in initialphase (or use .csv files) 
-#10 # Search radius for connecting tracks to objects
-20 # Search radius for connecting tracks to objects
+10 # Search radius for connecting tracks to objects
+#20 # Search radius for connecting tracks to objects
 4 # Number of frames for initial phase
 ######### Convergence Phase ############# 
 30 # Avg Interparticle spacing. (vox) to identify neighbour tracks 
@@ -28,14 +28,14 @@
 ######### IPR #########
 #######################
 0 # Triangulation/IPR Only (No IPR/tracking)? 1 for only tri (no ipr or tracking), 2 for only tri+ipr (no tracking), otherwise with tri and ipr
-4   # No. of IPR loop
+2   # No. of IPR loop
 4   # No. of Shake loop
 0.1 # ghost threshold
 100000 # maximum number of tracers in each camera
-1.5   # 2D tolerance [px]
+0.8   # 2D tolerance [px]
 .6  # 3D tolerance [mm]
 
-2 # number of reduced camera
+1 # number of reduced camera
 2 # no. of ipr loops for each reduced camera combination
 
 
@@ -44,4 +44,4 @@
 ###############################
 255 # max intensity for each pixel
 30 # 2D particle finder threshold
-4 # Particle radius [px], for calculating residue image and shaking
+2 # Particle radius [px], for calculating residue image and shaking

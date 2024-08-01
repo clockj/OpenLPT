@@ -60,7 +60,7 @@ public:
 
     // Run IPR with reduced cameras
     void reducedCamLoop (std::vector<Tracer3D>& tr3d_list_all, std::vector<double> const& tr2d_properties, 
-    OTF const& otf, std::vector<int> const& cam_id, int n_cam);
+    OTF const& otf, std::deque<std::vector<int>> const& cam_id_all, int n_cam);
     void createCamID (std::deque<std::vector<int>>& cam_id_all, std::vector<int> cam_id, int id, int n_rest);
 
     // Save objct info

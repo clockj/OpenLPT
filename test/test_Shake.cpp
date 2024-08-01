@@ -106,6 +106,14 @@ bool test_function_1 ()
 
     start = clock();
     s.runShake(tr3d_list_shake, otf, img_list, false); // 0.25 vox, 1 vox = 0.04 mm
+    int n_tr3d = tr3d_list_shake.size();
+    for (int i = n_tr3d-1; i >= 0; i --)
+    {
+        if (s._is_ghost[i])
+        {
+            tr3d_list.erase(tr3d_list.begin()+i);
+        }
+    }
     end = clock();
     std::cout << "shake time = " << double(end-start)/CLOCKS_PER_SEC << " [s]" << std::endl;
     

@@ -9,8 +9,10 @@ void init_STB(py::module &m)
             self.processFrame(frame_id, img_list_copy, is_update_img);  
             return img_list_copy;
         }, py::arg("frame_id"), py::arg("img_list"), py::arg("is_update_img")=false)
+        .def(py::init<const STB<Tracer3D>&>())
         .def("saveTracks", &STB<Tracer3D>::saveTracks)
         .def("saveTracksAll", &STB<Tracer3D>::saveTracksAll)
+        .def("getObjParam", &STB<Tracer3D>::getObjParam)
         .def_readwrite("_ipr_matched", &STB<Tracer3D>::_ipr_matched)
         .def_readwrite("_short_track_active", &STB<Tracer3D>::_short_track_active)
         .def_readwrite("_long_track_active", &STB<Tracer3D>::_long_track_active)

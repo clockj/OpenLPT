@@ -14,3 +14,6 @@
 pyOpenLPT.egg-info/
 pyOpenLPT/*
 git-filter-repo
+
+# ignore all __pycache__ directories
+/**/__pycache__/

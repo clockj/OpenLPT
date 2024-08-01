@@ -2,6 +2,10 @@
 #define OTF_H
 
 #include <vector>
+#include <iostream>
+#include <string>
+#include <fstream>
+#include <sstream>
 #include "Matrix.h"
 #include "STBCommons.h"
 #include "myMATH.h"
@@ -56,6 +60,8 @@ public:
 
     void loadParam (int n_cam, int nx, int ny, int nz, AxisLimit const& boundary);
     void loadParam (std::string otf_file);
+
+    void saveParam (std::string otf_file);
 
     // Output: (a,b,c,alpha)
     std::vector<double> getOTFParam(int cam_id, Pt3D const& pt_world) const;

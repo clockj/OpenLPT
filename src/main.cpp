@@ -124,24 +124,24 @@ void run (std::string file)
     line_id ++;    
     parsed.str(lines[line_id]);
     std::vector<std::variant<STB<Tracer3D>>> stb_list;
-    int n_tr_class = 0;
+    int n_obj_class = 0;
     while (std::getline(parsed, line, ','))
     {
         line_id ++;
         if (line == "Tracer")
         {
-            stb_list.push_back(STB<Tracer3D>(frame_start, frame_end, fps, vx_to_mm, n_thread, output_folder+"Tracer_"+std::to_string(n_tr_class)+'/', cam_list, axis_limit, lines[line_id]));
+            stb_list.push_back(STB<Tracer3D>(frame_start, frame_end, fps, vx_to_mm, n_thread, output_folder+"Tracer_"+std::to_string(n_obj_class)+'/', cam_list, axis_limit, lines[line_id]));
 
             // Calibrate OTF // 
             std::cout << "Start Calibrating OTF!" << std::endl;
-            int n_otf_calib = 1;
+            int n_otf_calib = 5;
             int n_obj2d_max = 1000;
-            int r_otf_calib = 4; // [px]
             std::vector<Image> img_list(n_otf_calib);
 
             std::visit(
                 [&](auto& stb) 
                 { 
+                    double r_otf_calib = stb.getObjParam()[2];
                     for (int i = 0; i < n_cam_all; i ++)
                     {
                         for (int j = 0; j < n_otf_calib; j ++)
@@ -151,12 +151,12 @@ void run (std::string file)
                         stb.calibrateOTF(i, n_obj2d_max, r_otf_calib, img_list); 
                     }
                 }, 
-                stb_list[n_tr_class]
+                stb_list[n_obj_class]
             );
 
             std::cout << "Finish Calibrating OTF!\n" << std::endl;
 
-            n_tr_class ++;
+            n_obj_class ++;
         }
         else
         {

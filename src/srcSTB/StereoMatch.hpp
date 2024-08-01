@@ -399,9 +399,11 @@ void StereoMatch::removeGhostTracer (std::vector<Tracer3D>& tr3d_list, std::vect
                 cam_id = _cam_list.useid_list[id];
 
                 tr3d._tr2d_list[id]._pt_center = tr2d_list[id][tr2d_id]._pt_center;
+                tr3d._tr2d_list[id]._r_px = tr2d_list[id][tr2d_id]._r_px;
                 sight3D_list[id] = _cam_list.cam_list[cam_id].lineOfSight(tr3d._tr2d_list[id]._pt_center);
             }
 
+            tr3d._r2d_px = tr3d._tr2d_list[0]._r_px;
             myMATH::triangulation(tr3d._pt_center, tr3d._error, sight3D_list);
 
             tr3d_list.push_back(tr3d);
@@ -566,9 +568,11 @@ void StereoMatch::removeGhostTracerTest (std::vector<Tracer3D>& tr3d_list, std::
                 cam_id = _cam_list.useid_list[id];
 
                 tr3d._tr2d_list[id]._pt_center = tr2d_list[id][tr2d_id]._pt_center;
+                tr3d._tr2d_list[id]._r_px = tr2d_list[id][tr2d_id]._r_px;
                 sight3D_list[id] = _cam_list.cam_list[cam_id].lineOfSight(tr3d._tr2d_list[id]._pt_center);
             }
 
+            tr3d._r2d_px = tr3d._tr2d_list[0]._r_px;
             myMATH::triangulation(tr3d._pt_center, tr3d._error, sight3D_list);
 
             tr3d_list.push_back(tr3d);
@@ -615,9 +619,11 @@ void StereoMatch::fillTracerInfo (std::vector<Tracer3D>& tr3d_list, std::vector<
             cam_id = _cam_list.useid_list[id];
 
             tr3d._tr2d_list[id]._pt_center = tr2d_list[id][tr2d_id]._pt_center;
+            tr3d._tr2d_list[id]._r_px = tr2d_list[id][tr2d_id]._r_px;
             sight3D_list[id] = _cam_list.cam_list[cam_id].lineOfSight(tr3d._tr2d_list[id]._pt_center);
         }
 
+        tr3d._r2d_px = tr3d._tr2d_list[0]._r_px;
         myMATH::triangulation(tr3d._pt_center, tr3d._error, sight3D_list);
 
         tr3d_list.push_back(tr3d);

@@ -36,6 +36,7 @@ void init_OTF(py::module& m)
         .def(py::init<std::string>())
         .def("loadParam", (void (OTF::*)(int, int, int, int, AxisLimit const&)) &OTF::loadParam, py::arg("n_cam"), py::arg("nx"), py::arg("ny"), py::arg("nz"), py::arg("boundary"))
         .def("loadParam", (void (OTF::*)(std::string)) &OTF::loadParam)
+        .def("saveParam", &OTF::saveParam)
         .def("getOTFParam", &OTF::getOTFParam)
         .def_readwrite("_param", &OTF::_param)
         .def("to_dict", [](OTF const& self){

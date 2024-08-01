@@ -59,11 +59,12 @@ class Tracer3D : public Object3D
 public:
     int _n_2d = 0;
     double _error = 0; // [mm]
+    double _r2d_px = 2; // [px], for shaking
     std::vector<int> _camid_list; // min id = 0
     std::vector<Tracer2D> _tr2d_list;
 
     Tracer3D () {};
-    Tracer3D (Tracer3D const& tracer3d) : Object3D(tracer3d), _n_2d(tracer3d._n_2d), _error(tracer3d._error), _camid_list(tracer3d._camid_list), _tr2d_list(tracer3d._tr2d_list) {};
+    Tracer3D (Tracer3D const& tracer3d) : Object3D(tracer3d), _n_2d(tracer3d._n_2d), _error(tracer3d._error), _r2d_px(tracer3d._r2d_px), _camid_list(tracer3d._camid_list), _tr2d_list(tracer3d._tr2d_list) {};
     Tracer3D (Pt3D const& pt_center) : Object3D(pt_center) {};
     ~Tracer3D () {};
 
