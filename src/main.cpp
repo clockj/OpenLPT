@@ -66,6 +66,11 @@ void run (std::string file)
     std::getline(parsed, line, ',');
     frame_end = std::stoi(line);
     parsed.clear();
+    if (frame_start > frame_end-1)
+    {
+        std::cerr << "Error: Invalid frame range!" << std::endl;
+        return;
+    }
     
     // Load frame rate
     line_id ++;
@@ -176,7 +181,7 @@ void run (std::string file)
 
     // Load previous tracks
     line_id ++;
-    int frame_id_prev = -1;
+    int frame_id_prev = frame_start-1;
 
     if (line_id < lines.size())
     {
@@ -192,6 +197,12 @@ void run (std::string file)
 
         if (is_load_tracks)
         {
+            if (frame_id_prev < frame_start-1 || frame_id_prev > frame_end-1)
+            {
+                std::cerr << "Error: Invalid previous frame ID!" << std::endl;
+                return;
+            }
+
             for (int i = 0; i < n_obj_class; i ++)
             {
                 line_id ++;
@@ -207,13 +218,13 @@ void run (std::string file)
         }
         else 
         {
-            frame_id_prev = -1;
+            frame_id_prev = frame_start-1;
         }
     }
 
     // Start processing
     std::vector<Image> img_list(n_cam_all);
-    for (int frame_id = frame_start+frame_id_prev+1; frame_id < frame_end+1; frame_id ++)
+    for (int frame_id = frame_id_prev+1; frame_id < frame_end+1; frame_id ++)
     {
         // load image
         for (int i = 0; i < n_cam_all; i ++)
