@@ -1313,6 +1313,14 @@ void STB<T3D>::loadTracks (std::string const& file, TrackStatusID status)
     std::getline(input, line); // skip the first line
     while (std::getline(input, line))
     {
+        // Trim leading and trailing whitespace (optional)
+        line.erase(0, line.find_first_not_of(" \t\r\n")); // Trim leading whitespace
+        line.erase(line.find_last_not_of(" \t\r\n") + 1); // Trim trailing whitespace
+        if (line.empty())
+        {
+            continue;
+        }
+        
         std::istringstream ss(line);
 
         for (int i = 0; i < 5; i ++)
