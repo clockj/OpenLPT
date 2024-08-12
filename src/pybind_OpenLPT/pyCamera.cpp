@@ -76,15 +76,34 @@ void init_Camera(py::module &m)
         .def("loadParameters", [](Camera &self, std::string filename) {
             self.loadParameters(filename);
         })
+        .def("updatePolyDuDv", &Camera::updatePolyDuDv)
         .def("saveParameters", &Camera::saveParameters)
         .def("rmtxTorvec", &Camera::rmtxTorvec)
         .def("getNRow", &Camera::getNRow)
         .def("getNCol", &Camera::getNCol)
         .def("project", &Camera::project)
+        .def("project", [](Camera const& self, std::vector<Pt3D> const& pt3d_list){
+            std::vector<Pt2D> pt2d_list(pt3d_list.size());
+            #pragma omp parallel for
+            for (int i = 0; i < pt3d_list.size(); i++)
+            {
+                pt2d_list[i] = self.project(pt3d_list[i]);
+            }
+            return pt2d_list;
+        })
         .def("worldToUndistImg", &Camera::worldToUndistImg)
         .def("distort", &Camera::distort)
         .def("polyProject", &Camera::polyProject)
         .def("lineOfSight", &Camera::lineOfSight)
+        .def("lineOfSight", [](Camera const& self, std::vector<Pt2D> const& pt2d_list){
+            std::vector<Line3D> line_list(pt2d_list.size());
+            #pragma omp parallel for
+            for (int i = 0; i < pt2d_list.size(); i++)
+            {
+                line_list[i] = self.lineOfSight(pt2d_list[i]);
+            }
+            return line_list;
+        })
         .def("undistort", &Camera::undistort)
         .def("pinholeLine", &Camera::pinholeLine)
         .def("polyImgToWorld", &Camera::polyImgToWorld)

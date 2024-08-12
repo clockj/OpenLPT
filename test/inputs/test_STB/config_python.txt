@@ -26,3 +26,9 @@
 Tracer
 # STB Config Files:
 ../../test/inputs/test_STB/tracerConfig.txt
+# Flag to load previous track files, previous frameID
+0,-1
+# Path to active long track files
+../../test/results/test_STB/Tracer_0/LongTrackActive_20.csv
+# Path to active short track files
+../../test/results/test_STB/Tracer_0/ShortTrackActive_20.csv

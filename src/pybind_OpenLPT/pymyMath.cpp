@@ -70,6 +70,18 @@ void init_myMath(py::module& m)
         return std::make_pair(pt_world, error);
     }, "Triangulate 3D points from a list of 3D lines of sight");
 
+    m.def("triangulation", [](std::vector<std::vector<Line3D>> const& sight_list_all){
+        int npts = sight_list_all.size();
+        std::vector<Pt3D> pt_world_list(npts);
+        std::vector<double> error_list(npts);
+        #pragma omp parallel for
+        for (int i = 0; i < npts; i++)
+        {
+            myMATH::triangulation(pt_world_list[i], error_list[i], sight_list_all[i]);
+        }
+        return std::make_pair(pt_world_list, error_list);
+    }, "Triangulate 3D points from all lists of 3D lines of sight");
+
     m.def("crossPoint", &myMATH::crossPoint, "Find the cross point of two 2D lines");
 
     m.def("eye", &myMATH::eye<double>, "Create an identity Matrix<double>");

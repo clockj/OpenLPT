@@ -64,5 +64,12 @@ void init_STBCommons(py::module &m)
         .value("PREV_FRAME", FrameTypeID::PREV_FRAME)
         .value("CURR_FRAME", FrameTypeID::CURR_FRAME)
         .export_values();
+
+    py::enum_<TrackStatusID>(m, "TrackStatusID")
+        .value("LONG_ACTIVE", TrackStatusID::LONG_ACTIVE)
+        .value("SHORT_ACTIVE", TrackStatusID::SHORT_ACTIVE)
+        .value("LONG_INACTIVE", TrackStatusID::LONG_INACTIVE)
+        .value("EXIT", TrackStatusID::EXIT)
+        .export_values();
 }
 
