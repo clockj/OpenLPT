@@ -1289,6 +1289,90 @@ bool STB<T3D>::checkLinearFit(Track<T3D> const& track)
 
 
 template<class T3D>
+void STB<T3D>::loadTracks (std::string const& file, TrackStatusID status)
+{
+    std::ifstream input(file, std::ios::in);
+
+    if (!input.is_open())
+    {
+        std::cerr << "STB<T3D>::loadTracks error at line" << __LINE__ << ":\n"
+                  << "Cannot open file " << file << std::endl;
+        throw error_io;
+    }
+
+    int track_id_prev = -1;
+    std::vector<double> data(5,0); // track_id, frame_id, x, y, z  
+    T3D obj3d;
+    if (typeid(T3D) == typeid(Tracer3D))
+    {
+        obj3d._r2d_px = _obj_param[2];
+    }
+
+    std::deque<Track<T3D>> track_list;
+    std::string line;
+    std::getline(input, line); // skip the first line
+    while (std::getline(input, line))
+    {
+        // Trim leading and trailing whitespace (optional)
+        line.erase(0, line.find_first_not_of(" \t\r\n")); // Trim leading whitespace
+        line.erase(line.find_last_not_of(" \t\r\n") + 1); // Trim trailing whitespace
+        if (line.empty())
+        {
+            continue;
+        }
+        
+        std::istringstream ss(line);
+
+        for (int i = 0; i < 5; i ++)
+        {
+            ss >> data[i];
+            ss.ignore();
+        }
+        
+        obj3d._pt_center[0] = data[2];
+        obj3d._pt_center[1] = data[3];
+        obj3d._pt_center[2] = data[4];
+
+        if (data[0] != track_id_prev)
+        {
+            Track<T3D> track(obj3d, data[1]);
+            track_list.push_back(track);
+            track_id_prev = data[0];
+        }
+        else
+        {
+            track_list.back().addNext(obj3d, data[1]);
+        }
+    }
+
+    input.close();
+
+
+    switch (status)
+    {
+        case (LONG_ACTIVE):
+            _long_track_active = track_list;
+            break;
+        case (LONG_INACTIVE):
+            _long_track_inactive = track_list;
+            break;
+        case (SHORT_ACTIVE):
+            _short_track_active = track_list;
+            break;
+        case (EXIT):
+            _exit_track = track_list;
+            break;
+        default:
+            std::cerr << "STB<T3D>::loadTracks error at line" 
+                      << __LINE__ << ":\n"
+                      << "Invalid track status: " 
+                      << status << std::endl;
+            throw error_type;
+    }
+}
+
+
+template<class T3D>
 void STB<T3D>::saveTracks (std::string const& file, std::deque<Track<T3D>>& tracks)
 {
     std::ofstream output(file, std::ios::out);

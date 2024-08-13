@@ -52,7 +52,7 @@ Download the source code from github and install it
 ```bash
 git clone https://github.com/clockj/OpenLPT.git
 cd OpenLPT
-conda activate OpenLPT
+conda activate OpenLPTGUI
 pip install .
 conda deactivate
 ```

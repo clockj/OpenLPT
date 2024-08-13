@@ -58,6 +58,10 @@ public:
     void processFrame(int frame_id, std::vector<Image>& img_list, bool is_update_img = false);
 
 
+    // Load tracks
+    void loadTracks (std::string const& file, TrackStatusID status);
+
+
     // save tracks of one status
     void saveTracks (std::string const& file, std::deque<Track<T3D>>& tracks);
 

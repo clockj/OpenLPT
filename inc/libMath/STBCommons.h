@@ -144,4 +144,12 @@ enum FrameTypeID
     CURR_FRAME
 };
 
+enum TrackStatusID
+{
+    LONG_ACTIVE,
+    SHORT_ACTIVE,
+    LONG_INACTIVE,
+    EXIT
+};
+
 #endif // !STBCOMMONS

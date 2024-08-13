@@ -78,6 +78,8 @@ public:
     void loadParameters (std::istream& is);
     void loadParameters (std::string file_name);
 
+    void updatePolyDuDv ();
+
     // Transfer from rotation matrix to rotation vector
     Pt3D rmtxTorvec (Matrix<double> const& r_mtx);
 

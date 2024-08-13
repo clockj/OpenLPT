@@ -120,24 +120,17 @@ void Camera::loadParameters (std::istream& is)
         std::stringstream plane_stream(ref_plane_str);
         // std::string temp;
         std::getline(plane_stream, temp, ',');
-        int derivative_id[2] = {1,2};
         if (temp == "REF_X")
         {
             _poly_param.ref_plane = REF_X;
-            derivative_id[0] = 2;
-            derivative_id[1] = 3;
         }
         else if (temp == "REF_Y")
         {
             _poly_param.ref_plane = REF_Y;
-            derivative_id[0] = 1;
-            derivative_id[1] = 3;
         }
         else if (temp == "REF_Z")
         {
             _poly_param.ref_plane = REF_Z;
-            derivative_id[0] = 1;
-            derivative_id[1] = 2;
         }
         else
         {
@@ -160,33 +153,7 @@ void Camera::loadParameters (std::istream& is)
         _poly_param.v_coeffs = Matrix<double>(_poly_param.n_coeff,4,is);
 
         // calculate du, dv coefficients
-        _poly_param.du_coeffs = Matrix<double>(_poly_param.n_coeff*2,4,0);
-        _poly_param.dv_coeffs = Matrix<double>(_poly_param.n_coeff*2,4,0);
-        for (int i = 0; i < _poly_param.n_coeff; i ++)
-        {
-            // calculate du coeff
-            _poly_param.du_coeffs(i,0) = _poly_param.u_coeffs(i,0) * _poly_param.u_coeffs(i,derivative_id[0]);   
-            _poly_param.du_coeffs(i,_poly_param.ref_plane) = _poly_param.u_coeffs(i,_poly_param.ref_plane);
-            _poly_param.du_coeffs(i,derivative_id[0]) = std::max(_poly_param.u_coeffs(i,derivative_id[0]) - 1, 0.0);
-            _poly_param.du_coeffs(i,derivative_id[1]) = _poly_param.u_coeffs(i,derivative_id[1]);
-
-            int j = i + _poly_param.n_coeff;
-            _poly_param.du_coeffs(j,0) = _poly_param.u_coeffs(i,0) * _poly_param.u_coeffs(i,derivative_id[1]);
-            _poly_param.du_coeffs(j,_poly_param.ref_plane) = _poly_param.u_coeffs(i,_poly_param.ref_plane);
-            _poly_param.du_coeffs(j,derivative_id[0]) = _poly_param.u_coeffs(i,derivative_id[0]);
-            _poly_param.du_coeffs(j,derivative_id[1]) = std::max(_poly_param.u_coeffs(i,derivative_id[1]) - 1, 0.0);
-
-            // calculate dv coeff
-            _poly_param.dv_coeffs(i,0) = _poly_param.v_coeffs(i,0) * _poly_param.v_coeffs(i,derivative_id[0]);
-            _poly_param.dv_coeffs(i,_poly_param.ref_plane) = _poly_param.v_coeffs(i,_poly_param.ref_plane);
-            _poly_param.dv_coeffs(i,derivative_id[0]) = std::max(_poly_param.v_coeffs(i,derivative_id[0]) - 1, 0.0);
-            _poly_param.dv_coeffs(i,derivative_id[1]) = _poly_param.v_coeffs(i,derivative_id[1]);
-
-            _poly_param.dv_coeffs(j,0) = _poly_param.v_coeffs(i,0) * _poly_param.v_coeffs(i,derivative_id[1]);
-            _poly_param.dv_coeffs(j,_poly_param.ref_plane) = _poly_param.v_coeffs(i,_poly_param.ref_plane);
-            _poly_param.dv_coeffs(j,derivative_id[0]) = _poly_param.v_coeffs(i,derivative_id[0]);
-            _poly_param.dv_coeffs(j,derivative_id[1]) = std::max(_poly_param.v_coeffs(i,derivative_id[1]) - 1, 0.0);
-        }
+        updatePolyDuDv ();
     }
     else 
     {
@@ -227,6 +194,64 @@ void Camera::loadParameters (std::string file_name)
     infile.close();
 
     loadParameters(file_content);
+}
+
+void Camera::updatePolyDuDv ()
+{
+    if (_type == POLYNOMIAL)
+    {
+        int derivative_id[2] = {1,2};
+        if (_poly_param.ref_plane == REF_X)
+        {
+            derivative_id[0] = 2;
+            derivative_id[1] = 3;
+        }
+        else if (_poly_param.ref_plane == REF_Y)
+        {
+            derivative_id[0] = 1;
+            derivative_id[1] = 3;
+        }
+        else if (_poly_param.ref_plane == REF_Z)
+        {
+            derivative_id[0] = 1;
+            derivative_id[1] = 2;
+        }
+        else
+        {
+            std::cerr << "Camera::updatePolyDuDv line " << __LINE__ 
+                      << " : Error: reference plane is wrong: " 
+                      << _poly_param.ref_plane << std::endl;
+            throw error_type;
+        }
+
+        _poly_param.du_coeffs = Matrix<double>(_poly_param.n_coeff*2,4,0);
+        _poly_param.dv_coeffs = Matrix<double>(_poly_param.n_coeff*2,4,0);
+        for (int i = 0; i < _poly_param.n_coeff; i ++)
+        {
+            // calculate du coeff
+            _poly_param.du_coeffs(i,0) = _poly_param.u_coeffs(i,0) * _poly_param.u_coeffs(i,derivative_id[0]);   
+            _poly_param.du_coeffs(i,_poly_param.ref_plane) = _poly_param.u_coeffs(i,_poly_param.ref_plane);
+            _poly_param.du_coeffs(i,derivative_id[0]) = std::max(_poly_param.u_coeffs(i,derivative_id[0]) - 1, 0.0);
+            _poly_param.du_coeffs(i,derivative_id[1]) = _poly_param.u_coeffs(i,derivative_id[1]);
+
+            int j = i + _poly_param.n_coeff;
+            _poly_param.du_coeffs(j,0) = _poly_param.u_coeffs(i,0) * _poly_param.u_coeffs(i,derivative_id[1]);
+            _poly_param.du_coeffs(j,_poly_param.ref_plane) = _poly_param.u_coeffs(i,_poly_param.ref_plane);
+            _poly_param.du_coeffs(j,derivative_id[0]) = _poly_param.u_coeffs(i,derivative_id[0]);
+            _poly_param.du_coeffs(j,derivative_id[1]) = std::max(_poly_param.u_coeffs(i,derivative_id[1]) - 1, 0.0);
+
+            // calculate dv coeff
+            _poly_param.dv_coeffs(i,0) = _poly_param.v_coeffs(i,0) * _poly_param.v_coeffs(i,derivative_id[0]);
+            _poly_param.dv_coeffs(i,_poly_param.ref_plane) = _poly_param.v_coeffs(i,_poly_param.ref_plane);
+            _poly_param.dv_coeffs(i,derivative_id[0]) = std::max(_poly_param.v_coeffs(i,derivative_id[0]) - 1, 0.0);
+            _poly_param.dv_coeffs(i,derivative_id[1]) = _poly_param.v_coeffs(i,derivative_id[1]);
+
+            _poly_param.dv_coeffs(j,0) = _poly_param.v_coeffs(i,0) * _poly_param.v_coeffs(i,derivative_id[1]);
+            _poly_param.dv_coeffs(j,_poly_param.ref_plane) = _poly_param.v_coeffs(i,_poly_param.ref_plane);
+            _poly_param.dv_coeffs(j,derivative_id[0]) = _poly_param.v_coeffs(i,derivative_id[0]);
+            _poly_param.dv_coeffs(j,derivative_id[1]) = std::max(_poly_param.v_coeffs(i,derivative_id[1]) - 1, 0.0);
+        }
+    }   
 }
 
 Pt3D Camera::rmtxTorvec (Matrix<double> const& r_mtx)
@@ -652,9 +677,9 @@ Pt3D Camera::polyImgToWorld (Pt2D const& pt_img_dist, double plane_world) const
         // y = y0 + dy
         jacobian *= 0;
         jacobian_inv *= 0;
-        pt_img_temp = polyProject(pt_world);
-        du = pt_img_dist[0] - pt_img_temp[0];
-        dv = pt_img_dist[1] - pt_img_temp[1];
+        // pt_img_temp = polyProject(pt_world);
+        // du = pt_img_dist[0] - pt_img_temp[0];
+        // dv = pt_img_dist[1] - pt_img_temp[1];
 
         // calculate jacobian matrix    
         for (int i = 0; i < _poly_param.n_coeff; i ++)

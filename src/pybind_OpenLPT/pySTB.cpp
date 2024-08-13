@@ -10,6 +10,7 @@ void init_STB(py::module &m)
             return img_list_copy;
         }, py::arg("frame_id"), py::arg("img_list"), py::arg("is_update_img")=false)
         .def(py::init<const STB<Tracer3D>&>())
+        .def("loadTracks", &STB<Tracer3D>::loadTracks)
         .def("saveTracks", &STB<Tracer3D>::saveTracks)
         .def("saveTracksAll", &STB<Tracer3D>::saveTracksAll)
         .def("getObjParam", &STB<Tracer3D>::getObjParam)

@@ -31,6 +31,14 @@ void run (std::string file)
     std::string line;
     while (std::getline(stb_config, line))
     {
+        // Trim leading and trailing whitespace (optional)
+        line.erase(0, line.find_first_not_of(" \t\r\n")); // Trim leading whitespace
+        line.erase(line.find_last_not_of(" \t\r\n") + 1); // Trim trailing whitespace
+        if (line.empty())
+        {
+            continue;
+        }
+
         size_t commentpos = line.find('#');
         if (commentpos > 0)
         {
@@ -58,6 +66,11 @@ void run (std::string file)
     std::getline(parsed, line, ',');
     frame_end = std::stoi(line);
     parsed.clear();
+    if (frame_start > frame_end-1)
+    {
+        std::cerr << "Error: Invalid frame range!" << std::endl;
+        return;
+    }
     
     // Load frame rate
     line_id ++;
@@ -166,9 +179,52 @@ void run (std::string file)
     }
     parsed.clear();
 
+    // Load previous tracks
+    line_id ++;
+    int frame_id_prev = frame_start-1;
+
+    if (line_id < lines.size())
+    {
+        std::cout << lines[line_id] << std::endl;
+        bool is_load_tracks = false;
+
+        parsed.str(lines[line_id]);
+        std::getline(parsed, line, ',');
+        is_load_tracks = std::stoi(line);
+        std::getline(parsed, line, ',');
+        frame_id_prev = std::stoi(line);
+        parsed.clear();
+
+        if (is_load_tracks)
+        {
+            if (frame_id_prev < frame_start-1 || frame_id_prev > frame_end-1)
+            {
+                std::cerr << "Error: Invalid previous frame ID!" << std::endl;
+                return;
+            }
+
+            for (int i = 0; i < n_obj_class; i ++)
+            {
+                line_id ++;
+                std::visit(
+                    [&](auto& stb) 
+                    { 
+                        stb.loadTracks(lines[line_id], LONG_ACTIVE); 
+                        stb.loadTracks(lines[line_id + n_obj_class], SHORT_ACTIVE);
+                    }, 
+                    stb_list[i]
+                );
+            }
+        }
+        else 
+        {
+            frame_id_prev = frame_start-1;
+        }
+    }
+
     // Start processing
     std::vector<Image> img_list(n_cam_all);
-    for (int frame_id = frame_start; frame_id < frame_end+1; frame_id ++)
+    for (int frame_id = frame_id_prev+1; frame_id < frame_end+1; frame_id ++)
     {
         // load image
         for (int i = 0; i < n_cam_all; i ++)
