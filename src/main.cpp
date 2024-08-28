@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <variant>
+#include <time.h>
 
 #include "STBCommons.h"
 #include "ImageIO.h"
@@ -185,7 +186,7 @@ void run (std::string file)
 
     if (line_id < lines.size())
     {
-        std::cout << lines[line_id] << std::endl;
+        // std::cout << lines[line_id] << std::endl;
         bool is_load_tracks = false;
 
         parsed.str(lines[line_id]);
@@ -223,6 +224,7 @@ void run (std::string file)
     }
 
     // Start processing
+    clock_t start = clock();
     std::vector<Image> img_list(n_cam_all);
     for (int frame_id = frame_id_prev+1; frame_id < frame_end+1; frame_id ++)
     {
@@ -243,6 +245,11 @@ void run (std::string file)
             );
         }
     }
+
+    std::cout << std::endl;
+    clock_t end = clock();
+    double duration = double(end - start) / CLOCKS_PER_SEC;
+    std::cout << "Total time for STB: " << duration << "s" << std::endl;
 
     std::cout << std::endl;
     std::cout << "***************" << std::endl;

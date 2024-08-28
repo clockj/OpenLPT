@@ -642,7 +642,7 @@ void STB<T3D>::runConvPhase (int frame, std::vector<Image>& img_list, bool is_up
         s.runShake(obj3d_list_pred, _otf, img_list, false);
 
         t_end = clock();
-        std::cout << "\tShake prediction: " << (double) (t_end - t_start)/CLOCKS_PER_SEC << " s. ";
+        std::cout << " Shake prediction: " << (double) (t_end - t_start)/CLOCKS_PER_SEC << " s. ";
 
 
         // Add the corrected particle position in nextFrame to its respective track
@@ -704,7 +704,7 @@ void STB<T3D>::runConvPhase (int frame, std::vector<Image>& img_list, bool is_up
     int n_obj3d = obj3d_list.size();
     if (n_obj3d > 0)
     {
-        std::cout << "\tLinking: ";
+        std::cout << " Linking: ";
         t_start = clock();
 
         std::vector<int> link_id(n_sa, 0);
@@ -806,7 +806,7 @@ void STB<T3D>::runConvPhase (int frame, std::vector<Image>& img_list, bool is_up
 
         t_end = clock();
 
-        std::cout << "Pruning time: " << (t_start-t_end)/CLOCKS_PER_SEC << "s" << std::endl;
+        std::cout << " Pruning time: " << (t_start-t_end)/CLOCKS_PER_SEC << "s" << std::endl;
     }
 
 

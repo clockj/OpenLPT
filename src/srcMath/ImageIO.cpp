@@ -152,10 +152,10 @@ Image ImageIO::loadImg (int img_id)
 
     // initialize data array to convert buffer
     const size_t data_num_per_row = _n_channel * _tile_width0 * _tile_height0;
-    uint8*  buffer_8;
-    uint16* buffer_16;
-    uint32* buffer_32;
-    uint64* buffer_64;
+    uint8*  buffer_8 = nullptr;
+    uint16* buffer_16 = nullptr;
+    uint32* buffer_32 = nullptr;
+    uint64* buffer_64 = nullptr;
     switch (_bits_per_sample)
     {
     case 8:

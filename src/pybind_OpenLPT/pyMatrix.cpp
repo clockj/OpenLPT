@@ -36,6 +36,93 @@ Matrix<T> numpy_to_matrix(const py::array_t<T>& array)
 }
 
 
+py::array_t<double> pts_to_numpy(std::vector<Pt3D> const& pt3d_list)
+{
+    size_t n_row = pt3d_list.size();
+    size_t n_col = 3;
+    std::vector<size_t> shape = {n_row, n_col};
+    py::array_t<double> array(shape);
+    auto buf = array.request();
+    double* ptr = static_cast<double*>(buf.ptr);
+    
+    #pragma omp parallel for
+    for (int i = 0; i < n_row; i++)
+    {
+        ptr[i*n_col] = pt3d_list[i][0];
+        ptr[i*n_col+1] = pt3d_list[i][1];
+        ptr[i*n_col+2] = pt3d_list[i][2];
+    }
+
+    return array;
+}
+
+py::array_t<double> pts_to_numpy(std::vector<Pt2D> const& pt2d_list)
+{
+    size_t n_row = pt2d_list.size();
+    size_t n_col = 2;
+    std::vector<size_t> shape = {n_row, n_col};
+    py::array_t<double> array(shape);
+    auto buf = array.request();
+    double* ptr = static_cast<double*>(buf.ptr);
+
+    #pragma omp parallel for
+    for (int i = 0; i < n_row; i++)
+    {
+        ptr[i*n_col] = pt2d_list[i][0];
+        ptr[i*n_col+1] = pt2d_list[i][1];
+    }
+
+    return array;
+}
+
+
+std::vector<Pt3D> numpy_to_pt3d(py::array_t<double> const& array)
+{
+    auto buf = array.request();
+    if (buf.ndim != 2) 
+    {
+        throw std::runtime_error("NumPy array must be 2-dimensional");
+    }
+    int rows = buf.shape[0];
+    int cols = buf.shape[1];
+    if (cols != 3) 
+    {
+        throw std::runtime_error("NumPy array must have 3 columns");
+    }
+    double* ptr = static_cast<double*>(buf.ptr);
+    std::vector<Pt3D> pt3d_list(rows);
+    #pragma omp parallel for
+    for (int i = 0; i < rows; i++)
+    {
+        pt3d_list[i] = Pt3D(ptr[i*cols], ptr[i*cols+1], ptr[i*cols+2]);
+    }
+    return pt3d_list;
+}
+
+std::vector<Pt2D> numpy_to_pt2d(py::array_t<double> const& array)
+{
+    auto buf = array.request();
+    if (buf.ndim != 2) 
+    {
+        throw std::runtime_error("NumPy array must be 2-dimensional");
+    }
+    int rows = buf.shape[0];
+    int cols = buf.shape[1];
+    if (cols != 2) 
+    {
+        throw std::runtime_error("NumPy array must have 2 columns");
+    }
+    double* ptr = static_cast<double*>(buf.ptr);
+    std::vector<Pt2D> pt2d_list(rows);
+    #pragma omp parallel for
+    for (int i = 0; i < rows; i++)
+    {
+        pt2d_list[i] = Pt2D(ptr[i*cols], ptr[i*cols+1]);
+    }
+    return pt2d_list;
+}
+
+
 void init_Matrix(py::module &m) 
 {
     py::class_<Matrix<double>, std::unique_ptr<Matrix<double>>>(m, "Matrix")
@@ -167,5 +254,13 @@ void init_Matrix(py::module &m)
 
     m.def("matrix_to_numpy", &matrix_to_numpy<double>, "Convert a Matrix<double> to a NumPy array");
     m.def("numpy_to_matrix", &numpy_to_matrix<double>, "Convert a NumPy array to a Matrix<double>");
+    m.def("pts_to_numpy", [](std::vector<Pt2D> const& pt2d_list){
+        return pts_to_numpy(pt2d_list);
+    }, "Convert a list of Pt2D to a NumPy array");
+    m.def("pts_to_numpy", [](std::vector<Pt3D> const& pt3d_list){
+        return pts_to_numpy(pt3d_list);
+    }, "Convert a list of Pt3D to a NumPy array");
+    m.def("numpy_to_pt2d", &numpy_to_pt2d, "Convert a NumPy array to a list of Pt2D");
+    m.def("numpy_to_pt3d", &numpy_to_pt3d, "Convert a NumPy array to a list of Pt3D");
 }
 

@@ -21,11 +21,13 @@ StereoMatch::StereoMatch(SMParam const& param, CamList const& cam_list)
                   << std::endl;
         throw error_size;
     }
+
+    createObjIDMap();
 }
 
 void StereoMatch::clearAll()
 {
-    _objID_map_list.clear();
+    // _objID_map_list.clear();
     _error_list.clear();
     _objID_match_list.clear();
     _n_before_del = 0;
@@ -37,6 +39,9 @@ void StereoMatch::match(std::vector<T3D>& obj3d_list, std::vector<std::vector<T2
     // clear all the lists
     clearAll();
     obj3d_list.clear();
+
+    // update objID map
+    updateObjIDMap(obj2d_list);
 
     if (typeid(T3D)==typeid(Tracer3D) && typeid(T2D)==typeid(Tracer2D))
     {
@@ -95,11 +100,8 @@ void StereoMatch::saveObjIDMatchList (std::string path)
     file.close();
 }
 
-// create object ID map
-template<class T2D>
-void StereoMatch::createObjIDMap (std::vector<std::vector<T2D>> const& obj2d_list)
+void StereoMatch::createObjIDMap ()
 {
-    int row_id, col_id;
     int cam_id;
     for (int i = 0; i < _n_cam_use; i ++)
     {
@@ -111,22 +113,57 @@ void StereoMatch::createObjIDMap (std::vector<std::vector<T2D>> const& obj2d_lis
             _cam_list.cam_list[cam_id].getNCol()
         );
         
+        _objID_map_list.push_back(objID_map);
+    }
+}
+
+template<class T2D>
+void StereoMatch::updateObjIDMap (std::vector<std::vector<T2D>> const& obj2d_list)
+{
+    if (_objID_map_list.size() == 0)
+    {
+        createObjIDMap();
+    }
+    else 
+    {
+        for (int i = 0; i < _n_cam_use; i ++)
+        {
+            int cam_id = _cam_list.useid_list[i];
+            int n_row = _cam_list.cam_list[cam_id].getNRow();
+            int n_col = _cam_list.cam_list[cam_id].getNCol();
+            if (_objID_map_list[i]._n_row != n_row ||
+                _objID_map_list[i]._n_col != n_col)
+            {
+                _objID_map_list[i].config(
+                    n_row, 
+                    n_col
+                );
+            }
+            else
+            {
+                _objID_map_list[i].reset();
+            }
+        }
+    }
+
+
+    int row_id, col_id;
+    for (int i = 0; i < _n_cam_use; i ++)
+    {  
         for (int j = 0; j < obj2d_list[i].size(); j ++)
         {
             row_id = obj2d_list[i][j]._pt_center[1]; // img_y
             col_id = obj2d_list[i][j]._pt_center[0]; // img_x
 
-            if (objID_map(row_id, col_id)[0] == -1)
+            if (_objID_map_list[i](row_id, col_id)[0] == -1)
             {
-                objID_map(row_id, col_id)[0] = j;
+                _objID_map_list[i](row_id, col_id)[0] = j;
             }
             else
             {
-                objID_map(row_id, col_id).push_back(j);
+                _objID_map_list[i](row_id, col_id).push_back(j);
             }
         }
-
-        _objID_map_list.push_back(objID_map);
     }
 }
 
@@ -155,8 +192,6 @@ void StereoMatch::tracerMatch (std::vector<std::vector<Tracer2D>> const& tr2d_li
                   << std::endl;
         throw error_size;
     }
-
-    createObjIDMap (tr2d_list);
 
     if (_param.n_thread != 0)
     {
@@ -237,9 +272,11 @@ void StereoMatch::tracerMatch (std::vector<std::vector<Tracer2D>> const& tr2d_li
     }
 
     _n_before_del = _objID_match_list.size();
+    #ifdef DEBUG
     std::cout << "\tFinish stereomatching: " 
               << "n_before_del = " << _n_before_del << "."
               << std::endl;
+    #endif
 }
 
 // remove ghost tracer

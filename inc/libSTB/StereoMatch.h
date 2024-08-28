@@ -31,15 +31,15 @@
 class ObjIDMap
 {
 private:
-    int _n_row = 0;
-    int _n_col = 0;
-
     // img_id = row_id * _n_col + col_id
     // map from img_id to object ID
     // _map[img_id] = object ID list on (row_id, col_id)
     std::vector<std::vector<int>> _map; 
 
 public:
+    int _n_row = 0;
+    int _n_col = 0;
+
     ObjIDMap() {};
     ~ObjIDMap() {};
 
@@ -48,8 +48,14 @@ public:
         _n_row = n_row; 
         _n_col = n_col;
 
-        _map.reserve(_n_row * _n_col);
+        _map.clear();
+        // _map.reserve(_n_row * _n_col);
         _map.resize(_n_row * _n_col);
+        std::fill(_map.begin(), _map.end(), std::vector<int>(1,-1));
+    };
+
+    void reset ()
+    {
         std::fill(_map.begin(), _map.end(), std::vector<int>(1,-1));
     };
 
@@ -119,8 +125,11 @@ private:
     /*****************************Functions*********************************/
     // Create object ID map
     // This map facilitates the search of object on a specific image position
+    // template<class T2D>
+    // void createObjIDMap (std::vector<std::vector<T2D>> const& obj2d_list);
+    void createObjIDMap ();
     template<class T2D>
-    void createObjIDMap (std::vector<std::vector<T2D>> const& obj2d_list);
+    void updateObjIDMap (std::vector<std::vector<T2D>> const& obj2d_list);
 
     //         //
     // Tracers //
