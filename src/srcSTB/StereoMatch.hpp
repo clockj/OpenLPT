@@ -1001,6 +1001,83 @@ void StereoMatch::iterOnObjIDMap (
 }
 
 
+// PixelRange StereoMatch::findSearchRegion (int id, std::vector<Line2D> const& sight2D_list)
+// {
+//     PixelRange search_region;
+
+//     int n_row = _cam_list.cam_list[_cam_list.useid_list[id]].getNRow();
+//     int n_col = _cam_list.cam_list[_cam_list.useid_list[id]].getNCol();
+
+//     if (sight2D_list.size() == 1)
+//     {
+//         search_region.row_max = n_row;
+//         search_region.col_max = n_col;
+//         return search_region;
+//     }
+
+//     // Find all crossing points
+//     Pt2D pt_cross;
+//     Pt2D perp_unit_curr;
+//     Pt2D perp_unit_test;
+//     std::vector<Line2D> line_curr_list(2);
+//     std::vector<Line2D> line_test_list(2);
+
+//     int search_region_state = 0;
+//     for (int i = 0; i < id-1; i ++)
+//     {
+//         perp_unit_curr[0] = sight2D_list[i].unit_vector[1];
+//         perp_unit_curr[1] = - sight2D_list[i].unit_vector[0];
+
+//         for (int j = i+1; j < id; j ++)
+//         {
+//             perp_unit_test[0] = sight2D_list[j].unit_vector[1];
+//             perp_unit_test[1] = - sight2D_list[j].unit_vector[0];
+
+//             // find the bounded lines for each crossing line
+//             line_curr_list[0].pt = sight2D_list[i].pt + perp_unit_curr * _param.tor_2d;
+//             line_curr_list[0].unit_vector = sight2D_list[i].unit_vector;
+//             line_curr_list[1].pt = sight2D_list[i].pt - perp_unit_curr * _param.tor_2d;
+//             line_curr_list[1].unit_vector = sight2D_list[i].unit_vector;
+
+//             line_test_list[0].pt = sight2D_list[j].pt + perp_unit_test * _param.tor_2d;
+//             line_test_list[0].unit_vector = sight2D_list[j].unit_vector;
+//             line_test_list[1].pt = sight2D_list[j].pt - perp_unit_test * _param.tor_2d;
+//             line_test_list[1].unit_vector = sight2D_list[j].unit_vector;
+
+//             // find the crossing points
+//             for (int k = 0; k < 2; k ++)
+//             {
+//                 for (int l = 0; l < 2; l ++)
+//                 {
+//                     pt_cross = myMATH::crossPoint(line_curr_list[k], line_test_list[l]);
+
+//                     if (search_region_state == 0)
+//                     {
+//                         search_region.row_min = int(pt_cross[1]);
+//                         search_region.row_max = search_region.row_min + 1;
+//                         search_region.col_min = int(pt_cross[0]);
+//                         search_region.col_max = search_region.col_min + 1;
+
+//                         search_region_state = 1;
+//                     }
+//                     else 
+//                     {
+//                         search_region.setRange(pt_cross[1], pt_cross[0]);
+//                     }
+//                 }
+//             }
+//         }
+//     }
+
+//     search_region.row_min = std::min(std::max(search_region.row_min, 0), n_row-1);
+//     search_region.row_max = std::min(std::max(search_region.row_max, 1), n_row);
+//     search_region.col_min = std::min(std::max(search_region.col_min, 0), n_col-1);
+//     search_region.col_max = std::min(std::max(search_region.col_max, 1), n_col);
+
+//     return search_region;
+// }
+
+
 PixelRange StereoMatch::findSearchRegion (int id, std::vector<Line2D> const& sight2D_list)
 {
     PixelRange search_region;
@@ -1017,12 +1094,12 @@ PixelRange StereoMatch::findSearchRegion (int id, std::vector<Line2D> const& sig
 
     // Find all crossing points
     Pt2D pt_cross;
+    Pt2D pt_temp;
     Pt2D perp_unit_curr;
     Pt2D perp_unit_test;
-    std::vector<Line2D> line_curr_list(2);
-    std::vector<Line2D> line_test_list(2);
-
+    
     int search_region_state = 0;
+    double cos_1, cos_2, lambda_1, lambda_2;
     for (int i = 0; i < id-1; i ++)
     {
         perp_unit_curr[0] = sight2D_list[i].unit_vector[1];
@@ -1030,49 +1107,53 @@ PixelRange StereoMatch::findSearchRegion (int id, std::vector<Line2D> const& sig
 
         for (int j = i+1; j < id; j ++)
         {
+            // find the crossing point
+            pt_cross = myMATH::crossPoint(sight2D_list[i], sight2D_list[j]);
+
+            // cos
             perp_unit_test[0] = sight2D_list[j].unit_vector[1];
             perp_unit_test[1] = - sight2D_list[j].unit_vector[0];
+            cos_1 = std::fabs(myMATH::dot(sight2D_list[i].unit_vector, perp_unit_test));
+            cos_2 = std::fabs(myMATH::dot(sight2D_list[j].unit_vector, perp_unit_curr));
 
-            // find the bounded lines for each crossing line
-            line_curr_list[0].pt = sight2D_list[i].pt + perp_unit_curr * _param.tor_2d;
-            line_curr_list[0].unit_vector = sight2D_list[i].unit_vector;
-            line_curr_list[1].pt = sight2D_list[i].pt - perp_unit_curr * _param.tor_2d;
-            line_curr_list[1].unit_vector = sight2D_list[i].unit_vector;
-
-            line_test_list[0].pt = sight2D_list[j].pt + perp_unit_test * _param.tor_2d;
-            line_test_list[0].unit_vector = sight2D_list[j].unit_vector;
-            line_test_list[1].pt = sight2D_list[j].pt - perp_unit_test * _param.tor_2d;
-            line_test_list[1].unit_vector = sight2D_list[j].unit_vector;
+            // lambda
+            lambda_1 = _param.tor_2d / (cos_1 + 1e-10);
+            lambda_2 = _param.tor_2d / (cos_2 + 1e-10);
 
             // find the crossing points
             for (int k = 0; k < 2; k ++)
             {
                 for (int l = 0; l < 2; l ++)
                 {
-                    pt_cross = myMATH::crossPoint(line_curr_list[k], line_test_list[l]);
+                    pt_temp[0] = pt_cross[0] + std::pow(-1, k)*lambda_1 * sight2D_list[i].unit_vector[0] + std::pow(-1, l)*lambda_2 * sight2D_list[j].unit_vector[0];
+                    pt_temp[1] = pt_cross[1] + std::pow(-1, k)*lambda_1 * sight2D_list[i].unit_vector[1] + std::pow(-1, l)*lambda_2 * sight2D_list[j].unit_vector[1];
 
                     if (search_region_state == 0)
                     {
-                        search_region.row_min = int(pt_cross[1]);
+                        search_region.row_min = int(pt_temp[1]);
                         search_region.row_max = search_region.row_min + 1;
-                        search_region.col_min = int(pt_cross[0]);
+                        search_region.col_min = int(pt_temp[0]);
                         search_region.col_max = search_region.col_min + 1;
 
                         search_region_state = 1;
                     }
                     else 
                     {
-                        search_region.setRange(pt_cross[1], pt_cross[0]);
+                        search_region.setRange(pt_temp[1], pt_temp[0]);
                     }
                 }
             }
         }
     }
 
-    search_region.row_min = std::min(std::max(search_region.row_min, 0), n_row-1);
-    search_region.row_max = std::min(std::max(search_region.row_max, 1), n_row);
-    search_region.col_min = std::min(std::max(search_region.col_min, 0), n_col-1);
-    search_region.col_max = std::min(std::max(search_region.col_max, 1), n_col);
+    // search_region.row_min = std::min(std::max(search_region.row_min, 0), n_row-1);
+    // search_region.row_max = std::min(std::max(search_region.row_max, 1), n_row);
+    // search_region.col_min = std::min(std::max(search_region.col_min, 0), n_col-1);
+    // search_region.col_max = std::min(std::max(search_region.col_max, 1), n_col);
+    search_region.row_min = std::max(search_region.row_min, 0);
+    search_region.row_max = std::min(search_region.row_max, n_row);
+    search_region.col_min = std::max(search_region.col_min, 0);
+    search_region.col_max = std::min(search_region.col_max, n_col);
 
     return search_region;
 }
