@@ -82,10 +82,11 @@ void IPR::runIPR(
         t_start = clock();
         stereo_match.match(tr3d_list, tr2d_list_all);
         t_end = clock();
+        #ifdef DEBUG
         std::cout << "\tMatching time = " 
                   << (double) (t_end - t_start)/CLOCKS_PER_SEC
                   << " [s]" << std::endl;
-
+        #endif
 
         // Step 3: Shake
         if (tr3d_list.size() == 0)
@@ -95,10 +96,11 @@ void IPR::runIPR(
         t_start = clock();
         s.runShake(tr3d_list, otf, _imgRes_list, _param.tri_only); // 0.25 vox, 1 vox = 0.04 mm
         t_end = clock();
+        #ifdef DEBUG
         std::cout << "\tShake time = " 
                   << double(t_end-t_start)/CLOCKS_PER_SEC 
                   << " [s]" << std::endl;
-
+        #endif
 
         // Save tracer info after shaking
         for (int i = tr3d_list.size()-1; i >= 0; i --)
@@ -139,12 +141,12 @@ void IPR::runIPR(
             throw error_range;
         }
 
-        std::cout << "Start reduced camera loop!" << std::endl;
+        std::cout << " Start reduced camera loop!" << std::endl;
 
         for (int n_reduced_cur = 1; n_reduced_cur <= n_reduced; n_reduced_cur ++)
         {
             int n_rest_cur = _n_cam_all - n_reduced_cur;
-            std::cout << "Reduce: " << n_reduced_cur << " cam:" << std::endl;
+            std::cout << " Reduce: " << n_reduced_cur << " cam:" << std::endl;
 
             // Generate all possible cam_id
             std::deque<std::vector<int>> cam_id_all;
@@ -161,7 +163,7 @@ void IPR::runIPR(
     resetCamIDList ();
 
     t_tot_end = clock();
-    std::cout << "IPR Finish! " << "Find " << tr3d_list_all.size() << " particles." << " Total time = " << (double)(t_tot_end-t_tot_start)/CLOCKS_PER_SEC << " [s]" << std::endl;
+    std::cout << " IPR Finish! " << "Find " << tr3d_list_all.size() << " particles." << " Total time = " << (double)(t_tot_end-t_tot_start)/CLOCKS_PER_SEC << " [s]" << std::endl;
 }
 
 
@@ -171,33 +173,35 @@ void IPR::reducedCamLoop(std::vector<Tracer3D>& tr3d_list_all, std::vector<doubl
     // Start IPR loop
     ObjectFinder2D objfinder;
     int cam_id;
+    int n_cam_use = cam_id_all[0].size();
+    _cam_list.useid_list.resize(n_cam_use);
+
+    // Initialize stereo match parameters
+    SMParam match_param;
+    match_param.tor_2d = _param.tol_2d;
+    match_param.tor_3d = _param.tol_3d;
+    match_param.n_thread = _param.n_thread;
+    match_param.check_id = _param.check_id < n_cam_use ? _param.check_id : n_cam_use;
+    match_param.check_radius = _param.check_radius;
+    match_param.is_delete_ghost = true;
+    match_param.is_update_inner_var = false;
+    StereoMatch stereo_match(match_param, _cam_list);
+
+    // Initialize shake parameters
+    Shake s (
+        _cam_list, 
+        _param.shake_width, 
+        _param.tol_3d * 3,
+        _param.ghost_threshold, 
+        _param.n_loop_shake, 
+        _param.n_thread
+    );
+
     for (int loop = 0; loop < n_loop; loop ++)
     {
         for (int combine_id = 0; combine_id < cam_id_all.size(); combine_id ++)
         {   
             _cam_list.useid_list = cam_id_all[combine_id];
-            int n_cam_use = _cam_list.useid_list.size();
-
-            // Initialize stereo match parameters
-            SMParam match_param;
-            match_param.tor_2d = _param.tol_2d;
-            match_param.tor_3d = _param.tol_3d;
-            match_param.n_thread = _param.n_thread;
-            match_param.check_id = _param.check_id < n_cam_use ? _param.check_id : n_cam_use;
-            match_param.check_radius = _param.check_radius;
-            match_param.is_delete_ghost = true;
-            match_param.is_update_inner_var = false;
-            StereoMatch stereo_match(match_param, _cam_list);
-
-            // Initialize shake parameters
-            Shake s (
-                _cam_list, 
-                _param.shake_width, 
-                _param.tol_3d * 3,
-                _param.ghost_threshold, 
-                _param.n_loop_shake, 
-                _param.n_thread
-            ); // gradient descent
 
             // Step 1: identify 2D position from image
             std::vector<std::vector<Tracer2D>> tr2d_list_all;
@@ -240,10 +244,11 @@ void IPR::reducedCamLoop(std::vector<Tracer3D>& tr3d_list_all, std::vector<doubl
             t_start = clock();
             stereo_match.match(tr3d_list, tr2d_list_all);
             t_end = clock();
+            #ifdef DEBUG
             std::cout << "\tMatching time = " 
                     << (double) (t_end - t_start)/CLOCKS_PER_SEC
                     << " [s]" << std::endl;
-
+            #endif
 
             // Step 3: Shake
             if (tr3d_list.size() == 0)
@@ -253,10 +258,11 @@ void IPR::reducedCamLoop(std::vector<Tracer3D>& tr3d_list_all, std::vector<doubl
             t_start = clock();
             s.runShake(tr3d_list, otf, _imgRes_list, _param.tri_only); // 0.25 vox, 1 vox = 0.04 mm
             t_end = clock();
+            #ifdef DEBUG
             std::cout << "\tShake time = " 
                     << double(t_end-t_start)/CLOCKS_PER_SEC 
                     << " [s]" << std::endl;
-
+            #endif
 
             // Save tracer info after shaking
             for (int i = tr3d_list.size()-1; i >= 0; i --)
@@ -279,7 +285,7 @@ void IPR::reducedCamLoop(std::vector<Tracer3D>& tr3d_list_all, std::vector<doubl
             }
 
 
-            std::cout << "\tIPR reduced camera step " << loop << ": find " << tr3d_list_all.size() << " particles. " << std::endl;
+            std::cout << " IPR reduced camera step " << loop << ": find " << tr3d_list_all.size() << " particles. " << std::endl;
 
         }
     }

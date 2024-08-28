@@ -933,6 +933,7 @@ void Shake::findGhost(std::vector<Tracer3D>& tr3d_list)
     int n_tr3d = tr3d_list.size();
 
     // find particles that are close to each other
+    // _is_repeated.resize(n_tr3d, 0);
     checkReaptedObj(tr3d_list, _tol_3d);
 
     // remove outliers
@@ -977,7 +978,9 @@ void Shake::findGhost(std::vector<Tracer3D>& tr3d_list)
         }
     }
 
+    #ifdef DEBUG
     std::cout << "\tShake::findGhost: find " << _n_ghost << " ghost tracers, including " << _n_repeated << " repeated tracers." << std::endl;
+    #endif
 }
 
 

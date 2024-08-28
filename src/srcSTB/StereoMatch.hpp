@@ -21,11 +21,13 @@ StereoMatch::StereoMatch(SMParam const& param, CamList const& cam_list)
                   << std::endl;
         throw error_size;
     }
+
+    createObjIDMap();
 }
 
 void StereoMatch::clearAll()
 {
-    _objID_map_list.clear();
+    // _objID_map_list.clear();
     _error_list.clear();
     _objID_match_list.clear();
     _n_before_del = 0;
@@ -37,6 +39,9 @@ void StereoMatch::match(std::vector<T3D>& obj3d_list, std::vector<std::vector<T2
     // clear all the lists
     clearAll();
     obj3d_list.clear();
+
+    // update objID map
+    updateObjIDMap(obj2d_list);
 
     if (typeid(T3D)==typeid(Tracer3D) && typeid(T2D)==typeid(Tracer2D))
     {
@@ -95,11 +100,8 @@ void StereoMatch::saveObjIDMatchList (std::string path)
     file.close();
 }
 
-// create object ID map
-template<class T2D>
-void StereoMatch::createObjIDMap (std::vector<std::vector<T2D>> const& obj2d_list)
+void StereoMatch::createObjIDMap ()
 {
-    int row_id, col_id;
     int cam_id;
     for (int i = 0; i < _n_cam_use; i ++)
     {
@@ -111,22 +113,57 @@ void StereoMatch::createObjIDMap (std::vector<std::vector<T2D>> const& obj2d_lis
             _cam_list.cam_list[cam_id].getNCol()
         );
         
+        _objID_map_list.push_back(objID_map);
+    }
+}
+
+template<class T2D>
+void StereoMatch::updateObjIDMap (std::vector<std::vector<T2D>> const& obj2d_list)
+{
+    if (_objID_map_list.size() == 0)
+    {
+        createObjIDMap();
+    }
+    else 
+    {
+        for (int i = 0; i < _n_cam_use; i ++)
+        {
+            int cam_id = _cam_list.useid_list[i];
+            int n_row = _cam_list.cam_list[cam_id].getNRow();
+            int n_col = _cam_list.cam_list[cam_id].getNCol();
+            if (_objID_map_list[i]._n_row != n_row ||
+                _objID_map_list[i]._n_col != n_col)
+            {
+                _objID_map_list[i].config(
+                    n_row, 
+                    n_col
+                );
+            }
+            else
+            {
+                _objID_map_list[i].reset();
+            }
+        }
+    }
+
+
+    int row_id, col_id;
+    for (int i = 0; i < _n_cam_use; i ++)
+    {  
         for (int j = 0; j < obj2d_list[i].size(); j ++)
         {
             row_id = obj2d_list[i][j]._pt_center[1]; // img_y
             col_id = obj2d_list[i][j]._pt_center[0]; // img_x
 
-            if (objID_map(row_id, col_id)[0] == -1)
+            if (_objID_map_list[i](row_id, col_id)[0] == -1)
             {
-                objID_map(row_id, col_id)[0] = j;
+                _objID_map_list[i](row_id, col_id)[0] = j;
             }
             else
             {
-                objID_map(row_id, col_id).push_back(j);
+                _objID_map_list[i](row_id, col_id).push_back(j);
             }
         }
-
-        _objID_map_list.push_back(objID_map);
     }
 }
 
@@ -155,8 +192,6 @@ void StereoMatch::tracerMatch (std::vector<std::vector<Tracer2D>> const& tr2d_li
                   << std::endl;
         throw error_size;
     }
-
-    createObjIDMap (tr2d_list);
 
     if (_param.n_thread != 0)
     {
@@ -237,9 +272,11 @@ void StereoMatch::tracerMatch (std::vector<std::vector<Tracer2D>> const& tr2d_li
     }
 
     _n_before_del = _objID_match_list.size();
+    #ifdef DEBUG
     std::cout << "\tFinish stereomatching: " 
               << "n_before_del = " << _n_before_del << "."
               << std::endl;
+    #endif
 }
 
 // remove ghost tracer
@@ -964,6 +1001,83 @@ void StereoMatch::iterOnObjIDMap (
 }
 
 
+// PixelRange StereoMatch::findSearchRegion (int id, std::vector<Line2D> const& sight2D_list)
+// {
+//     PixelRange search_region;
+
+//     int n_row = _cam_list.cam_list[_cam_list.useid_list[id]].getNRow();
+//     int n_col = _cam_list.cam_list[_cam_list.useid_list[id]].getNCol();
+
+//     if (sight2D_list.size() == 1)
+//     {
+//         search_region.row_max = n_row;
+//         search_region.col_max = n_col;
+//         return search_region;
+//     }
+
+//     // Find all crossing points
+//     Pt2D pt_cross;
+//     Pt2D perp_unit_curr;
+//     Pt2D perp_unit_test;
+//     std::vector<Line2D> line_curr_list(2);
+//     std::vector<Line2D> line_test_list(2);
+
+//     int search_region_state = 0;
+//     for (int i = 0; i < id-1; i ++)
+//     {
+//         perp_unit_curr[0] = sight2D_list[i].unit_vector[1];
+//         perp_unit_curr[1] = - sight2D_list[i].unit_vector[0];
+
+//         for (int j = i+1; j < id; j ++)
+//         {
+//             perp_unit_test[0] = sight2D_list[j].unit_vector[1];
+//             perp_unit_test[1] = - sight2D_list[j].unit_vector[0];
+
+//             // find the bounded lines for each crossing line
+//             line_curr_list[0].pt = sight2D_list[i].pt + perp_unit_curr * _param.tor_2d;
+//             line_curr_list[0].unit_vector = sight2D_list[i].unit_vector;
+//             line_curr_list[1].pt = sight2D_list[i].pt - perp_unit_curr * _param.tor_2d;
+//             line_curr_list[1].unit_vector = sight2D_list[i].unit_vector;
+
+//             line_test_list[0].pt = sight2D_list[j].pt + perp_unit_test * _param.tor_2d;
+//             line_test_list[0].unit_vector = sight2D_list[j].unit_vector;
+//             line_test_list[1].pt = sight2D_list[j].pt - perp_unit_test * _param.tor_2d;
+//             line_test_list[1].unit_vector = sight2D_list[j].unit_vector;
+
+//             // find the crossing points
+//             for (int k = 0; k < 2; k ++)
+//             {
+//                 for (int l = 0; l < 2; l ++)
+//                 {
+//                     pt_cross = myMATH::crossPoint(line_curr_list[k], line_test_list[l]);
+
+//                     if (search_region_state == 0)
+//                     {
+//                         search_region.row_min = int(pt_cross[1]);
+//                         search_region.row_max = search_region.row_min + 1;
+//                         search_region.col_min = int(pt_cross[0]);
+//                         search_region.col_max = search_region.col_min + 1;
+
+//                         search_region_state = 1;
+//                     }
+//                     else 
+//                     {
+//                         search_region.setRange(pt_cross[1], pt_cross[0]);
+//                     }
+//                 }
+//             }
+//         }
+//     }
+
+//     search_region.row_min = std::min(std::max(search_region.row_min, 0), n_row-1);
+//     search_region.row_max = std::min(std::max(search_region.row_max, 1), n_row);
+//     search_region.col_min = std::min(std::max(search_region.col_min, 0), n_col-1);
+//     search_region.col_max = std::min(std::max(search_region.col_max, 1), n_col);
+
+//     return search_region;
+// }
+
+
 PixelRange StereoMatch::findSearchRegion (int id, std::vector<Line2D> const& sight2D_list)
 {
     PixelRange search_region;
@@ -980,12 +1094,12 @@ PixelRange StereoMatch::findSearchRegion (int id, std::vector<Line2D> const& sig
 
     // Find all crossing points
     Pt2D pt_cross;
+    Pt2D pt_temp;
     Pt2D perp_unit_curr;
     Pt2D perp_unit_test;
-    std::vector<Line2D> line_curr_list(2);
-    std::vector<Line2D> line_test_list(2);
-
+    
     int search_region_state = 0;
+    double cos_1, cos_2, lambda_1, lambda_2;
     for (int i = 0; i < id-1; i ++)
     {
         perp_unit_curr[0] = sight2D_list[i].unit_vector[1];
@@ -993,49 +1107,53 @@ PixelRange StereoMatch::findSearchRegion (int id, std::vector<Line2D> const& sig
 
         for (int j = i+1; j < id; j ++)
         {
+            // find the crossing point
+            pt_cross = myMATH::crossPoint(sight2D_list[i], sight2D_list[j]);
+
+            // cos
             perp_unit_test[0] = sight2D_list[j].unit_vector[1];
             perp_unit_test[1] = - sight2D_list[j].unit_vector[0];
+            cos_1 = std::fabs(myMATH::dot(sight2D_list[i].unit_vector, perp_unit_test));
+            cos_2 = std::fabs(myMATH::dot(sight2D_list[j].unit_vector, perp_unit_curr));
 
-            // find the bounded lines for each crossing line
-            line_curr_list[0].pt = sight2D_list[i].pt + perp_unit_curr * _param.tor_2d;
-            line_curr_list[0].unit_vector = sight2D_list[i].unit_vector;
-            line_curr_list[1].pt = sight2D_list[i].pt - perp_unit_curr * _param.tor_2d;
-            line_curr_list[1].unit_vector = sight2D_list[i].unit_vector;
-
-            line_test_list[0].pt = sight2D_list[j].pt + perp_unit_test * _param.tor_2d;
-            line_test_list[0].unit_vector = sight2D_list[j].unit_vector;
-            line_test_list[1].pt = sight2D_list[j].pt - perp_unit_test * _param.tor_2d;
-            line_test_list[1].unit_vector = sight2D_list[j].unit_vector;
+            // lambda
+            lambda_1 = _param.tor_2d / (cos_1 + 1e-10);
+            lambda_2 = _param.tor_2d / (cos_2 + 1e-10);
 
             // find the crossing points
             for (int k = 0; k < 2; k ++)
             {
                 for (int l = 0; l < 2; l ++)
                 {
-                    pt_cross = myMATH::crossPoint(line_curr_list[k], line_test_list[l]);
+                    pt_temp[0] = pt_cross[0] + std::pow(-1, k)*lambda_1 * sight2D_list[i].unit_vector[0] + std::pow(-1, l)*lambda_2 * sight2D_list[j].unit_vector[0];
+                    pt_temp[1] = pt_cross[1] + std::pow(-1, k)*lambda_1 * sight2D_list[i].unit_vector[1] + std::pow(-1, l)*lambda_2 * sight2D_list[j].unit_vector[1];
 
                     if (search_region_state == 0)
                     {
-                        search_region.row_min = int(pt_cross[1]);
+                        search_region.row_min = int(pt_temp[1]);
                         search_region.row_max = search_region.row_min + 1;
-                        search_region.col_min = int(pt_cross[0]);
+                        search_region.col_min = int(pt_temp[0]);
                         search_region.col_max = search_region.col_min + 1;
 
                         search_region_state = 1;
                     }
                     else 
                     {
-                        search_region.setRange(pt_cross[1], pt_cross[0]);
+                        search_region.setRange(pt_temp[1], pt_temp[0]);
                     }
                 }
             }
         }
     }
 
-    search_region.row_min = std::min(std::max(search_region.row_min, 0), n_row-1);
-    search_region.row_max = std::min(std::max(search_region.row_max, 1), n_row);
-    search_region.col_min = std::min(std::max(search_region.col_min, 0), n_col-1);
-    search_region.col_max = std::min(std::max(search_region.col_max, 1), n_col);
+    // search_region.row_min = std::min(std::max(search_region.row_min, 0), n_row-1);
+    // search_region.row_max = std::min(std::max(search_region.row_max, 1), n_row);
+    // search_region.col_min = std::min(std::max(search_region.col_min, 0), n_col-1);
+    // search_region.col_max = std::min(std::max(search_region.col_max, 1), n_col);
+    search_region.row_min = std::max(search_region.row_min, 0);
+    search_region.row_max = std::min(search_region.row_max, n_row);
+    search_region.col_min = std::max(search_region.col_min, 0);
+    search_region.col_max = std::min(search_region.col_max, n_col);
 
     return search_region;
 }
