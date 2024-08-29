@@ -8,7 +8,7 @@ add_subdirectory("${CMAKE_HOME_DIRECTORY}/inc/libtiff")
 target_link_libraries(bindImageIO PUBLIC tiff)
 # target_link_libraries(bindImageIO PUBLIC bindMatrix tiff)
 
-add_library(bindmyMath STATIC ${CMAKE_SOURCE_DIR}/src/srcMath/myMath.cpp)
+add_library(bindmyMath STATIC ${CMAKE_SOURCE_DIR}/src/srcMath/myMATH.cpp)
 # target_link_libraries(bindmyMath PUBLIC bindMatrix)
 
 add_library(bindCamera STATIC ${CMAKE_SOURCE_DIR}/src/srcMath/Camera.cpp)

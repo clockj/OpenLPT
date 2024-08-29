@@ -40,7 +40,9 @@ class CMakeBuild(build_ext):
                 cmake_args += ['-A', 'x64']
             build_args += ['--', '/m']
         else:
+            cmake_args += ['-DPYOPENLPT=True']
             cmake_args += ['-DCMAKE_BUILD_TYPE=' + cfg]
+            cmake_args += ['-DCMAKE_POSITION_INDEPENDENT_CODE=ON']
             build_args += ['--', '-j2']
 
         env = os.environ.copy()
