@@ -34,7 +34,8 @@ lpt.run(config_file)
 1. [CMake](https://cmake.org/)
 2. [Anaconda](https://www.anaconda.com/) or
 [Miniconda](https://docs.anaconda.com/miniconda/)
-3. [Visual Studio](https://visualstudio.microsoft.com/). **Note: install the c++ development tools**
+3. (Windows users) [Visual Studio](https://visualstudio.microsoft.com/). **Note: install the c++ development tools**
+4. (Linux users) [gcc](https://gcc.gnu.org/).
 
 
 ### Install OpenLPT
@@ -52,7 +53,7 @@ Download the source code from github and install it
 ```bash
 git clone https://github.com/clockj/OpenLPT.git
 cd OpenLPT
-conda activate OpenLPTGUI
+conda activate OpenLPT
 pip install .
 conda deactivate
 ```
