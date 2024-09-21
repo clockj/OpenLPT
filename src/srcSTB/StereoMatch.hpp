@@ -724,6 +724,7 @@ void StereoMatch::findTracerMatch (
     Line3D sight3D;
     Pt2D pt2d_1;
     Pt2D pt2d_2;
+    bool is_parallel;
     Pt2D unit2d;
     for (int i = 0; i < id; i ++)
     {       
@@ -787,8 +788,18 @@ void StereoMatch::findTracerMatch (
                 sight2D_axis.pt[1] = y_pixel;
 
                 // Get x_pixel (col id) from two lines 
-                pt2d_1 = myMATH::crossPoint(sight2D_axis, sight2D_plus);
-                pt2d_2 = myMATH::crossPoint(sight2D_axis, sight2D_minus);
+                // quit if the two lines are parallel
+                is_parallel = myMATH::crossPoint(pt2d_1, sight2D_axis, sight2D_plus);
+                if (is_parallel)
+                {
+                    return;
+                }
+                is_parallel = myMATH::crossPoint(pt2d_2, sight2D_axis, sight2D_minus);
+                if (is_parallel)
+                {
+                    return;
+                }
+
                 x_pixel_1 = pt2d_1[0];
                 x_pixel_2 = pt2d_2[0];
                 if (x_pixel_1 > x_pixel_2)
@@ -834,8 +845,18 @@ void StereoMatch::findTracerMatch (
                 sight2D_axis.pt[1] = 0;
 
                 // Get y_pixel (row id) from two lines 
-                pt2d_1 = myMATH::crossPoint(sight2D_axis, sight2D_plus);
-                pt2d_2 = myMATH::crossPoint(sight2D_axis, sight2D_minus);
+                // quit if the two lines are parallel
+                is_parallel = myMATH::crossPoint(pt2d_1, sight2D_axis, sight2D_plus);
+                if (is_parallel)
+                {
+                    return;
+                }
+                is_parallel = myMATH::crossPoint(pt2d_2, sight2D_axis, sight2D_minus);
+                if (is_parallel)
+                {
+                    return;
+                }
+
                 y_pixel_1 = pt2d_1[1];
                 y_pixel_2 = pt2d_2[1];
                 if (y_pixel_1 > y_pixel_2)
@@ -876,9 +897,14 @@ void StereoMatch::findTracerMatch (
     else
     {
         // find search region
-        PixelRange search_region = findSearchRegion(id, sight2D_list);
+        std::pair<PixelRange, bool> search_output = findSearchRegion(id, sight2D_list);
+        if (!search_output.second)
+        {
+            return;
+        }
 
         // iterate every pixel in the search region
+        PixelRange search_region = search_output.first;
         for (int i = search_region.row_min; i < search_region.row_max; i ++)
         {
             for (int j = search_region.col_min; j < search_region.col_max; j ++)
@@ -1078,7 +1104,10 @@ void StereoMatch::iterOnObjIDMap (
 // }
 
 
-PixelRange StereoMatch::findSearchRegion (int id, std::vector<Line2D> const& sight2D_list)
+// output: search_region, is_correct
+//  is_correct: true => do not have parallel lines
+//              false => have parallel lines
+std::pair<PixelRange, bool> StereoMatch::findSearchRegion (int id, std::vector<Line2D> const& sight2D_list)
 {
     PixelRange search_region;
 
@@ -1089,11 +1118,12 @@ PixelRange StereoMatch::findSearchRegion (int id, std::vector<Line2D> const& sig
     {
         search_region.row_max = n_row;
         search_region.col_max = n_col;
-        return search_region;
+        return std::pair(search_region, true);
     }
 
     // Find all crossing points
     Pt2D pt_cross;
+    bool is_parallel;
     Pt2D pt_temp;
     Pt2D perp_unit_curr;
     Pt2D perp_unit_test;
@@ -1108,7 +1138,11 @@ PixelRange StereoMatch::findSearchRegion (int id, std::vector<Line2D> const& sig
         for (int j = i+1; j < id; j ++)
         {
             // find the crossing point
-            pt_cross = myMATH::crossPoint(sight2D_list[i], sight2D_list[j]);
+            is_parallel = myMATH::crossPoint(pt_cross, sight2D_list[i], sight2D_list[j]);
+            if (is_parallel)
+            {
+                return std::pair(search_region, false);
+            }
 
             // cos
             perp_unit_test[0] = sight2D_list[j].unit_vector[1];
@@ -1155,7 +1189,7 @@ PixelRange StereoMatch::findSearchRegion (int id, std::vector<Line2D> const& sig
     search_region.col_min = std::max(search_region.col_min, 0);
     search_region.col_max = std::min(search_region.col_max, n_col);
 
-    return search_region;
+    return std::pair(search_region, true);
 }
 
 

@@ -50,7 +50,7 @@ struct PixelRange
         {
             row_min = row;
         }
-    }; // TODO: we can add a choice to increase search area
+    }; 
 
     // Note: before using SetRowRange or SetColRange
     //       make sure it has been initialized!!!
@@ -64,7 +64,7 @@ struct PixelRange
         {
             col_min = col;
         }
-    }; // TODO: we can add a choice to increase search area
+    }; 
 
     // Note: before using SetRowRange or SetColRange
     //       make sure it has been initialized!!!

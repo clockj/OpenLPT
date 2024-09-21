@@ -151,7 +151,7 @@ void triangulation (Pt3D& pt_world, double& error,
 
 
 // Find cross points of two 2d lines
-Pt2D crossPoint (Line2D const& line1, Line2D const& line2);
+bool crossPoint (Pt2D& pt2d, Line2D const& line1, Line2D const& line2);
 
 
 // Create identity matrix 
