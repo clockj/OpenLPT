@@ -299,24 +299,36 @@ void triangulation(Pt3D& pt_world, double& error,
 }
 
 // Find the cross points of two 2d lines
-Pt2D crossPoint (Line2D const& line1, Line2D const& line2)
+bool crossPoint (Pt2D& pt2d, Line2D const& line1, Line2D const& line2)
 {
     double den = line1.unit_vector[0] * line2.unit_vector[1] - line1.unit_vector[1] * line2.unit_vector[0];
-    if (std::fabs(den) < SMALLNUMBER)
+    
+    // if (std::fabs(den) < SMALLNUMBER)
+    // {
+    //     std::cerr << "myMATH::crossPoint: "
+    //               << "The two lines are parallel!"
+    //               << std::endl;
+    //     throw error_range;
+    // }
+    bool is_parallel = false;
+    if (std::fabs(den) < 1e-10)
     {
-        std::cerr << "myMATH::crossPoint: "
+        std::cout << "myMATH::crossPoint warning:"
                   << "The two lines are parallel!"
                   << std::endl;
-        throw error_range;
+        is_parallel = true;
+        pt2d[0] = 0;
+        pt2d[1] = 0;
+        return is_parallel;
     }
 
     double num = line2.unit_vector[1] * (line2.pt[0] - line1.pt[0]) - line2.unit_vector[0] * (line2.pt[1] - line1.pt[1]);
+    double factor = num / den;
 
-    Pt2D res(line1.unit_vector);
-    res *= num / den;
-    res += line1.pt;
+    pt2d[0] = (line1.unit_vector[0]) * factor + line1.pt[0];
+    pt2d[1] = (line1.unit_vector[1]) * factor + line1.pt[1];
 
-    return res;
+    return is_parallel;
 }
 
 // Polynomial fit

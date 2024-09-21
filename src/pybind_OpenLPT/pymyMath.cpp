@@ -82,7 +82,12 @@ void init_myMath(py::module& m)
         return std::make_pair(pt_world_list, error_list);
     }, "Triangulate 3D points from all lists of 3D lines of sight");
 
-    m.def("crossPoint", &myMATH::crossPoint, "Find the cross point of two 2D lines");
+    // m.def("crossPoint", &myMATH::crossPoint, "Find the cross point of two 2D lines");
+    m.def("crossPoint", [](Line2D const& line1, Line2D const& line2){
+        Pt2D pt2d;
+        bool is_parallel = myMATH::crossPoint(pt2d, line1, line2);
+        return std::make_pair(pt2d, is_parallel);
+    }, "Find the cross point of two 2D lines");
 
     m.def("eye", &myMATH::eye<double>, "Create an identity Matrix<double>");
 

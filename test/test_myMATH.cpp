@@ -530,7 +530,9 @@ bool test_function_16 ()
     line2.pt = pt3;
     line2.unit_vector = myMATH::createUnitVector (pt3, pt4);
 
-    Pt2D cross_point = myMATH::crossPoint (line1, line2);
+    Pt2D cross_point;
+    bool is_parallel = myMATH::crossPoint (cross_point, line1, line2);
+    std::cout << "is_parallel: " << is_parallel << std::endl;
 
     if (cross_point != Pt2D(1,2))
     {

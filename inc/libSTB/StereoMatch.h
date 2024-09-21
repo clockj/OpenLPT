@@ -154,7 +154,10 @@ private:
         std::vector<std::vector<Tracer2D>> const& tr2d_list
     );
 
-    PixelRange findSearchRegion (int id, std::vector<Line2D> const& sight2D_list);
+    // find search region for tracer
+    // output: PixelRange, is_correct
+    //  if is_correct = true, the search region is valid (no parallel lines, able to find cross points)
+    std::pair<PixelRange, bool> findSearchRegion (int id, std::vector<Line2D> const& sight2D_list);
 
     void iterOnObjIDMap (
         int id, 
