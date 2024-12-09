@@ -60,16 +60,51 @@ void init_Camera(py::module &m)
             );
         })
         .doc() = "PolyParam struct";
+    
+    py::class_<PinPlateParam, PinholeParam>(m, "PinPlateParam")
+        .def(py::init<>())
+        .def_readwrite("plane", &PinPlateParam::plane)
+        .def_readwrite("pt3d_closest", &PinPlateParam::pt3d_closest)
+        .def_readwrite("refract_array", &PinPlateParam::refract_array)
+        .def_readwrite("w_array", &PinPlateParam::w_array)
+        .def_readwrite("n_plate", &PinPlateParam::n_plate)
+        .def_readwrite("proj_tol2", &PinPlateParam::proj_tol2)
+        .def_readwrite("proj_nmax", &PinPlateParam::proj_nmax)
+        .def_readwrite("lr", &PinPlateParam::lr)
+        .def("to_dict", [](PinPlateParam const& self){
+            return py::dict(
+                "n_row"_a=self.n_row, 
+                "n_col"_a=self.n_col, 
+                "cam_mtx"_a=self.cam_mtx, 
+                "is_distorted"_a=self.is_distorted, 
+                "n_dist_coeff"_a=self.n_dist_coeff, 
+                "dist_coeff"_a=self.dist_coeff, 
+                "r_mtx"_a=self.r_mtx, 
+                "t_vec"_a=self.t_vec, 
+                "r_mtx_inv"_a=self.r_mtx_inv, 
+                "t_vec_inv"_a=self.t_vec_inv, 
+                "plane"_a=self.plane,  
+                "refract_array"_a=self.refract_array, 
+                "w_array"_a=self.w_array, 
+                "n_plate"_a=self.n_plate, 
+                "proj_tol2"_a=self.proj_tol2, 
+                "proj_nmax"_a=self.proj_nmax,
+                "lr"_a=self.lr
+            );
+        })
+        .doc() = "PinPlateParam struct";
 
     py::enum_<CameraType>(m, "CameraType")
         .value("PINHOLE", CameraType::PINHOLE)
         .value("POLYNOMIAL", CameraType::POLYNOMIAL)
+        .value("PINPLATE", CameraType::PINPLATE)
         .export_values();
 
     py::class_<Camera>(m, "Camera")
         .def_readwrite("_type", &Camera::_type)
         .def_readwrite("_pinhole_param", &Camera::_pinhole_param)
         .def_readwrite("_poly_param", &Camera::_poly_param)
+        .def_readwrite("_pinplate_param", &Camera::_pinplate_param)
         .def(py::init<>())
         .def(py::init<const Camera&>())
         .def(py::init<std::string>())
@@ -81,7 +116,9 @@ void init_Camera(py::module &m)
         .def("rmtxTorvec", &Camera::rmtxTorvec)
         .def("getNRow", &Camera::getNRow)
         .def("getNCol", &Camera::getNCol)
-        .def("project", &Camera::project)
+        .def("project", [](Camera const& self, Pt3D const& pt3d, bool is_print_detail){
+            return self.project(pt3d, is_print_detail);
+        }, py::arg("pt3d"), py::arg("is_print_detail")=false)
         .def("project", [](Camera const& self, std::vector<Pt3D> const& pt3d_list){
             std::vector<Pt2D> pt2d_list(pt3d_list.size());
             #pragma omp parallel for
@@ -92,6 +129,7 @@ void init_Camera(py::module &m)
             return pt2d_list;
         })
         .def("worldToUndistImg", &Camera::worldToUndistImg)
+        .def("refractPlate", &Camera::refractPlate)
         .def("distort", &Camera::distort)
         .def("polyProject", &Camera::polyProject)
         .def("lineOfSight", &Camera::lineOfSight)
@@ -108,11 +146,13 @@ void init_Camera(py::module &m)
         .def("pinholeLine", &Camera::pinholeLine)
         .def("polyImgToWorld", &Camera::polyImgToWorld)
         .def("polyLineOfSight", &Camera::polyLineOfSight)
+        .def("pinplateLine", &Camera::pinplateLine)
         .def("to_dict", [](Camera const& self){
             return py::dict(
                 "_type"_a=self._type, 
                 "_pinhole_param"_a=self._pinhole_param, 
-                "_poly_param"_a=self._poly_param
+                "_poly_param"_a=self._poly_param,
+                "_pinplate_param"_a=self._pinplate_param
             );
         })
         .doc() = "Camera class";

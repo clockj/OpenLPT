@@ -153,6 +153,8 @@ void triangulation (Pt3D& pt_world, double& error,
 // Find cross points of two 2d lines
 bool crossPoint (Pt2D& pt2d, Line2D const& line1, Line2D const& line2);
 
+// Find cross points of 3d line and 3d plane
+bool crossPoint (Pt3D& pt3d, Line3D const& line, Plane3D const& plane);
 
 // Create identity matrix 
 template<class T>

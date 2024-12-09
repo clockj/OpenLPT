@@ -3,6 +3,7 @@
 #include <pybind11/stl.h>
 #include <iostream>
 #include <string>
+#include <tuple>
 #include <sstream>
 #include <fstream>
 

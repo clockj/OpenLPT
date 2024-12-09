@@ -89,6 +89,12 @@ void init_myMath(py::module& m)
         return std::make_pair(pt2d, is_parallel);
     }, "Find the cross point of two 2D lines");
 
+    m.def("crossPoint", [](Line3D const& line, Plane3D const& plane){
+        Pt3D pt3d;
+        bool is_parallel = myMATH::crossPoint(pt3d, line, plane);
+        return std::make_pair(pt3d, is_parallel);
+    }, "Find the cross point of a 3D line and a 3D plane");
+
     m.def("eye", &myMATH::eye<double>, "Create an identity Matrix<double>");
 
     m.def("piecewiseProduct", &myMATH::piecewiseProduct<double>, "Piecewise product for two Matrix<double>");

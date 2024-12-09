@@ -76,7 +76,7 @@ bool test_function_2 ()
     for (int i = 0; i < 5; i ++)
     {
         c.loadParameters("../test/inputs/test_Camera/cam"+std::to_string(i+1)+".txt");
-        Pt2D pt_undist = c.worldToUndistImg(pt_world);
+        Pt2D pt_undist = c.worldToUndistImg(pt_world, c._pinhole_param);
         Pt2D pt_solution(is);
         
         if (pt_undist != pt_solution)
@@ -92,8 +92,8 @@ bool test_function_2 ()
     for (int i = 0; i < 5; i ++)
     {
         c.loadParameters("../test/inputs/test_Camera/cam"+std::to_string(i+1)+".txt");
-        Pt2D pt_undist = c.worldToUndistImg(pt_world);
-        Pt2D pt_dist = c.distort(pt_undist);
+        Pt2D pt_undist = c.worldToUndistImg(pt_world, c._pinhole_param);
+        Pt2D pt_dist = c.distort(pt_undist, c._pinhole_param);
         Pt2D pt_solution(is);
         
         // tolerance set to be 1e-3
@@ -148,7 +148,7 @@ bool test_function_3 ()
     for (int i = 0; i < 5; i ++)
     {
         c.loadParameters("../test/inputs/test_Camera/cam"+std::to_string(i+1)+".txt");
-        Pt2D pt_undist = c.undistort(pt_dist);
+        Pt2D pt_undist = c.undistort(pt_dist, c._pinhole_param);
         Pt2D pt_sol(is);
         
         // tolerance set to be 1e-5
@@ -166,7 +166,7 @@ bool test_function_3 ()
     for (int i = 0; i < 5; i ++)
     {
         c.loadParameters("../test/inputs/test_Camera/cam"+std::to_string(i+1)+".txt");
-        Line3D line = c.pinholeLine(c.undistort(pt_dist));
+        Line3D line = c.pinholeLine(c.undistort(pt_dist, c._pinhole_param));
         
         Pt3D pt_ref(is);
         Pt3D unit_vec(is);
@@ -367,6 +367,24 @@ bool test_function_6 ()
 }
 
 
+// PinRefract model
+bool test_function_7 ()
+{
+    Pt3D pt_world(10, 10, 10);
+    Camera c("../test/inputs/test_Camera/cam1_refract.txt");
+
+    std::tuple<bool, Pt3D, double> result = c.refractPlate(pt_world);
+
+    Pt2D pt_img = c.project(pt_world, true);
+
+    Line3D line = c.lineOfSight(pt_img);
+    double dist = myMATH::dist(pt_world, line);
+    std::cout << "dist = " << dist << std::endl;
+
+    return true;
+}
+
+
 int main()
 {
     fs::create_directories("../test/results/test_Camera/");
@@ -378,6 +396,8 @@ int main()
     IS_TRUE(test_function_4());
     IS_TRUE(test_function_5());
     IS_TRUE(test_function_6());
+
+    IS_TRUE(test_function_7());
 
     return 0;
 }

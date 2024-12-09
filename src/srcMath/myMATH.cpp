@@ -185,11 +185,16 @@ double dist2 (Pt3D const& pt, Line3D const& line)
 {
     Pt3D diff = pt - line.pt;
 
-    double dist_proj = dot(diff, line.unit_vector);
-    double dist = dot(diff, diff) - dist_proj * dist_proj;
+    // double dist_proj = dot(diff, line.unit_vector);
+    // double distance = dot(diff, diff) - std::pow(dist_proj, 2);
+    // distance = std::max(distance, 0.0);
+
+    double x = diff[1]*line.unit_vector[2] - diff[2]*line.unit_vector[1];
+    double y = diff[2]*line.unit_vector[0] - diff[0]*line.unit_vector[2];
+    double z = diff[0]*line.unit_vector[1] - diff[1]*line.unit_vector[0];
+    double distance = x*x + y*y + z*z;
     
-    dist = std::max(dist, 0.0);
-    return dist;
+    return distance;
 }
 
 // Calculate the distance between point and line
@@ -197,11 +202,14 @@ double dist2 (Pt2D const& pt, Line2D const& line)
 {
     Pt2D diff = pt - line.pt;
 
-    double dist_proj = dot(diff, line.unit_vector);
-    double dist = dot(diff, diff) - std::pow(dist_proj, 2);
-    
-    dist = std::max(dist, 0.0);
-    return dist;
+    // double dist_proj = dot(diff, line.unit_vector);
+    // double distance = dot(diff, diff) - std::pow(dist_proj, 2);
+    // distance = std::max(distance, 0.0);
+
+    double z = diff[1]*line.unit_vector[0] - diff[0]*line.unit_vector[1];
+    double distance = z*z;
+
+    return distance;
 }
 
 // Calculate the distance between two points
@@ -327,6 +335,41 @@ bool crossPoint (Pt2D& pt2d, Line2D const& line1, Line2D const& line2)
 
     pt2d[0] = (line1.unit_vector[0]) * factor + line1.pt[0];
     pt2d[1] = (line1.unit_vector[1]) * factor + line1.pt[1];
+
+    return is_parallel;
+}
+
+// Find the cross points of 3d line and 3d plane
+bool crossPoint (Pt3D& pt3d, Line3D const& line, Plane3D const& plane)
+{
+    double den = myMATH::dot(line.unit_vector, plane.norm_vector);
+    
+    bool is_parallel = false;
+    if (std::fabs(den) < 1e-10)
+    {
+        std::cout << "myMATH::crossPoint warning:"
+                  << "The two lines are parallel!"
+                  << std::endl;
+        is_parallel = true;
+        for (int i = 0; i < 3; i ++)
+        {
+            pt3d[i] = 0;
+        }
+        return is_parallel;
+    }
+
+    for (int i = 0; i < 3; i ++)
+    {
+        pt3d[i] = plane.pt[i] - line.pt[i];
+    }
+
+    double num = myMATH::dot(pt3d, plane.norm_vector);
+    double factor = num / den;
+
+    for (int i = 0; i < 3; i ++)
+    {
+        pt3d[i] = line.unit_vector[i] * factor + line.pt[i];
+    }
 
     return is_parallel;
 }
