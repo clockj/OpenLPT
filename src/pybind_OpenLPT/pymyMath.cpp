@@ -38,8 +38,36 @@ void init_myMath(py::module& m)
     m.def("dist2", [](Pt3D const& pt1, Pt3D const& pt2){
         return myMATH::dist2(pt1, pt2);
     }, "Squared distance between two 3D points");
+    m.def("dist2", [](std::vector<Pt3D> const& pt1_list, std::vector<Pt3D> const& pt2_list){
+        int npts = pt1_list.size();
+        if (npts != pt2_list.size())
+        {
+            throw std::invalid_argument("The two input lists must have the same size.");
+        }
+        std::vector<double> dist2_list(npts);
+        #pragma omp parallel for
+        for (int i = 0; i < npts; i++)
+        {
+            dist2_list[i] = myMATH::dist2(pt1_list[i], pt2_list[i]);
+        }
+        return dist2_list;
+    }, "Squared distance between two 3D points");
     m.def("dist2", [](Pt2D const& pt1, Pt2D const& pt2){
         return myMATH::dist2(pt1, pt2);
+    }, "Squared distance between two 2D points");
+    m.def("dist2", [](std::vector<Pt2D> const& pt1_list, std::vector<Pt2D> const& pt2_list){
+        int npts = pt1_list.size();
+        if (npts != pt2_list.size())
+        {
+            throw std::invalid_argument("The two input lists must have the same size.");
+        }
+        std::vector<double> dist2_list(npts);
+        #pragma omp parallel for
+        for (int i = 0; i < npts; i++)
+        {
+            dist2_list[i] = myMATH::dist2(pt1_list[i], pt2_list[i]);
+        }
+        return dist2_list;
     }, "Squared distance between two 2D points");
 
     m.def("dist2", [](Pt3D const& pt, Line3D const& line){
@@ -52,8 +80,36 @@ void init_myMath(py::module& m)
     m.def("dist", [](Pt3D const& pt1, Pt3D const& pt2){
         return myMATH::dist(pt1, pt2);
     }, "Distance between two 3D points");
+    m.def("dist", [](std::vector<Pt3D> const& pt1_list, std::vector<Pt3D> const& pt2_list){
+        int npts = pt1_list.size();
+        if (npts != pt2_list.size())
+        {
+            throw std::invalid_argument("The two input lists must have the same size.");
+        }
+        std::vector<double> dist_list(npts);
+        #pragma omp parallel for
+        for (int i = 0; i < npts; i++)
+        {
+            dist_list[i] = myMATH::dist(pt1_list[i], pt2_list[i]);
+        }
+        return dist_list;
+    }, "Distance between two 3D points");
     m.def("dist", [](Pt2D const& pt1, Pt2D const& pt2){
         return myMATH::dist(pt1, pt2);
+    }, "Distance between two 2D points");
+    m.def("dist", [](std::vector<Pt2D> const& pt1_list, std::vector<Pt2D> const& pt2_list){
+        int npts = pt1_list.size();
+        if (npts != pt2_list.size())
+        {
+            throw std::invalid_argument("The two input lists must have the same size.");
+        }
+        std::vector<double> dist_list(npts);
+        #pragma omp parallel for
+        for (int i = 0; i < npts; i++)
+        {
+            dist_list[i] = myMATH::dist(pt1_list[i], pt2_list[i]);
+        }
+        return dist_list;
     }, "Distance between two 2D points");
 
     m.def("dist", [](Pt3D const& pt, Line3D const& line){
