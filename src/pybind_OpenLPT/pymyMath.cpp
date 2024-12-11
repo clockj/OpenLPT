@@ -38,6 +38,15 @@ void init_myMath(py::module& m)
     m.def("dist2", [](Pt3D const& pt1, Pt3D const& pt2){
         return myMATH::dist2(pt1, pt2);
     }, "Squared distance between two 3D points");
+    m.def("dist2", [](Pt2D const& pt1, Pt2D const& pt2){
+        return myMATH::dist2(pt1, pt2);
+    }, "Squared distance between two 2D points");
+    m.def("dist2", [](Pt3D const& pt, Line3D const& line){
+        return myMATH::dist2(pt, line);
+    }, "Squared distance between a 3D point and a 3D line");
+    m.def("dist2", [](Pt2D const& pt, Line2D const& line){
+        return myMATH::dist2(pt, line);
+    }, "Squared distance between a 2D point and a 2D line");
     m.def("dist2", [](std::vector<Pt3D> const& pt1_list, std::vector<Pt3D> const& pt2_list){
         int npts = pt1_list.size();
         if (npts != pt2_list.size())
@@ -52,9 +61,6 @@ void init_myMath(py::module& m)
         }
         return dist2_list;
     }, "Squared distance between two 3D points");
-    m.def("dist2", [](Pt2D const& pt1, Pt2D const& pt2){
-        return myMATH::dist2(pt1, pt2);
-    }, "Squared distance between two 2D points");
     m.def("dist2", [](std::vector<Pt2D> const& pt1_list, std::vector<Pt2D> const& pt2_list){
         int npts = pt1_list.size();
         if (npts != pt2_list.size())
@@ -70,16 +76,18 @@ void init_myMath(py::module& m)
         return dist2_list;
     }, "Squared distance between two 2D points");
 
-    m.def("dist2", [](Pt3D const& pt, Line3D const& line){
-        return myMATH::dist2(pt, line);
-    }, "Squared distance between a 3D point and a 3D line");
-    m.def("dist2", [](Pt2D const& pt, Line2D const& line){
-        return myMATH::dist2(pt, line);
-    }, "Squared distance between a 2D point and a 2D line");
-
     m.def("dist", [](Pt3D const& pt1, Pt3D const& pt2){
         return myMATH::dist(pt1, pt2);
     }, "Distance between two 3D points");
+    m.def("dist", [](Pt2D const& pt1, Pt2D const& pt2){
+        return myMATH::dist(pt1, pt2);
+    }, "Distance between two 2D points");
+    m.def("dist", [](Pt3D const& pt, Line3D const& line){
+        return myMATH::dist(pt, line);
+    }, "Distance between a 3D point and a 3D line");
+    m.def("dist", [](Pt2D const& pt, Line2D const& line){
+        return myMATH::dist(pt, line);
+    }, "Distance between a 2D point and a 2D line");
     m.def("dist", [](std::vector<Pt3D> const& pt1_list, std::vector<Pt3D> const& pt2_list){
         int npts = pt1_list.size();
         if (npts != pt2_list.size())
@@ -94,9 +102,6 @@ void init_myMath(py::module& m)
         }
         return dist_list;
     }, "Distance between two 3D points");
-    m.def("dist", [](Pt2D const& pt1, Pt2D const& pt2){
-        return myMATH::dist(pt1, pt2);
-    }, "Distance between two 2D points");
     m.def("dist", [](std::vector<Pt2D> const& pt1_list, std::vector<Pt2D> const& pt2_list){
         int npts = pt1_list.size();
         if (npts != pt2_list.size())
@@ -111,13 +116,6 @@ void init_myMath(py::module& m)
         }
         return dist_list;
     }, "Distance between two 2D points");
-
-    m.def("dist", [](Pt3D const& pt, Line3D const& line){
-        return myMATH::dist(pt, line);
-    }, "Distance between a 3D point and a 3D line");
-    m.def("dist", [](Pt2D const& pt, Line2D const& line){
-        return myMATH::dist(pt, line);
-    }, "Distance between a 2D point and a 2D line");
 
     m.def("triangulation", [](std::vector<Line3D> const& line_of_sight_list){
         Pt3D pt_world(0, 0, 0);
