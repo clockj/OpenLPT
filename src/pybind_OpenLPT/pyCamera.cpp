@@ -129,8 +129,28 @@ void init_Camera(py::module &m)
             return pt2d_list;
         })
         .def("worldToUndistImg", &Camera::worldToUndistImg)
+        .def("worldToUndistImg", [](Camera const& self, std::vector<Pt3D> const& pt3d_list, PinholeParam const& param){
+            int npts = pt3d_list.size();
+            std::vector<Pt2D> pt2d_list(npts);
+            #pragma omp parallel for
+            for (int i = 0; i < npts; i++)
+            {
+                pt2d_list[i] = self.worldToUndistImg(pt3d_list[i], param);
+            }
+            return pt2d_list;
+        })
         .def("refractPlate", &Camera::refractPlate)
         .def("distort", &Camera::distort)
+        .def("distort", [](Camera const& self, std::vector<Pt2D> const& pt2d_list, PinholeParam const& param){
+            int npts = pt2d_list.size();
+            std::vector<Pt2D> pt2d_list_dist(npts);
+            #pragma omp parallel for
+            for (int i = 0; i < npts; i++)
+            {
+                pt2d_list_dist[i] = self.distort(pt2d_list[i], param);
+            }
+            return pt2d_list_dist;
+        })
         .def("polyProject", &Camera::polyProject)
         .def("lineOfSight", &Camera::lineOfSight)
         .def("lineOfSight", [](Camera const& self, std::vector<Pt2D> const& pt2d_list){
@@ -143,6 +163,16 @@ void init_Camera(py::module &m)
             return line_list;
         })
         .def("undistort", &Camera::undistort)
+        .def("undistort", [](Camera const& self, std::vector<Pt2D> const& pt2d_list, PinholeParam const& param){
+            int npts = pt2d_list.size();
+            std::vector<Pt2D> pt2d_list_undist(npts);
+            #pragma omp parallel for
+            for (int i = 0; i < npts; i++)
+            {
+                pt2d_list_undist[i] = self.undistort(pt2d_list[i], param);
+            }
+            return pt2d_list_undist;
+        })
         .def("pinholeLine", &Camera::pinholeLine)
         .def("polyImgToWorld", &Camera::polyImgToWorld)
         .def("polyLineOfSight", &Camera::polyLineOfSight)
