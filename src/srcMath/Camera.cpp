@@ -700,7 +700,7 @@ std::tuple<bool, Pt3D, double> Camera::refractPlate (Pt3D const& pt_world) const
         is_parallel = false;
         plane = _pinplate_param.plane;
 
-        if (iter == 1)
+        if (is_init_guess == 1)
         {
             line.pt = pt_world;
             line.unit_vector = myMATH::createUnitVector(pt_world, _pinplate_param.t_vec_inv);
@@ -818,7 +818,7 @@ std::tuple<bool, Pt3D, double> Camera::refractPlate (Pt3D const& pt_world) const
         {
             is_init_guess = false;
         }
-        
+
         factor = - refract_ratio * cos_1 - std::sqrt(cos_2);
 
         line.unit_vector = line.unit_vector * refract_ratio + plane.norm_vector * factor;
