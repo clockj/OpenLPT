@@ -135,6 +135,10 @@ double dist2 (Pt3D const& pt, Line3D const& line);
 double dist2 (Pt2D const& pt, Line2D const& line);
 
 
+// Calculate the distance square between point and plane
+double dist2 (Pt3D const& pt, Plane3D const& plane);
+
+
 // Calculate the distance between two points
 double dist (Pt3D const& pt1, Pt3D const& pt2);
 double dist (Pt2D const& pt1, Pt2D const& pt2);
@@ -143,6 +147,10 @@ double dist (Pt2D const& pt1, Pt2D const& pt2);
 // Calculate the distance between point and line  
 double dist (Pt3D const& pt, Line3D const& line);
 double dist (Pt2D const& pt, Line2D const& line);
+
+
+// Calculate the distance between point and plane
+double dist (Pt3D const& pt, Plane3D const& plane);
 
 
 // Triangulation

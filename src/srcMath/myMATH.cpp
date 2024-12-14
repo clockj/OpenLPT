@@ -212,6 +212,16 @@ double dist2 (Pt2D const& pt, Line2D const& line)
     return distance;
 }
 
+// Calculate the distance between point and plane
+double dist2 (Pt3D const& pt, Plane3D const& plane)
+{
+    Pt3D diff = pt - plane.pt;
+    double distance = std::pow(dot(diff, plane.norm_vector), 2);
+    distance = std::max(distance, 0.0);
+
+    return distance;
+}
+
 // Calculate the distance between two points
 double dist (Pt3D const& pt1, Pt3D const& pt2)
 {
@@ -234,6 +244,14 @@ double dist (Pt3D const& pt, Line3D const& line)
 double dist (Pt2D const& pt, Line2D const& line)
 {
     return std::sqrt(dist2(pt, line));
+}
+
+// Calculate the distance between point and plane
+double dist (Pt3D const& pt, Plane3D const& plane)
+{
+    Pt3D diff = pt - plane.pt;
+    double distance = dot(diff, plane.norm_vector);
+    return std::fabs(distance);
 }
 
 // Triangulation

@@ -68,9 +68,10 @@ void init_Camera(py::module &m)
         .def_readwrite("refract_array", &PinPlateParam::refract_array)
         .def_readwrite("w_array", &PinPlateParam::w_array)
         .def_readwrite("n_plate", &PinPlateParam::n_plate)
-        .def_readwrite("proj_tol2", &PinPlateParam::proj_tol2)
+        .def_readwrite("proj_tol", &PinPlateParam::proj_tol)
         .def_readwrite("proj_nmax", &PinPlateParam::proj_nmax)
         .def_readwrite("lr", &PinPlateParam::lr)
+        .def_readwrite("refract_ratio_max", &PinPlateParam::refract_ratio_max)
         .def("to_dict", [](PinPlateParam const& self){
             return py::dict(
                 "n_row"_a=self.n_row, 
@@ -87,9 +88,10 @@ void init_Camera(py::module &m)
                 "refract_array"_a=self.refract_array, 
                 "w_array"_a=self.w_array, 
                 "n_plate"_a=self.n_plate, 
-                "proj_tol2"_a=self.proj_tol2, 
+                "proj_tol"_a=self.proj_tol, 
                 "proj_nmax"_a=self.proj_nmax,
-                "lr"_a=self.lr
+                "lr"_a=self.lr,
+                "refract_ratio_max"_a=self.refract_ratio_max
             );
         })
         .doc() = "PinPlateParam struct";

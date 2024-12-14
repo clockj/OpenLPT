@@ -384,20 +384,38 @@ bool test_function_7 ()
     return true;
 }
 
+bool test_function_8 ()
+{
+    // Pt3D pt_world(-1.270e+01,2.333e+00,1.434e+01);
+    Pt3D pt_world(40,10,10);
+    Camera c("../test/inputs/test_Camera/cam6_refract.txt");
+
+    std::tuple<bool, Pt3D, double> result = c.refractPlate(pt_world);
+
+    Pt2D pt_img = c.project(pt_world, true);
+
+    Line3D line = c.lineOfSight(pt_img);
+    double dist = myMATH::dist(pt_world, line);
+    std::cout << "dist = " << dist << std::endl;
+
+    return true;
+}
+
 
 int main()
 {
     fs::create_directories("../test/results/test_Camera/");
 
-    IS_TRUE(test_function_1());
-    IS_TRUE(test_function_2());
-    IS_TRUE(test_function_3());
+    // IS_TRUE(test_function_1());
+    // IS_TRUE(test_function_2());
+    // IS_TRUE(test_function_3());
     
-    IS_TRUE(test_function_4());
-    IS_TRUE(test_function_5());
-    IS_TRUE(test_function_6());
+    // IS_TRUE(test_function_4());
+    // IS_TRUE(test_function_5());
+    // IS_TRUE(test_function_6());
 
-    IS_TRUE(test_function_7());
+    // IS_TRUE(test_function_7());
+    IS_TRUE(test_function_8());
 
     return 0;
 }

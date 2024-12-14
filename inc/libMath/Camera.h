@@ -62,9 +62,10 @@ struct PinPlateParam: public PinholeParam
     std::vector<double> refract_array; // refractive index array (from farthest to nearest)
     std::vector<double> w_array; // width of the refractive plate (from farthest to nearest)
     int n_plate; // number of refractive plates
-    double proj_tol2; // projection tolerance squatre
+    double proj_tol; // projection tolerance squatre
     int proj_nmax; // maximum number of iterations for projection
     double lr; // learning rate
+    double refract_ratio_max; // max(refract_array[0]/[i])
 };
 
 enum CameraType

@@ -47,6 +47,9 @@ void init_myMath(py::module& m)
     m.def("dist2", [](Pt2D const& pt, Line2D const& line){
         return myMATH::dist2(pt, line);
     }, "Squared distance between a 2D point and a 2D line");
+    m.def("dist2", [](Pt3D const& pt, Plane3D const& plane){
+        return myMATH::dist2(pt, plane);
+    }, "Squared distance between a 3D point and a 3D plane");
     m.def("dist2", [](std::vector<Pt3D> const& pt1_list, std::vector<Pt3D> const& pt2_list){
         int npts = pt1_list.size();
         if (npts != pt2_list.size())
@@ -88,6 +91,9 @@ void init_myMath(py::module& m)
     m.def("dist", [](Pt2D const& pt, Line2D const& line){
         return myMATH::dist(pt, line);
     }, "Distance between a 2D point and a 2D line");
+    m.def("dist", [](Pt3D const& pt, Plane3D const& plane){
+        return myMATH::dist(pt, plane);
+    }, "Distance between a 3D point and a 3D plane");
     m.def("dist", [](std::vector<Pt3D> const& pt1_list, std::vector<Pt3D> const& pt2_list){
         int npts = pt1_list.size();
         if (npts != pt2_list.size())

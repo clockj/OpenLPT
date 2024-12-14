@@ -251,6 +251,12 @@ void Camera::loadParameters (std::istream& is)
                 refract_stream.ignore();
             } 
         }
+        double ratio = 0.0;
+        for (int i = 0; i < _pinplate_param.refract_array.size(); i ++)
+        {
+            ratio = std::max(ratio, _pinplate_param.refract_array[0] / _pinplate_param.refract_array[i]);
+        }
+        _pinplate_param.refract_ratio_max = ratio;
 
         // read width of the refractive plate
         std::string w_str;
@@ -285,8 +291,7 @@ void Camera::loadParameters (std::istream& is)
 
         // read projection tolerance
         double tol;
-        is >> tol;
-        _pinplate_param.proj_tol2 = tol * tol;
+        is >> _pinplate_param.proj_tol;
 
         // read maximum number of iterations for projection
         is >> _pinplate_param.proj_nmax;
@@ -565,7 +570,7 @@ void Camera::saveParameters (std::string file_name)
         outfile << _pinplate_param.w_array[_pinplate_param.n_plate-1] << std::endl;
 
         outfile << "# Projection Tolerance: " << std::endl;
-        outfile << std::sqrt(_pinplate_param.proj_tol2) << std::endl;
+        outfile << _pinplate_param.proj_tol << std::endl;
 
         outfile << "# Maximum Number of Iterations for Projection: " << std::endl;
         outfile << _pinplate_param.proj_nmax << std::endl;
@@ -687,6 +692,17 @@ std::tuple<bool, Pt3D, double> Camera::refractPlate (Pt3D const& pt_world) const
     std::tuple<bool, Pt3D, double> result = {false, {0,0,0}, -1};
     bool is_parallel = false;
 
+    bool is_check_radius = false;
+    double radius_max2 = 0; // max r^2 from projected point on the first plane to pt_world
+    // double radius_plane = 0; // r projected point on the plane
+    if (_pinplate_param.refract_ratio_max > 1.0)
+    {
+        is_check_radius = true;
+        double sin = 1 / _pinplate_param.refract_ratio_max;
+        radius_max2 = myMATH::dist2(pt_world, _pinplate_param.plane) / (1 - sin*sin);
+        // radius_plane = std::sqrt(radius_max2) * sin;
+    }
+
     double cos_1; 
     double cos_2;
     double factor;
@@ -694,13 +710,13 @@ std::tuple<bool, Pt3D, double> Camera::refractPlate (Pt3D const& pt_world) const
     double diff_vec[3] = {0,0,0};
     double delta = -1;
     double lr = _pinplate_param.lr;
-    bool is_init_guess = true;
+    double radius2 = 0;
     for (int iter = 1; iter < _pinplate_param.proj_nmax; iter ++)
     {
         is_parallel = false;
         plane = _pinplate_param.plane;
 
-        if (is_init_guess == 1)
+        if (iter == 1)
         {
             line.pt = pt_world;
             line.unit_vector = myMATH::createUnitVector(pt_world, _pinplate_param.t_vec_inv);
@@ -710,8 +726,44 @@ std::tuple<bool, Pt3D, double> Camera::refractPlate (Pt3D const& pt_world) const
                 std::get<0>(result) = is_parallel;
                 return result;
             }
-
             pt_init = pt_cross;
+
+            // check radius
+            if (is_check_radius)
+            {
+                radius2 = myMATH::dist2(pt_init, pt_world);
+                int iter_innner = 0;
+                while (radius2 >= radius_max2)
+                {
+                    // update pt_init
+                    cos_1 = myMATH::dot(line.unit_vector, plane.norm_vector);
+                    for (int i = 0; i < 3; i ++)
+                    {
+                        diff_vec[i] = pt_init[i] - pt_world[i];
+                        diff_vec[i] -= cos_1 * plane.norm_vector[i];
+                    }
+                    for (int i = 0; i < 3; i ++)
+                    {
+                        pt_init[i] -= 0.5 * diff_vec[i];
+                    }
+
+                    // update line
+                    line.pt = pt_world;
+                    pt_cross = pt_init;
+                    line.unit_vector = myMATH::createUnitVector(line.pt, pt_cross);
+
+                    // check radius
+                    radius2 = myMATH::dist2(pt_init, pt_world);
+                    iter_innner ++;
+
+                    if (iter_innner > _pinplate_param.proj_nmax)
+                    {
+                        std::cout << "Camera::RefractPlate line " << __LINE__ << " : Error: maximum number of iterations reached" << std::endl;
+                        std::get<0>(result) = true;
+                        return result;
+                    }
+                }
+            }
         } 
         else
         {
@@ -727,36 +779,16 @@ std::tuple<bool, Pt3D, double> Camera::refractPlate (Pt3D const& pt_world) const
         {
             refract_ratio = _pinplate_param.refract_array[plane_id-1] / _pinplate_param.refract_array[plane_id];
             cos_1 = myMATH::dot(line.unit_vector, plane.norm_vector);
+            cos_1 = cos_1 > 1 ? 1 : cos_1 < -1 ? -1 : cos_1;
             cos_2 = 1 - refract_ratio*refract_ratio*(1 - cos_1*cos_1);
             if (cos_2 <= 0)
             {
-                // std::cout << "Camera::RefractPlate line " << __LINE__ << " : Error: total internal reflection" << std::endl;
-                // std::cout << "(iter,plane_id,cos_1,cos_2): " << iter << "," << plane_id << "," << cos_1 << "," << cos_2 << std::endl;
+                std::cout << "Camera::RefractPlate line " << __LINE__ << " : Error: total internal reflection" << std::endl;
+                std::cout << "(iter,plane_id,lr,cos_1,cos_2): " << iter << "," << plane_id << "," << lr << "," << cos_1 << "," << cos_2 << std::endl;
 
-                // is_parallel = true;
-                // std::get<0>(result) = is_parallel;
-                // return result;
-
-                // adaptive learning rate
-                if (is_init_guess)
-                {
-                    for (int i = 0; i < 3; i ++)
-                    {
-                        diff_vec[i] = pt_init[i] - pt_world[i];
-                    }
-                }
-                else
-                {
-                    lr /= 2;
-                }
-
-                // update pt_init
-                for (int i = 0; i < 3; i ++)
-                {
-                    pt_init[i] -= lr * diff_vec[i];
-                }
                 is_parallel = true;
-                continue;       
+                std::get<0>(result) = is_parallel;
+                return result;    
             }
             factor = - refract_ratio * cos_1 - std::sqrt(cos_2);
 
@@ -783,40 +815,16 @@ std::tuple<bool, Pt3D, double> Camera::refractPlate (Pt3D const& pt_world) const
         // get line vector
         refract_ratio = _pinplate_param.refract_array[plane_id] / _pinplate_param.refract_array[plane_id+1];
         cos_1 = myMATH::dot(line.unit_vector, plane.norm_vector);
+        cos_1 = cos_1 > 1 ? 1 : cos_1 < -1 ? -1 : cos_1;
         cos_2 = 1 - refract_ratio*refract_ratio*(1 - cos_1*cos_1);
         if (cos_2 <= 0)
         {
-            // std::cout << "Camera::RefractPlate line " << __LINE__ << " : Error: total internal reflection" << std::endl;
-            // std::cout << "(iter,plane_id,cos_1,cos_2,delta): " << iter << "," << plane_id << "," << cos_1 << "," << cos_2 << "," << delta << std::endl;
+            std::cout << "Camera::RefractPlate line " << __LINE__ << " : Error: total internal reflection" << std::endl;
+            std::cout << "(iter,plane_id,cos_1,cos_2,delta): " << iter << "," << plane_id << "," << cos_1 << "," << cos_2 << "," << delta << std::endl;
 
-            // is_parallel = true;
-            // std::get<0>(result) = is_parallel;
-            // return result;
-
-            // adaptive learning rate
-            if (is_init_guess)
-            {
-                for (int i = 0; i < 3; i ++)
-                {
-                    diff_vec[i] = pt_init[i] - pt_world[i];
-                }
-            }
-            else
-            {
-                lr /= 2;
-            }
-
-            // update pt_init
-            for (int i = 0; i < 3; i ++)
-            {
-                pt_init[i] -= lr * diff_vec[i];
-            }
             is_parallel = true;
-            continue;       
-        }
-        if (is_init_guess)
-        {
-            is_init_guess = false;
+            std::get<0>(result) = is_parallel;
+            return result;    
         }
 
         factor = - refract_ratio * cos_1 - std::sqrt(cos_2);
@@ -839,9 +847,10 @@ std::tuple<bool, Pt3D, double> Camera::refractPlate (Pt3D const& pt_world) const
             diff_vec[i] = pt_cross[i] - pt_last[i];
             delta += diff_vec[i] * diff_vec[i];
         }
+        delta = std::sqrt(delta);
         
         // check convergence
-        if (delta < _pinplate_param.proj_tol2)
+        if (delta < _pinplate_param.proj_tol)
         {
             std::get<1>(result) = pt_cross;
             std::get<2>(result) = delta;
@@ -851,7 +860,44 @@ std::tuple<bool, Pt3D, double> Camera::refractPlate (Pt3D const& pt_world) const
         // update pt_init
         for (int i = 0; i < 3; i ++)
         {
-            pt_init[i] += lr * diff_vec[i];
+            pt_cross[i] = pt_init[i] + lr * diff_vec[i];
+        }
+
+        // check radius
+        if (is_check_radius)
+        {
+            radius2 = myMATH::dist2(pt_cross, pt_world);
+            int iter_innner = 0;
+            while (radius2 >= radius_max2)
+            {
+                // update learning rate
+                lr *= 0.8;
+
+                // update pt
+                for (int i = 0; i < 3; i ++)
+                {
+                    pt_cross[i] = pt_init[i] + lr * diff_vec[i];
+                }
+
+                // check radius
+                radius2 = myMATH::dist2(pt_cross, pt_world);
+
+                iter_innner ++;
+                if (iter_innner > _pinplate_param.proj_nmax)
+                {
+                    std::cout << "Camera::RefractPlate line " << __LINE__ << " : Error: maximum number of iterations reached" << std::endl;
+                    std::get<0>(result) = true;
+                    return result;
+                }
+            }
+        }
+
+        // update pt_init
+        pt_init = pt_cross;
+
+        if (iter == _pinplate_param.proj_nmax-1)
+        {
+            std::cout << "not converged" << std::endl;  
         }
     }
 
@@ -1098,6 +1144,7 @@ Line3D Camera::pinplateLine (Pt2D const& pt_img_undist) const
         // get new line
         refract_ratio = _pinplate_param.refract_array[plane_id+1] / _pinplate_param.refract_array[plane_id];
         cos_1 = myMATH::dot(line.unit_vector, plane.norm_vector);
+        cos_1 = cos_1 > 1 ? 1 : cos_1 < -1 ? -1 : cos_1;
         cos_2 = 1 - refract_ratio*refract_ratio*(1 - cos_1*cos_1);
         if (cos_2 <= 0)
         {
