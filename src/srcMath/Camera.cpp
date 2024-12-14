@@ -693,8 +693,11 @@ std::tuple<bool, Pt3D, double> Camera::refractPlate (Pt3D const& pt_world) const
     double refract_ratio;
     double diff_vec[3] = {0,0,0};
     double delta = -1;
+    double lr = _pinplate_param.lr;
+    bool is_init_guess = true;
     for (int iter = 1; iter < _pinplate_param.proj_nmax; iter ++)
     {
+        is_parallel = false;
         plane = _pinplate_param.plane;
 
         if (iter == 1)
@@ -727,12 +730,33 @@ std::tuple<bool, Pt3D, double> Camera::refractPlate (Pt3D const& pt_world) const
             cos_2 = 1 - refract_ratio*refract_ratio*(1 - cos_1*cos_1);
             if (cos_2 <= 0)
             {
-                std::cout << "Camera::RefractPlate line " << __LINE__ << " : Error: total internal reflection" << std::endl;
-                std::cout << "(iter,plane_id,cos_1,cos_2): " << iter << "," << plane_id << "," << cos_1 << "," << cos_2 << std::endl;
+                // std::cout << "Camera::RefractPlate line " << __LINE__ << " : Error: total internal reflection" << std::endl;
+                // std::cout << "(iter,plane_id,cos_1,cos_2): " << iter << "," << plane_id << "," << cos_1 << "," << cos_2 << std::endl;
 
+                // is_parallel = true;
+                // std::get<0>(result) = is_parallel;
+                // return result;
+
+                // adaptive learning rate
+                if (is_init_guess)
+                {
+                    for (int i = 0; i < 3; i ++)
+                    {
+                        diff_vec[i] = pt_init[i] - pt_world[i];
+                    }
+                }
+                else
+                {
+                    lr /= 2;
+                }
+
+                // update pt_init
+                for (int i = 0; i < 3; i ++)
+                {
+                    pt_init[i] -= lr * diff_vec[i];
+                }
                 is_parallel = true;
-                std::get<0>(result) = is_parallel;
-                return result;
+                continue;       
             }
             factor = - refract_ratio * cos_1 - std::sqrt(cos_2);
 
@@ -762,13 +786,39 @@ std::tuple<bool, Pt3D, double> Camera::refractPlate (Pt3D const& pt_world) const
         cos_2 = 1 - refract_ratio*refract_ratio*(1 - cos_1*cos_1);
         if (cos_2 <= 0)
         {
-            std::cout << "Camera::RefractPlate line " << __LINE__ << " : Error: total internal reflection" << std::endl;
-            std::cout << "(iter,plane_id,cos_1,cos_2,delta): " << iter << "," << plane_id << "," << cos_1 << "," << cos_2 << "," << delta << std::endl;
+            // std::cout << "Camera::RefractPlate line " << __LINE__ << " : Error: total internal reflection" << std::endl;
+            // std::cout << "(iter,plane_id,cos_1,cos_2,delta): " << iter << "," << plane_id << "," << cos_1 << "," << cos_2 << "," << delta << std::endl;
 
+            // is_parallel = true;
+            // std::get<0>(result) = is_parallel;
+            // return result;
+
+            // adaptive learning rate
+            if (is_init_guess)
+            {
+                for (int i = 0; i < 3; i ++)
+                {
+                    diff_vec[i] = pt_init[i] - pt_world[i];
+                }
+            }
+            else
+            {
+                lr /= 2;
+            }
+
+            // update pt_init
+            for (int i = 0; i < 3; i ++)
+            {
+                pt_init[i] -= lr * diff_vec[i];
+            }
             is_parallel = true;
-            std::get<0>(result) = is_parallel;
-            return result;
+            continue;       
         }
+        if (is_init_guess)
+        {
+            is_init_guess = false;
+        }
+        
         factor = - refract_ratio * cos_1 - std::sqrt(cos_2);
 
         line.unit_vector = line.unit_vector * refract_ratio + plane.norm_vector * factor;
@@ -801,7 +851,7 @@ std::tuple<bool, Pt3D, double> Camera::refractPlate (Pt3D const& pt_world) const
         // update pt_init
         for (int i = 0; i < 3; i ++)
         {
-            pt_init[i] += _pinplate_param.lr * diff_vec[i];
+            pt_init[i] += lr * diff_vec[i];
         }
     }
 
