@@ -408,15 +408,15 @@ int main()
 {
     fs::create_directories("../test/results/test_Camera/");
 
-    // IS_TRUE(test_function_1());
-    // IS_TRUE(test_function_2());
-    // IS_TRUE(test_function_3());
+    IS_TRUE(test_function_1());
+    IS_TRUE(test_function_2());
+    IS_TRUE(test_function_3());
     
-    // IS_TRUE(test_function_4());
-    // IS_TRUE(test_function_5());
-    // IS_TRUE(test_function_6());
+    IS_TRUE(test_function_4());
+    IS_TRUE(test_function_5());
+    IS_TRUE(test_function_6());
 
-    // IS_TRUE(test_function_7());
+    IS_TRUE(test_function_7());
     IS_TRUE(test_function_8());
 
     return 0;
