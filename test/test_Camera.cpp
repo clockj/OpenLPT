@@ -387,7 +387,9 @@ bool test_function_7 ()
 bool test_function_8 ()
 {
     // Pt3D pt_world(-1.270e+01,2.333e+00,1.434e+01);
-    Pt3D pt_world(40,10,10);
+    // Pt3D pt_world(40,10,10);
+    // Pt3D pt_world(-33.94955197,10.18367026,-14.77106353);
+    Pt3D pt_world(-32.6120745,-0.90721334,-15.01123319);
     Camera c("../test/inputs/test_Camera/cam6_refract.txt");
 
     std::tuple<bool, Pt3D, double> result = c.refractPlate(pt_world);

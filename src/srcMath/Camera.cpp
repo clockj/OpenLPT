@@ -708,7 +708,7 @@ std::tuple<bool, Pt3D, double> Camera::refractPlate (Pt3D const& pt_world) const
     double factor;
     double refract_ratio;
     double diff_vec[3] = {0,0,0};
-    double delta = -1;
+    double delta = -1; 
     double lr = _pinplate_param.lr;
     double radius2 = 0;
     for (int iter = 1; iter < _pinplate_param.proj_nmax; iter ++)
@@ -752,7 +752,7 @@ std::tuple<bool, Pt3D, double> Camera::refractPlate (Pt3D const& pt_world) const
                     pt_cross = pt_init;
                     line.unit_vector = myMATH::createUnitVector(line.pt, pt_cross);
 
-                    // check radius
+                    // update radius
                     radius2 = myMATH::dist2(pt_init, pt_world);
                     iter_innner ++;
 
@@ -871,7 +871,7 @@ std::tuple<bool, Pt3D, double> Camera::refractPlate (Pt3D const& pt_world) const
             while (radius2 >= radius_max2)
             {
                 // update learning rate
-                lr *= 0.8;
+                lr *= 0.5;
 
                 // update pt
                 for (int i = 0; i < 3; i ++)
@@ -879,7 +879,7 @@ std::tuple<bool, Pt3D, double> Camera::refractPlate (Pt3D const& pt_world) const
                     pt_cross[i] = pt_init[i] + lr * diff_vec[i];
                 }
 
-                // check radius
+                // update radius
                 radius2 = myMATH::dist2(pt_cross, pt_world);
 
                 iter_innner ++;
@@ -895,10 +895,6 @@ std::tuple<bool, Pt3D, double> Camera::refractPlate (Pt3D const& pt_world) const
         // update pt_init
         pt_init = pt_cross;
 
-        if (iter == _pinplate_param.proj_nmax-1)
-        {
-            std::cout << "not converged" << std::endl;  
-        }
     }
 
     std::get<0>(result) = is_parallel;

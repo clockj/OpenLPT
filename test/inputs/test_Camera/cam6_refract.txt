@@ -38,6 +38,6 @@ None
 # Projection Tolerance: 
 1e-8
 # Maximum Number of Iterations for Projection: 
-1000
+50000
 # Optimization Rate: 
 0.3
