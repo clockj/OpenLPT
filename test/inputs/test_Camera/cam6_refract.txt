@@ -1,0 +1,43 @@
+
+# Camera Model: (PINHOLE/POLYNOMIAL)
+PINPLATE
+# Camera Calibration Error: 
+None
+# Pose Calibration Error: 
+None
+# Image Size: (n_row,n_col)
+1952,2048
+# Camera Matrix: 
+9000,0.0,1023.5
+0.0,9000,975.5
+0.0,0.0,1.0
+# Distortion Coefficients: 
+0.0,0.0,0.0,0.0,0.0
+# Rotation Vector: 
+0,0,1.5707964
+# Rotation Matrix: 
+0,-1,0
+1,0,0
+0,0,1
+# Inverse of Rotation Matrix: 
+0,1,0
+-1,0,0
+0,0,1
+# Translation Vector: 
+0,0,200
+# Inverse of Translation Vector: 
+0,0,-200
+# Reference Point of Refractive Plate: 
+0,0,-50
+# Normal Vector of Refractive Plate: 
+0,0,1
+# Refractive Index Array: 
+1.33,1.49,1.0
+# Width of the Refractive Plate: (mm)
+12.7
+# Projection Tolerance: 
+1e-8
+# Maximum Number of Iterations for Projection: 
+50000
+# Optimization Rate: 
+0.3

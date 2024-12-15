@@ -14,6 +14,7 @@
 #include <iostream>
 #include <sstream>
 #include <limits>
+#include <tuple>
 
 #include "myMATH.h"
 #include "Matrix.h"
@@ -54,10 +55,24 @@ struct PolyParam
                               // dv/dvar2 coeff,x_power, y_power, z_power
 };
 
+struct PinPlateParam: public PinholeParam
+{ 
+    Plane3D plane; // reference refractive plane (farthest plane to camera), normal vector is pointing away from the camera
+    Pt3D pt3d_closest; // closest point to the camera
+    std::vector<double> refract_array; // refractive index array (from farthest to nearest)
+    std::vector<double> w_array; // width of the refractive plate (from farthest to nearest)
+    int n_plate; // number of refractive plates
+    double proj_tol; // projection tolerance squatre
+    int proj_nmax; // maximum number of iterations for projection
+    double lr; // learning rate
+    double refract_ratio_max; // max(refract_array[0]/[i])
+};
+
 enum CameraType
 {
     PINHOLE = 0,
-    POLYNOMIAL
+    POLYNOMIAL,
+    PINPLATE
 };
 
 class Camera
@@ -66,6 +81,7 @@ public:
     CameraType   _type;
     PinholeParam _pinhole_param;
     PolyParam    _poly_param; 
+    PinPlateParam _pinplate_param;
 
     Camera ();
     Camera (const Camera& c); // Camera deep copy
@@ -97,7 +113,7 @@ public:
     //            //
     // Projection //
     //            //
-    Pt2D project (Pt3D const& pt_world) const;
+    Pt2D project (Pt3D const& pt_world, bool is_print_detail = false) const;
 
     // Project world coordinate [mm] to image coordinate [mm]: 
     //  (xw,yw,zw) -> (x,y,z) -> (Xu,Yu,0)
@@ -105,7 +121,9 @@ public:
     //  (Xu,Yu,0) = (fx*x/z + cx, fy*y/z + cy)
     // input: pt_world: point location in world coordinate 
     // output
-    Pt2D worldToUndistImg (Pt3D const& pt_world) const;
+    Pt2D worldToUndistImg (Pt3D const& pt_world, PinholeParam const& param) const;
+
+    std::tuple<bool, Pt3D, double> refractPlate (Pt3D const& pt_world) const;
 
     // Project Image in camera coordinate [mm] to pixel: 
     //  (Xu,Yu,0) -> (Xd,Yd,0) -> (Xf,Yf,0)
@@ -117,7 +135,7 @@ public:
     // | 
     // |
     // \/ y direction (downwards)
-    Pt2D distort (Pt2D const& pt_img_undist) const;
+    Pt2D distort (Pt2D const& pt_img_undist, PinholeParam const& param) const;
 
     // Polynomial model 
     // Project world coordinate [mm] to distorted image [px]:
@@ -135,13 +153,15 @@ public:
     // input: pt_pix: point location in pixel unit on image 
     //        (no use of z coordinate of pt_pix)
     // output: Matrix (camera coordinate) (Xu,Yu,0)
-    Pt2D undistort (Pt2D const& pt_img_dist) const;
+    Pt2D undistort (Pt2D const& pt_img_dist, PinholeParam const& param) const;
 
     // Project image coordinate [mm] to world coordinate [mm]: 
     //  (Xu,Yu,0) -> (x,y,z) -> (xw,yw,zw)
     // input: pt_img_undist: undistorted image coordinate 
     // output: line of sight
     Line3D pinholeLine (Pt2D const& pt_img_undist) const;
+
+    Line3D pinplateLine (Pt2D const& pt_img_undist) const;
 
     // Polynomial Model
     Pt3D polyImgToWorld (Pt2D const& pt_img_dist, double plane_world) const;

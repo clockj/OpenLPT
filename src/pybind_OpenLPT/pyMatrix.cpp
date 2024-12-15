@@ -244,6 +244,19 @@ void init_Matrix(py::module &m)
         })
         .doc() = "Line2D struct";
 
+    py::class_<Plane3D>(m, "Plane3D")
+        .def(py::init<>())
+        .def(py::init<const Pt3D&, const Pt3D&>())
+        .def_readwrite("pt", &Plane3D::pt)
+        .def_readwrite("norm_vector", &Plane3D::norm_vector)
+        .def("to_dict", [](Plane3D const& self){
+            return py::dict(
+                "pt"_a=self.pt, 
+                "norm_vector"_a=self.norm_vector
+            );
+        })
+        .doc() = "Plane3D struct";
+
     py::class_<Image, Matrix<double>>(m, "Image")
         .def(py::init<>())
         .def(py::init<int, int, double>())

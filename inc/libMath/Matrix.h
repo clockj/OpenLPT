@@ -150,6 +150,13 @@ struct Line2D
     Pt2D unit_vector;
 };
 
+// Structure to store 3D plane
+struct Plane3D
+{
+    Pt3D pt;
+    Pt3D norm_vector;
+};
+
 // Image: matrix with double type
 // Image(row_id, col_id) = intensity
 // row_id = img_y, col_id = img_x

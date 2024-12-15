@@ -135,6 +135,10 @@ double dist2 (Pt3D const& pt, Line3D const& line);
 double dist2 (Pt2D const& pt, Line2D const& line);
 
 
+// Calculate the distance square between point and plane
+double dist2 (Pt3D const& pt, Plane3D const& plane);
+
+
 // Calculate the distance between two points
 double dist (Pt3D const& pt1, Pt3D const& pt2);
 double dist (Pt2D const& pt1, Pt2D const& pt2);
@@ -145,6 +149,10 @@ double dist (Pt3D const& pt, Line3D const& line);
 double dist (Pt2D const& pt, Line2D const& line);
 
 
+// Calculate the distance between point and plane
+double dist (Pt3D const& pt, Plane3D const& plane);
+
+
 // Triangulation
 void triangulation (Pt3D& pt_world, double& error,
                     std::vector<Line3D> const& line_of_sight_list);
@@ -153,6 +161,8 @@ void triangulation (Pt3D& pt_world, double& error,
 // Find cross points of two 2d lines
 bool crossPoint (Pt2D& pt2d, Line2D const& line1, Line2D const& line2);
 
+// Find cross points of 3d line and 3d plane
+bool crossPoint (Pt3D& pt3d, Line3D const& line, Plane3D const& plane);
 
 // Create identity matrix 
 template<class T>

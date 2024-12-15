@@ -3,7 +3,7 @@
 Camera::Camera () {};
 
 Camera::Camera (const Camera& c)
-    : _type(c._type), _pinhole_param(c._pinhole_param), _poly_param(c._poly_param) {}
+    : _type(c._type), _pinhole_param(c._pinhole_param), _poly_param(c._poly_param), _pinplate_param(c._pinplate_param) {}
 
 Camera::Camera(std::istream& is)
 {
@@ -154,6 +154,157 @@ void Camera::loadParameters (std::istream& is)
 
         // calculate du, dv coefficients
         updatePolyDuDv ();
+    }
+    else if (type_name == "PINPLATE")
+    {
+        _type = PINPLATE;
+
+        // do not read errors
+        std::string useless;
+        is >> useless;
+        is >> useless;
+
+        // read image size (n_row,n_col)
+        std::string img_size_str;
+        is >> img_size_str;
+        std::stringstream img_size_stream(img_size_str);
+        std::string temp;
+        std::getline(img_size_stream, temp, ',');
+        _pinplate_param.n_row = std::stoi(temp);
+        std::getline(img_size_stream, temp, ',');
+        _pinplate_param.n_col = std::stoi(temp);
+        
+        // read camera matrix
+        _pinplate_param.cam_mtx = Matrix<double>(3,3,is);
+
+        // initialize distortion parameters
+        _pinplate_param.dist_coeff.clear();
+        _pinplate_param.is_distorted = false;
+        _pinplate_param.n_dist_coeff = 0;
+
+        // read distortion coefficients
+        std::string dist_coeff_str;
+        is >> dist_coeff_str;
+        std::stringstream dist_coeff_stream(dist_coeff_str);
+        double dist_coeff;
+        int id = 0;
+        while (dist_coeff_stream >> dist_coeff)
+        {
+            _pinplate_param.dist_coeff.push_back(dist_coeff);
+            id ++;
+
+            if (dist_coeff > SMALLNUMBER)
+            {
+                _pinplate_param.is_distorted = true;
+            }
+
+            if (dist_coeff_stream.peek() == ',')
+            {
+                dist_coeff_stream.ignore();
+            } 
+        }
+        if (_pinplate_param.is_distorted)
+        {
+            _pinplate_param.n_dist_coeff = id;
+            if (id != 4 && id != 5 && id != 8 && id != 12)
+            {
+                // Note: id == 14
+                // additional distortion by projecting onto a tilt plane
+                // not supported yet
+
+                std::cerr << "Camera::LoadParameters line " << __LINE__ << " : Error: number of distortion coefficients is wrong: " << id << std::endl;
+                throw error_type;
+            }
+        }
+
+        // do not read rotation vector
+        is >> useless;
+
+        // read rotation matrix
+        _pinplate_param.r_mtx = Matrix<double>(3,3,is);
+
+        // read inverse rotation matrix
+        _pinplate_param.r_mtx_inv = Matrix<double>(3,3,is);
+
+        // read translation vector
+        _pinplate_param.t_vec = Pt3D(is);
+
+        // read inverse translation vector
+        _pinplate_param.t_vec_inv = Pt3D(is);
+
+        // read reference point of refractive plate
+        _pinplate_param.plane.pt = Pt3D(is);
+
+        // read normal vector of refractive plate
+        _pinplate_param.plane.norm_vector = Pt3D(is);
+
+        // read refractive index array
+        std::string refract_str;
+        is >> refract_str;
+        std::stringstream refract_stream(refract_str);
+        double refract;
+        while (refract_stream >> refract)
+        {
+            _pinplate_param.refract_array.push_back(refract);
+            if (refract_stream.peek() == ',')
+            {
+                refract_stream.ignore();
+            } 
+        }
+        double ratio = 0.0;
+        for (int i = 0; i < _pinplate_param.refract_array.size(); i ++)
+        {
+            ratio = std::max(ratio, _pinplate_param.refract_array[0] / _pinplate_param.refract_array[i]);
+        }
+        _pinplate_param.refract_ratio_max = ratio;
+
+        // read width of the refractive plate
+        std::string w_str;
+        is >> w_str;
+        std::stringstream w_stream(w_str);
+        double w;
+        while (w_stream >> w)
+        {
+            _pinplate_param.w_array.push_back(w);
+            if (w_stream.peek() == ',')
+            {
+                w_stream.ignore();
+            } 
+        }
+
+        // check number of plate is consistent
+        if (_pinplate_param.refract_array.size() != _pinplate_param.w_array.size()+2 || _pinplate_param.refract_array.size() < 3)
+        {
+            std::cerr << "Camera::LoadParameters line " << __LINE__ 
+                      << " : Error: number of refractive index and width is not consistent (n_plate_min=1): " 
+                      << _pinplate_param.refract_array.size() << " vs " << _pinplate_param.w_array.size() << std::endl;
+            throw error_type;
+        }
+        _pinplate_param.n_plate = _pinplate_param.w_array.size();
+
+        // update closest point to the camera
+        _pinplate_param.pt3d_closest = _pinplate_param.plane.pt;
+        for (int i = 0; i < _pinplate_param.n_plate; i ++)
+        {
+            _pinplate_param.pt3d_closest = _pinplate_param.pt3d_closest - _pinplate_param.plane.norm_vector * _pinplate_param.w_array[i];
+        }
+
+        // read projection tolerance
+        double tol;
+        is >> _pinplate_param.proj_tol;
+
+        // read maximum number of iterations for projection
+        is >> _pinplate_param.proj_nmax;
+
+        // read learning rate if exists
+        if (is >> _pinplate_param.lr)
+        {
+            // do nothing
+        }
+        else
+        {
+            _pinplate_param.lr = 0.1;
+        }
     }
     else 
     {
@@ -362,6 +513,73 @@ void Camera::saveParameters (std::string file_name)
 
         outfile.close();
     }
+    else if (_type == PINPLATE)
+    {
+        outfile << "# Camera Model: (PINHOLE/POLYNOMIAL)" << std::endl;
+        outfile << "PINPLATE" << std::endl;
+        outfile << "# Camera Calibration Error: \nNone\n# Pose Calibration Error: \nNone" << std::endl;
+
+        outfile << "# Image Size: (n_row,n_col)" << std::endl;
+        outfile << _pinplate_param.n_row << "," << _pinplate_param.n_col << std::endl;
+        
+        outfile << "# Camera Matrix: " << std::endl;
+        _pinplate_param.cam_mtx.write(outfile);
+        
+        outfile << "# Distortion Coefficients: " << std::endl;
+        int size = _pinplate_param.dist_coeff.size();
+        for (int i = 0; i < size-1; i ++)
+        {
+            outfile << _pinplate_param.dist_coeff[i] << ",";
+        }
+        outfile << _pinplate_param.dist_coeff[size-1] << std::endl;
+
+        outfile << "# Rotation Vector: " << std::endl;
+        Pt3D r_vec = rmtxTorvec(_pinplate_param.r_mtx);
+        r_vec.transpose().write(outfile);
+
+        outfile << "# Rotation Matrix: " << std::endl;
+        _pinplate_param.r_mtx.write(outfile);
+
+        outfile << "# Inverse of Rotation Matrix: " << std::endl;
+        _pinplate_param.r_mtx_inv.write(outfile);
+
+        outfile << "# Translation Vector: " << std::endl;
+        _pinplate_param.t_vec.transpose().write(outfile);
+
+        outfile << "# Inverse of Translation Vector: " << std::endl;
+        _pinplate_param.t_vec_inv.transpose().write(outfile);
+
+        outfile << "# Reference Point of Refractive Plate: " << std::endl;
+        _pinplate_param.plane.pt.transpose().write(outfile);
+
+        outfile << "# Normal Vector of Refractive Plate: " << std::endl;
+        _pinplate_param.plane.norm_vector.transpose().write(outfile);
+
+        outfile << "# Refractive Index Array: " << std::endl;
+        for (int i = 0; i < _pinplate_param.n_plate+1; i ++)
+        {
+            outfile << _pinplate_param.refract_array[i] << ",";
+        }
+        outfile << _pinplate_param.refract_array[_pinplate_param.n_plate+1] << std::endl;
+
+        outfile << "# Width of the Refractive Plate: (same as other physical units)" << std::endl;
+        for (int i = 0; i < _pinplate_param.n_plate-1; i ++)
+        {
+            outfile << _pinplate_param.w_array[i] << ",";
+        }
+        outfile << _pinplate_param.w_array[_pinplate_param.n_plate-1] << std::endl;
+
+        outfile << "# Projection Tolerance: " << std::endl;
+        outfile << _pinplate_param.proj_tol << std::endl;
+
+        outfile << "# Maximum Number of Iterations for Projection: " << std::endl;
+        outfile << _pinplate_param.proj_nmax << std::endl;
+
+        outfile << "# Optimization Rate: " << std::endl;
+        outfile << _pinplate_param.lr << std::endl;
+
+        outfile.close();
+    }
     else
     {
         std::cerr << "Camera::SaveParameters line " << __LINE__ << " : Error: unknown camera type: " << _type << std::endl;
@@ -383,6 +601,10 @@ int Camera::getNRow () const
     {
         return _poly_param.n_row;
     }
+    else if (_type == PINPLATE)
+    {
+        return _pinplate_param.n_row;
+    }
     else
     {
         std::cerr << "Camera::GetNRow line " << __LINE__ << " : Error: unknown camera type: " << _type << std::endl;
@@ -400,6 +622,10 @@ int Camera::getNCol () const
     {
         return _poly_param.n_col;
     }
+    else if (_type == PINPLATE)
+    {
+        return _pinplate_param.n_col;
+    }
     else
     {
         std::cerr << "Camera::GetNCol line " << __LINE__ << " : Error: unknown camera type: " << _type << std::endl;
@@ -411,15 +637,30 @@ int Camera::getNCol () const
 //                                                 
 // Project world coordinate [mm] to image points [px] 
 //
-Pt2D Camera::project (Pt3D const& pt_world) const
+Pt2D Camera::project (Pt3D const& pt_world, bool is_print_detail) const
 {
     if (_type == PINHOLE)
     {
-        return distort(worldToUndistImg(pt_world));
+        return distort(worldToUndistImg(pt_world, _pinhole_param), _pinhole_param);
     }
     else if (_type == POLYNOMIAL)
     {
         return polyProject(pt_world);
+    }
+    else if (_type == PINPLATE)
+    {
+        std::tuple<bool,Pt3D,double> result = refractPlate(pt_world);
+        if (is_print_detail)
+        {
+            std::cout << "Camera::Project line " << __LINE__ << " : result (is_parallel,error^2): " << std::get<0>(result) << "," << std::get<2>(result) << std::endl;
+        }
+        if (std::get<0>(result))
+        {
+            double value = std::numeric_limits<double>::lowest();
+            return Pt2D(value, value);
+        }
+        // Pt3D pt_refract = std::get<1>(result);
+        return distort(worldToUndistImg(std::get<1>(result), _pinplate_param), _pinplate_param);
     }
     else
     {
@@ -429,9 +670,9 @@ Pt2D Camera::project (Pt3D const& pt_world) const
 }
 
 // Pinhole  model
-Pt2D Camera::worldToUndistImg (Pt3D const& pt_world) const
+Pt2D Camera::worldToUndistImg (Pt3D const& pt_world, PinholeParam const& param) const
 {
-    Pt3D temp = _pinhole_param.r_mtx * pt_world + _pinhole_param.t_vec;
+    Pt3D temp = param.r_mtx * pt_world + param.t_vec;
 
     Pt2D pt_img_mm;
     pt_img_mm[0] = temp[2] ? (temp[0]/temp[2]) : temp[0];
@@ -440,7 +681,229 @@ Pt2D Camera::worldToUndistImg (Pt3D const& pt_world) const
     return pt_img_mm;
 }
 
-Pt2D Camera::distort (Pt2D const& pt_img_undist) const
+// Plate refraction model
+std::tuple<bool, Pt3D, double> Camera::refractPlate (Pt3D const& pt_world) const
+{
+    Plane3D plane;
+    Line3D line;
+    Pt3D pt_cross;
+    Pt3D pt_init;
+    Pt3D pt_last;
+    std::tuple<bool, Pt3D, double> result = {false, {0,0,0}, -1};
+    bool is_parallel = false;
+
+    bool is_check_radius = false;
+    double radius_max2 = 0; // max r^2 from projected point on the first plane to pt_world
+    // double radius_plane = 0; // r projected point on the plane
+    if (_pinplate_param.refract_ratio_max > 1.0)
+    {
+        is_check_radius = true;
+        double sin = 1 / _pinplate_param.refract_ratio_max;
+        radius_max2 = myMATH::dist2(pt_world, _pinplate_param.plane) / (1 - sin*sin);
+        // radius_plane = std::sqrt(radius_max2) * sin;
+    }
+
+    double cos_1; 
+    double cos_2;
+    double factor;
+    double refract_ratio;
+    double diff_vec[3] = {0,0,0};
+    double delta = -1; 
+    double lr = _pinplate_param.lr;
+    double radius2 = 0;
+    for (int iter = 1; iter < _pinplate_param.proj_nmax; iter ++)
+    {
+        is_parallel = false;
+        plane = _pinplate_param.plane;
+
+        if (iter == 1)
+        {
+            line.pt = pt_world;
+            line.unit_vector = myMATH::createUnitVector(pt_world, _pinplate_param.t_vec_inv);
+            is_parallel = myMATH::crossPoint(pt_cross, line, plane);
+            if (is_parallel)
+            {
+                std::get<0>(result) = is_parallel;
+                return result;
+            }
+            pt_init = pt_cross;
+
+            // check radius
+            if (is_check_radius)
+            {
+                radius2 = myMATH::dist2(pt_init, pt_world);
+                int iter_innner = 0;
+                while (radius2 >= radius_max2)
+                {
+                    // update pt_init
+                    cos_1 = myMATH::dot(line.unit_vector, plane.norm_vector);
+                    for (int i = 0; i < 3; i ++)
+                    {
+                        diff_vec[i] = pt_init[i] - pt_world[i];
+                        diff_vec[i] -= cos_1 * plane.norm_vector[i];
+                    }
+                    for (int i = 0; i < 3; i ++)
+                    {
+                        pt_init[i] -= 0.5 * diff_vec[i];
+                    }
+
+                    // update line
+                    line.pt = pt_world;
+                    pt_cross = pt_init;
+                    line.unit_vector = myMATH::createUnitVector(line.pt, pt_cross);
+
+                    // update radius
+                    radius2 = myMATH::dist2(pt_init, pt_world);
+                    iter_innner ++;
+
+                    if (iter_innner > _pinplate_param.proj_nmax)
+                    {
+                        std::cout << "Camera::RefractPlate line " << __LINE__ << " : Error: maximum number of iterations reached" << std::endl;
+                        std::get<0>(result) = true;
+                        return result;
+                    }
+                }
+            }
+        } 
+        else
+        {
+            line.pt = pt_world;
+            pt_cross = pt_init;
+
+            line.unit_vector = myMATH::createUnitVector(line.pt, pt_cross);
+        }  
+
+        // forward projection: find intersection with each plane
+        int plane_id = 0;
+        for (plane_id = 1; plane_id < _pinplate_param.n_plate+1; plane_id ++)
+        {
+            refract_ratio = _pinplate_param.refract_array[plane_id-1] / _pinplate_param.refract_array[plane_id];
+            cos_1 = myMATH::dot(line.unit_vector, plane.norm_vector);
+            cos_1 = cos_1 > 1 ? 1 : cos_1 < -1 ? -1 : cos_1;
+            cos_2 = 1 - refract_ratio*refract_ratio*(1 - cos_1*cos_1);
+            if (cos_2 <= 0)
+            {
+                std::cout << "Camera::RefractPlate line " << __LINE__ << " : Error: total internal reflection" << std::endl;
+                std::cout << "(iter,plane_id,lr,cos_1,cos_2): " << iter << "," << plane_id << "," << lr << "," << cos_1 << "," << cos_2 << std::endl;
+
+                is_parallel = true;
+                std::get<0>(result) = is_parallel;
+                return result;    
+            }
+            factor = - refract_ratio * cos_1 - std::sqrt(cos_2);
+
+            // get new line
+            line.pt = pt_cross;
+            line.unit_vector = line.unit_vector * refract_ratio + plane.norm_vector * factor;
+
+            // get new plane
+            plane.pt -=  plane.norm_vector * _pinplate_param.w_array[plane_id-1];
+
+            // calculate new intersection
+            is_parallel = myMATH::crossPoint(pt_cross, line, plane);
+            if (is_parallel)
+            {
+                std::get<0>(result) = is_parallel;
+                return result;
+            }
+        }
+        pt_last = pt_cross;
+    
+        // backward projection: find intersection with the last plane
+        plane_id = _pinplate_param.n_plate;
+
+        // get line vector
+        refract_ratio = _pinplate_param.refract_array[plane_id] / _pinplate_param.refract_array[plane_id+1];
+        cos_1 = myMATH::dot(line.unit_vector, plane.norm_vector);
+        cos_1 = cos_1 > 1 ? 1 : cos_1 < -1 ? -1 : cos_1;
+        cos_2 = 1 - refract_ratio*refract_ratio*(1 - cos_1*cos_1);
+        if (cos_2 <= 0)
+        {
+            std::cout << "Camera::RefractPlate line " << __LINE__ << " : Error: total internal reflection" << std::endl;
+            std::cout << "(iter,plane_id,cos_1,cos_2,delta): " << iter << "," << plane_id << "," << cos_1 << "," << cos_2 << "," << delta << std::endl;
+
+            is_parallel = true;
+            std::get<0>(result) = is_parallel;
+            return result;    
+        }
+
+        factor = - refract_ratio * cos_1 - std::sqrt(cos_2);
+
+        line.unit_vector = line.unit_vector * refract_ratio + plane.norm_vector * factor;
+        line.pt = _pinplate_param.t_vec_inv;
+
+        // calculate intersection
+        is_parallel = myMATH::crossPoint(pt_cross, line, plane);
+        if (is_parallel)
+        {
+            std::get<0>(result) = is_parallel;
+            return result;
+        }
+
+        // calculate diff vector
+        delta = 0;
+        for (int i = 0; i < 3; i ++)
+        {
+            diff_vec[i] = pt_cross[i] - pt_last[i];
+            delta += diff_vec[i] * diff_vec[i];
+        }
+        delta = std::sqrt(delta);
+        
+        // check convergence
+        if (delta < _pinplate_param.proj_tol)
+        {
+            std::get<1>(result) = pt_cross;
+            std::get<2>(result) = delta;
+            return result;
+        }
+
+        // update pt_init
+        for (int i = 0; i < 3; i ++)
+        {
+            pt_cross[i] = pt_init[i] + lr * diff_vec[i];
+        }
+
+        // check radius
+        if (is_check_radius)
+        {
+            radius2 = myMATH::dist2(pt_cross, pt_world);
+            int iter_innner = 0;
+            while (radius2 >= radius_max2)
+            {
+                // update learning rate
+                lr *= 0.5;
+
+                // update pt
+                for (int i = 0; i < 3; i ++)
+                {
+                    pt_cross[i] = pt_init[i] + lr * diff_vec[i];
+                }
+
+                // update radius
+                radius2 = myMATH::dist2(pt_cross, pt_world);
+
+                iter_innner ++;
+                if (iter_innner > _pinplate_param.proj_nmax)
+                {
+                    std::cout << "Camera::RefractPlate line " << __LINE__ << " : Error: maximum number of iterations reached" << std::endl;
+                    std::get<0>(result) = true;
+                    return result;
+                }
+            }
+        }
+
+        // update pt_init
+        pt_init = pt_cross;
+
+    }
+
+    std::get<0>(result) = is_parallel;
+    std::get<1>(result) = pt_cross;
+    std::get<2>(result) = delta;
+    return result;
+}
+
+Pt2D Camera::distort (Pt2D const& pt_img_undist, PinholeParam const& param) const
 {
     // opencv distortion model
     double x = pt_img_undist[0];
@@ -448,7 +911,7 @@ Pt2D Camera::distort (Pt2D const& pt_img_undist) const
     double xd, yd;
 
     // judge if distortion is needed
-    if (_pinhole_param.is_distorted)
+    if (param.is_distorted)
     {
         double r2 = x*x + y*y;
         double r4 = r2*r2;
@@ -458,27 +921,27 @@ Pt2D Camera::distort (Pt2D const& pt_img_undist) const
         double a2 = r2 + 2 * x*x;
         double a3 = r2 + 2 * y*y;
 
-        double cdist = 1 + _pinhole_param.dist_coeff[0]*r2 + _pinhole_param.dist_coeff[1]*r4;
-        if (_pinhole_param.n_dist_coeff > 4)
+        double cdist = 1 + param.dist_coeff[0]*r2 + param.dist_coeff[1]*r4;
+        if (param.n_dist_coeff > 4)
         {
-            cdist += _pinhole_param.dist_coeff[4]*r6;
+            cdist += param.dist_coeff[4]*r6;
         }         
 
         double icdist2 = 1.0;
-        if (_pinhole_param.n_dist_coeff > 5)
+        if (param.n_dist_coeff > 5)
         {
-            icdist2 = 1.0 / (1 + _pinhole_param.dist_coeff[5]*r2 + _pinhole_param.dist_coeff[6]*r4 + _pinhole_param.dist_coeff[7]*r6);
+            icdist2 = 1.0 / (1 + param.dist_coeff[5]*r2 + param.dist_coeff[6]*r4 + param.dist_coeff[7]*r6);
         }
-        // double icdist2 = 1.0 / (1 + _pinhole_param.dist_coeff[5]*r2 + _pinhole_param.dist_coeff[6]*r4 + _pinhole_param.dist_coeff[7]*r6);
+        // double icdist2 = 1.0 / (1 + param.dist_coeff[5]*r2 + param.dist_coeff[6]*r4 + param.dist_coeff[7]*r6);
 
-        xd = x*cdist*icdist2 + _pinhole_param.dist_coeff[2]*a1 + _pinhole_param.dist_coeff[3]*a2;
-        yd = y*cdist*icdist2 + _pinhole_param.dist_coeff[2]*a3 + _pinhole_param.dist_coeff[3]*a1;
-        if (_pinhole_param.n_dist_coeff > 8)
+        xd = x*cdist*icdist2 + param.dist_coeff[2]*a1 + param.dist_coeff[3]*a2;
+        yd = y*cdist*icdist2 + param.dist_coeff[2]*a3 + param.dist_coeff[3]*a1;
+        if (param.n_dist_coeff > 8)
         {
             // additional distortion by projecting onto a tilt plane (14)
             // not supported yet
-            xd += _pinhole_param.dist_coeff[8] *r2 + _pinhole_param.dist_coeff[9] *r4;
-            yd += _pinhole_param.dist_coeff[10]*r2 + _pinhole_param.dist_coeff[11]*r4;
+            xd += param.dist_coeff[8] *r2 + param.dist_coeff[9] *r4;
+            yd += param.dist_coeff[10]*r2 + param.dist_coeff[11]*r4;
         }
     }
     else
@@ -488,8 +951,8 @@ Pt2D Camera::distort (Pt2D const& pt_img_undist) const
     }
     
     Pt2D pt_img_dist(
-        xd * _pinhole_param.cam_mtx(0,0) + _pinhole_param.cam_mtx(0,2),
-        yd * _pinhole_param.cam_mtx(1,1) + _pinhole_param.cam_mtx(1,2)
+        xd * param.cam_mtx(0,0) + param.cam_mtx(0,2),
+        yd * param.cam_mtx(1,1) + param.cam_mtx(1,2)
     );
 
     return pt_img_dist;
@@ -527,11 +990,15 @@ Line3D Camera::lineOfSight (Pt2D const& pt_img_dist) const
 {
     if (_type == PINHOLE)
     {
-        return pinholeLine(undistort(pt_img_dist));
+        return pinholeLine(undistort(pt_img_dist, _pinhole_param));
     }
     else if (_type == POLYNOMIAL)
     {
         return polyLineOfSight(pt_img_dist);
+    }
+    else if (_type == PINPLATE)
+    {
+        return pinplateLine(undistort(pt_img_dist, _pinplate_param));
     }
     else
     {
@@ -541,12 +1008,12 @@ Line3D Camera::lineOfSight (Pt2D const& pt_img_dist) const
 }
 
 // Pinhole  model
-Pt2D Camera::undistort (Pt2D const& pt_img_dist) const
+Pt2D Camera::undistort (Pt2D const& pt_img_dist, PinholeParam const& param) const
 {
-    double fx = _pinhole_param.cam_mtx(0,0);
-    double fy = _pinhole_param.cam_mtx(1,1);
-    double cx = _pinhole_param.cam_mtx(0,2);
-    double cy = _pinhole_param.cam_mtx(1,2);
+    double fx = param.cam_mtx(0,0);
+    double fy = param.cam_mtx(1,1);
+    double cx = param.cam_mtx(0,2);
+    double cy = param.cam_mtx(1,2);
 
     double u = pt_img_dist[0];
     double v = pt_img_dist[1];
@@ -555,7 +1022,7 @@ Pt2D Camera::undistort (Pt2D const& pt_img_dist) const
     Pt2D img_undist(x,y);
     Pt2D img_dist(0,0);
 
-    if (_pinhole_param.is_distorted)
+    if (param.is_distorted)
     {
         double x0 = x;
         double y0 = y;
@@ -573,17 +1040,17 @@ Pt2D Camera::undistort (Pt2D const& pt_img_dist) const
             // double icdist = (1 + ( (k[7]*r2+k[6])*r2 + k[5] )*r2)
             //                /(1 + ( (k[4]*r2+k[1])*r2 + k[0] )*r2);
             double icdist;
-            if (_pinhole_param.n_dist_coeff == 4)
+            if (param.n_dist_coeff == 4)
             {
-                icdist = 1 / (1 + (_pinhole_param.dist_coeff[1]*r2 + _pinhole_param.dist_coeff[0])*r2);
+                icdist = 1 / (1 + (param.dist_coeff[1]*r2 + param.dist_coeff[0])*r2);
             }
-            else if (_pinhole_param.n_dist_coeff == 5)
+            else if (param.n_dist_coeff == 5)
             {
-                icdist = 1 / (1 + ((_pinhole_param.dist_coeff[4]*r2 + _pinhole_param.dist_coeff[1])*r2 + _pinhole_param.dist_coeff[0])*r2);
+                icdist = 1 / (1 + ((param.dist_coeff[4]*r2 + param.dist_coeff[1])*r2 + param.dist_coeff[0])*r2);
             }
             else
             {
-                icdist = (1 + ((_pinhole_param.dist_coeff[7]*r2 + _pinhole_param.dist_coeff[6])*r2 + _pinhole_param.dist_coeff[5])*r2)/(1 + ((_pinhole_param.dist_coeff[4]*r2 + _pinhole_param.dist_coeff[1])*r2 + _pinhole_param.dist_coeff[0])*r2);
+                icdist = (1 + ((param.dist_coeff[7]*r2 + param.dist_coeff[6])*r2 + param.dist_coeff[5])*r2)/(1 + ((param.dist_coeff[4]*r2 + param.dist_coeff[1])*r2 + param.dist_coeff[0])*r2);
             }
 
             if (icdist < 0)
@@ -594,12 +1061,12 @@ Pt2D Camera::undistort (Pt2D const& pt_img_dist) const
             }
 
             // update x, y
-            double deltaX = _pinhole_param.dist_coeff[2] * a1 + _pinhole_param.dist_coeff[3] * a2;
-            double deltaY = _pinhole_param.dist_coeff[2] * a3 + _pinhole_param.dist_coeff[3] * a1;
-            if (_pinhole_param.n_dist_coeff > 8)
+            double deltaX = param.dist_coeff[2] * a1 + param.dist_coeff[3] * a2;
+            double deltaY = param.dist_coeff[2] * a3 + param.dist_coeff[3] * a1;
+            if (param.n_dist_coeff > 8)
             {
-                deltaX += _pinhole_param.dist_coeff[8] * r2 + _pinhole_param.dist_coeff[9] * r2 * r2;
-                deltaY += _pinhole_param.dist_coeff[10] * r2 + _pinhole_param.dist_coeff[11] * r2 * r2;
+                deltaX += param.dist_coeff[8] * r2 + param.dist_coeff[9] * r2 * r2;
+                deltaY += param.dist_coeff[10] * r2 + param.dist_coeff[11] * r2 * r2;
             }
             x = (x0 - deltaX) * icdist;
             y = (y0 - deltaY) * icdist;
@@ -607,7 +1074,7 @@ Pt2D Camera::undistort (Pt2D const& pt_img_dist) const
             // calculate distorted xd, yd
             img_undist[0] = x;
             img_undist[1] = y;
-            img_dist = distort(img_undist);
+            img_dist = distort(img_undist, param);
 
             // update error
             error = std::sqrt(std::pow(img_dist[0]-u, 2) + std::pow(img_dist[1]-v, 2));
@@ -625,10 +1092,72 @@ Line3D Camera::pinholeLine (Pt2D const& pt_img_undist) const
 
     // calculate line of sight
     pt_world = _pinhole_param.r_mtx_inv * pt_world + _pinhole_param.t_vec_inv;
-    
-    Pt3D unit_vec = myMATH::createUnitVector(_pinhole_param.t_vec_inv, pt_world);
 
-    Line3D line = {_pinhole_param.t_vec_inv, unit_vec};
+    Line3D line;
+    line.pt = _pinhole_param.t_vec_inv;
+    line.unit_vector = myMATH::createUnitVector(_pinhole_param.t_vec_inv, pt_world);
+
+    return line;
+}
+
+Line3D Camera::pinplateLine (Pt2D const& pt_img_undist) const
+{
+    Pt3D pt_world(pt_img_undist[0], pt_img_undist[1], 1.0);
+
+    // calculate line of sight
+    pt_world = _pinplate_param.r_mtx_inv * pt_world + _pinplate_param.t_vec_inv;
+    
+    Line3D line;
+    line.pt = _pinplate_param.t_vec_inv;
+    line.unit_vector = myMATH::createUnitVector(_pinplate_param.t_vec_inv, pt_world);
+
+    // backward projection
+    Plane3D plane;
+    plane.pt = _pinplate_param.pt3d_closest;
+    plane.norm_vector = _pinplate_param.plane.norm_vector;
+
+    Pt3D pt_cross;
+    bool is_parallel = false;
+    double refract_ratio;
+    double cos_1;
+    double cos_2;
+    double factor;
+
+    for (int plane_id = _pinplate_param.n_plate; plane_id >= 0; plane_id --)
+    {
+        is_parallel = myMATH::crossPoint(pt_cross, line, plane);
+        if (is_parallel)
+        {
+            std::cerr << "Camera::PinplateLine line " << __LINE__ << " : Error: line is parallel to the plane" << std::endl;
+            throw error_type;
+        }
+
+        // if (plane_id == _pinplate_param.n_plate)
+        // {
+        //     line.unit_vector = myMATH::createUnitVector(pt_cross, _pinplate_param.t_vec_inv);
+        // }
+
+        // get new line
+        refract_ratio = _pinplate_param.refract_array[plane_id+1] / _pinplate_param.refract_array[plane_id];
+        cos_1 = myMATH::dot(line.unit_vector, plane.norm_vector);
+        cos_1 = cos_1 > 1 ? 1 : cos_1 < -1 ? -1 : cos_1;
+        cos_2 = 1 - refract_ratio*refract_ratio*(1 - cos_1*cos_1);
+        if (cos_2 <= 0)
+        {
+            std::cerr << "Camera::PinplateLine line " << __LINE__ << " : Error: total internal reflection" << std::endl;
+            throw error_type;
+        }
+        factor = - refract_ratio * cos_1 + std::sqrt(cos_2);
+
+        line.unit_vector = line.unit_vector * refract_ratio + plane.norm_vector * factor;
+        line.pt = pt_cross;
+
+        // update plane location
+        if (plane_id > 0)
+        {
+            plane.pt += plane.norm_vector * _pinplate_param.w_array[plane_id-1];
+        } 
+    }
 
     return line;
 }

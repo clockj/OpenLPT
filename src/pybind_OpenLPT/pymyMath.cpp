@@ -41,13 +41,43 @@ void init_myMath(py::module& m)
     m.def("dist2", [](Pt2D const& pt1, Pt2D const& pt2){
         return myMATH::dist2(pt1, pt2);
     }, "Squared distance between two 2D points");
-
     m.def("dist2", [](Pt3D const& pt, Line3D const& line){
         return myMATH::dist2(pt, line);
     }, "Squared distance between a 3D point and a 3D line");
     m.def("dist2", [](Pt2D const& pt, Line2D const& line){
         return myMATH::dist2(pt, line);
     }, "Squared distance between a 2D point and a 2D line");
+    m.def("dist2", [](Pt3D const& pt, Plane3D const& plane){
+        return myMATH::dist2(pt, plane);
+    }, "Squared distance between a 3D point and a 3D plane");
+    m.def("dist2", [](std::vector<Pt3D> const& pt1_list, std::vector<Pt3D> const& pt2_list){
+        int npts = pt1_list.size();
+        if (npts != pt2_list.size())
+        {
+            throw std::invalid_argument("The two input lists must have the same size.");
+        }
+        std::vector<double> dist2_list(npts);
+        #pragma omp parallel for
+        for (int i = 0; i < npts; i++)
+        {
+            dist2_list[i] = myMATH::dist2(pt1_list[i], pt2_list[i]);
+        }
+        return dist2_list;
+    }, "Squared distance between two 3D points");
+    m.def("dist2", [](std::vector<Pt2D> const& pt1_list, std::vector<Pt2D> const& pt2_list){
+        int npts = pt1_list.size();
+        if (npts != pt2_list.size())
+        {
+            throw std::invalid_argument("The two input lists must have the same size.");
+        }
+        std::vector<double> dist2_list(npts);
+        #pragma omp parallel for
+        for (int i = 0; i < npts; i++)
+        {
+            dist2_list[i] = myMATH::dist2(pt1_list[i], pt2_list[i]);
+        }
+        return dist2_list;
+    }, "Squared distance between two 2D points");
 
     m.def("dist", [](Pt3D const& pt1, Pt3D const& pt2){
         return myMATH::dist(pt1, pt2);
@@ -55,13 +85,43 @@ void init_myMath(py::module& m)
     m.def("dist", [](Pt2D const& pt1, Pt2D const& pt2){
         return myMATH::dist(pt1, pt2);
     }, "Distance between two 2D points");
-
     m.def("dist", [](Pt3D const& pt, Line3D const& line){
         return myMATH::dist(pt, line);
     }, "Distance between a 3D point and a 3D line");
     m.def("dist", [](Pt2D const& pt, Line2D const& line){
         return myMATH::dist(pt, line);
     }, "Distance between a 2D point and a 2D line");
+    m.def("dist", [](Pt3D const& pt, Plane3D const& plane){
+        return myMATH::dist(pt, plane);
+    }, "Distance between a 3D point and a 3D plane");
+    m.def("dist", [](std::vector<Pt3D> const& pt1_list, std::vector<Pt3D> const& pt2_list){
+        int npts = pt1_list.size();
+        if (npts != pt2_list.size())
+        {
+            throw std::invalid_argument("The two input lists must have the same size.");
+        }
+        std::vector<double> dist_list(npts);
+        #pragma omp parallel for
+        for (int i = 0; i < npts; i++)
+        {
+            dist_list[i] = myMATH::dist(pt1_list[i], pt2_list[i]);
+        }
+        return dist_list;
+    }, "Distance between two 3D points");
+    m.def("dist", [](std::vector<Pt2D> const& pt1_list, std::vector<Pt2D> const& pt2_list){
+        int npts = pt1_list.size();
+        if (npts != pt2_list.size())
+        {
+            throw std::invalid_argument("The two input lists must have the same size.");
+        }
+        std::vector<double> dist_list(npts);
+        #pragma omp parallel for
+        for (int i = 0; i < npts; i++)
+        {
+            dist_list[i] = myMATH::dist(pt1_list[i], pt2_list[i]);
+        }
+        return dist_list;
+    }, "Distance between two 2D points");
 
     m.def("triangulation", [](std::vector<Line3D> const& line_of_sight_list){
         Pt3D pt_world(0, 0, 0);
@@ -88,6 +148,12 @@ void init_myMath(py::module& m)
         bool is_parallel = myMATH::crossPoint(pt2d, line1, line2);
         return std::make_pair(pt2d, is_parallel);
     }, "Find the cross point of two 2D lines");
+
+    m.def("crossPoint", [](Line3D const& line, Plane3D const& plane){
+        Pt3D pt3d;
+        bool is_parallel = myMATH::crossPoint(pt3d, line, plane);
+        return std::make_pair(pt3d, is_parallel);
+    }, "Find the cross point of a 3D line and a 3D plane");
 
     m.def("eye", &myMATH::eye<double>, "Create an identity Matrix<double>");
 
