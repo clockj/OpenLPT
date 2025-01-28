@@ -4,29 +4,29 @@
 #include "Track.h"
 
 template<class T3D>
-Track<T3D>::Track(TrackPredParam const& track_pred_param) : _track_pred_param(track_pred_param) {}
+Track<T3D>::Track(TrackPredParam const& track_pred_param) : _track_pred_param(track_pred_param) {} 
 
 template<class T3D>
-Track<T3D>::Track(const T3D& obj3d, int t) : _n_obj3d(1) 
+Track<T3D>::Track(T3D const& obj3d, int t) : _n_obj3d(1) 
 { 
     _obj3d_list.push_back(obj3d); 
     _t_list.push_back(t); 
 }
 
 template<class T3D>
-Track<T3D>::Track(const T3D& obj3d, int t, const TrackPredParam& track_pred_param) : _n_obj3d(1), _track_pred_param(track_pred_param) 
+Track<T3D>::Track(T3D const& obj3d, int t, TrackPredParam const& track_pred_param) : _n_obj3d(1), _track_pred_param(track_pred_param)
 { 
     _obj3d_list.push_back(obj3d); 
     _t_list.push_back(t); 
 }
 
 template<class T3D>
-Track<T3D>::Track(const Track& track) 
+Track<T3D>::Track(Track const& track) 
     : _obj3d_list(track._obj3d_list), _t_list(track._t_list), _n_obj3d(track._n_obj3d), _active(track._active), _track_pred_param(track._track_pred_param), _kf(track._kf), _is_kf_init(track._is_kf_init) {}
 
 
 template<class T3D>
-void Track<T3D>::addNext(const T3D& obj, int t)
+void Track<T3D>::addNext(T3D const& obj, int t)
 {
     _obj3d_list.push_back(obj);
     _t_list.push_back(t);
@@ -34,7 +34,7 @@ void Track<T3D>::addNext(const T3D& obj, int t)
 }
 
 template<class T3D>
-void Track<T3D>::addNext(const Track& track)
+void Track<T3D>::addNext(Track const& track)
 {
     _obj3d_list.insert(_obj3d_list.end(), track._obj3d_list.begin(), track._obj3d_list.end());
     _t_list.insert(_t_list.end(), track._t_list.begin(), track._t_list.end());
@@ -63,7 +63,7 @@ void Track<T3D>::saveTrack(std::ofstream& output, int track_id, float fps, int n
 }
 
 template<class T3D>
-Track<T3D>& Track<T3D>::operator=(const Track<T3D>& track)
+Track<T3D>& Track<T3D>::operator=(Track<T3D> const& track)
 {
     _obj3d_list = track._obj3d_list;
     _t_list = track._t_list;

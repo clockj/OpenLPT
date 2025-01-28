@@ -154,7 +154,7 @@ enum TrackStatusID
 
 enum TrackPredID
 {
-    WIENER,
+    WIENER = 0,
     KALMAN
 };
 
