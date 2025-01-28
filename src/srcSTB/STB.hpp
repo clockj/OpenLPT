@@ -172,8 +172,41 @@ STB<T3D>::STB(int frame_start, int frame_end, float fps, double vx_to_mm, int n_
         throw error_size;
     }
 
+    // load tracking predictor parameters
+    parsed >> line; 
+    bool is_pred_param = false;
+    if (line.rfind("Wiener", 0) == 0)
+    {
+        _track_pred_param.type = WIENER;
+        is_pred_param = true;
+    }
+    else if (line.rfind("Kalman", 0) == 0)
+    {
+        _track_pred_param.type = KALMAN;
+        // load float param based on comma
+        std::stringstream param_ss(line.substr(7));
+        double param_i;
+        while (param_ss >> param_i)
+        {
+            _track_pred_param.param.push_back(param_i * _vx_to_mm);
+            // std::cout << "param_i: " << param_i * _vx_to_mm << std::endl;
+            if (param_ss.peek() == ',')
+            {
+                param_ss.ignore();
+            }
+        }
+        is_pred_param = true;
+    }
+
     // Load Shake parameters //
-    parsed >> _shake_width; _shake_width *= _vx_to_mm;
+    if (is_pred_param)
+    {
+        parsed >> _shake_width; _shake_width *= _vx_to_mm;
+    }
+    else
+    {
+        _shake_width = std::stod(line); _shake_width *= _vx_to_mm;
+    }
     _ipr_param.shake_width = _shake_width;
 
     // Load Predict Field parameters //
@@ -504,7 +537,7 @@ void STB<T3D>::runInitPhase (int frame, std::vector<Image>& img_list, bool is_up
             {
                 if (!_ipr_matched[m][i]._is_tracked)
                 {
-                    _short_track_active.push_back(Track<T3D> (_ipr_matched[m][i], _first + m));
+                    _short_track_active.push_back(Track<T3D> (_ipr_matched[m][i], _first + m, _track_pred_param));
                 }
             }
 
@@ -753,7 +786,7 @@ void STB<T3D>::runConvPhase (int frame, std::vector<Image>& img_list, bool is_up
         {
             if (!obj3d_list[i]._is_tracked)
             {
-                _short_track_active.push_back(Track<T3D> (obj3d_list[i], frame));
+                _short_track_active.push_back(Track<T3D> (obj3d_list[i], frame, _track_pred_param));
                 _a_sa ++;
             }
         }
@@ -988,7 +1021,7 @@ void STB<T3D>::startTrack (int frame, PredField& pf)
             _ipr_matched[m][i]._is_tracked = true;
 
             // Start a track for the untracked particle            
-            Track<T3D> init_tr(_ipr_matched[m][i], frame);
+            Track<T3D> init_tr(_ipr_matched[m][i], frame, _track_pred_param);
 
             pf.getDisp(vel_curr, _ipr_matched[m][i]._pt_center);
             int obj3d_id = makeLink(init_tr, frame+1, vel_curr, _r_objSearch);
@@ -1335,7 +1368,7 @@ void STB<T3D>::loadTracks (std::string const& file, TrackStatusID status)
 
         if (data[0] != track_id_prev)
         {
-            Track<T3D> track(obj3d, data[1]);
+            Track<T3D> track(obj3d, data[1], _track_pred_param);
             track_list.push_back(track);
             track_id_prev = data[0];
         }

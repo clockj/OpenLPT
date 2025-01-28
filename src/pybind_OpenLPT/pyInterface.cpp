@@ -12,6 +12,7 @@
 #include "Matrix.h"
 #include "Camera.h"
 #include "myMATH.h"
+#include "KalmanFilter.h"
 #include "ObjectInfo.h"
 #include "ObjectFinder.h"
 #include "StereoMatch.h"
@@ -33,6 +34,7 @@ using namespace pybind11::literals;
 #include "pyImageIO.cpp"
 #include "pyCamera.cpp"
 #include "pymyMath.cpp"
+#include "pyKalmanFilter.cpp"
 
 #include "pyObjectInfo.cpp"
 #include "pyObjectFinder.cpp"

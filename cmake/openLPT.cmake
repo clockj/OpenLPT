@@ -12,6 +12,9 @@ target_link_libraries(ImageIO PUBLIC Matrix tiff)
 add_library(Camera SHARED ${CMAKE_HOME_DIRECTORY}/src/srcMath/Camera.cpp)
 target_link_libraries(Camera PUBLIC Matrix myMath)
 
+add_library(KalmanFilter SHARED ${CMAKE_HOME_DIRECTORY}/src/srcMath/KalmanFilter.cpp)
+target_link_libraries(KalmanFilter PUBLIC Matrix myMath)
+
 add_library(ObjectInfo SHARED ${CMAKE_HOME_DIRECTORY}/src/srcObject/ObjectInfo.cpp)
 target_link_libraries(ObjectInfo PUBLIC Matrix Camera)
 

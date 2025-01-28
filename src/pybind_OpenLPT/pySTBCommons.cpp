@@ -71,5 +71,10 @@ void init_STBCommons(py::module &m)
         .value("LONG_INACTIVE", TrackStatusID::LONG_INACTIVE)
         .value("EXIT", TrackStatusID::EXIT)
         .export_values();
+
+    py::enum_<TrackPredID>(m, "TrackPredID")
+        .value("WIENER", TrackPredID::WIENER)
+        .value("KALMAN", TrackPredID::KALMAN)
+        .export_values();
 }
 
