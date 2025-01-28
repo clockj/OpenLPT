@@ -11,7 +11,23 @@
 #include "STBCommons.h"
 #include "Matrix.h"
 #include "ObjectInfo.h"
+#include "KalmanFilter.h"
 
+// Predictor param
+struct TrackPredParam
+{
+    TrackPredID type = WIENER;
+    std::vector<double> param;    
+
+    // Wiener filter: no param
+    // Kalman filter: 
+    //  _param = {
+    //      sigma_q, # process noise
+    //      sigma_rx, sigma_ry, sigma_rz, # measurement noise
+    //      sigma_p0_x, sigma_p0_y, sigma_p0_z, 
+    //      sigma_p0_vx, sigma_p0_vy, sigma_p0_vz # initial state covariance
+    //  }
+};
 
 template<class T3D>
 class Track
@@ -21,11 +37,13 @@ public:
     std::vector<int> _t_list; // frame ID list
     int _n_obj3d = 0;
     bool _active = true;
-
+    TrackPredParam _track_pred_param;
 
     // Functions //
     Track() {};
+    Track(TrackPredParam const& track_pred_param);
     Track(T3D const& obj3d, int t);
+    Track(T3D const& obj3d, int t, TrackPredParam const& track_pred_param);
     Track(Track const& track);
     ~Track() {};
 
@@ -40,6 +58,9 @@ public:
     // but not update the obj2d list
     void predictNext(T3D& obj3d);
 
+    // Update the track with the new observation
+    void update();
+
     // write the track to a file
     void saveTrack(std::ofstream& output, int track_id, float fps = 1, int n_cam_all = 0);
     
@@ -49,6 +70,10 @@ public:
 private:
     void predLMSWiener (T3D& obj3d);
 
+    // Kalman filter
+    KalmanFilter _kf;
+    bool _is_kf_init = false;
+    void predKalman (T3D& obj3d);
 };
 
 #include "Track.hpp"

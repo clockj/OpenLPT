@@ -14,6 +14,7 @@ add_library(bindmyMath STATIC ${CMAKE_SOURCE_DIR}/src/srcMath/myMATH.cpp)
 add_library(bindCamera STATIC ${CMAKE_SOURCE_DIR}/src/srcMath/Camera.cpp)
 # target_link_libraries(bindCamera PUBLIC bindMatrix bindmyMath)
 
+add_library(bindKalmanFilter STATIC ${CMAKE_SOURCE_DIR}/src/srcMath/KalmanFilter.cpp)
 
 # Object module
 add_library(bindObjectInfo STATIC ${CMAKE_SOURCE_DIR}/src/srcObject/ObjectInfo.cpp)
@@ -58,6 +59,7 @@ set(BINDINGS_LIB
     bindImageIO
     bindmyMath
     bindCamera
+    bindKalmanFilter
     bindObjectInfo
     bindObjectFinder
     bindStereoMatch

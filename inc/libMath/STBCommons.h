@@ -152,4 +152,10 @@ enum TrackStatusID
     EXIT
 };
 
+enum TrackPredID
+{
+    WIENER,
+    KALMAN
+};
+
 #endif // !STBCOMMONS

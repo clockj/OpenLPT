@@ -90,6 +90,7 @@ private:
     double _r_trackSearch; // mm, find tracks around a track
     int _n_initPhase; // number of frames for initial phase
     double _r_predSearch; // px, radius to find predicted object
+    TrackPredParam _track_pred_param; // tracking predictor parameters
 
     // Shake parameters
     double _shake_width; // mm

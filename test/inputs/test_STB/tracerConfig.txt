@@ -10,6 +10,18 @@
 30 # Avg Interparticle spacing. (vox) to identify neighbour tracks 
 4 # Radius to find predicted particle (pixel)
 
+######### Tracking Predictor ############
+# Unit: vox
+# Wiener filter: Wiener (or not indicating)
+# Kalman filter: 
+#   Kalman,
+#   sigma_q, # process noise
+#   sigma_rx, sigma_ry, sigma_rz, # measurement noise
+#   sigma_p0_x, sigma_p0_y, sigma_p0_z, 
+#   sigma_p0_vx, sigma_p0_vy, sigma_p0_vz # initial state covariance
+# Wiener 
+# Kalman,0.05,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25 
+
 #########################
 ######### Shake #########
 #########################

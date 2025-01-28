@@ -4,6 +4,9 @@
 #include "Track.h"
 
 template<class T3D>
+Track<T3D>::Track(TrackPredParam const& track_pred_param) : _track_pred_param(track_pred_param) {}
+
+template<class T3D>
 Track<T3D>::Track(const T3D& obj3d, int t) : _n_obj3d(1) 
 { 
     _obj3d_list.push_back(obj3d); 
@@ -11,8 +14,15 @@ Track<T3D>::Track(const T3D& obj3d, int t) : _n_obj3d(1)
 }
 
 template<class T3D>
+Track<T3D>::Track(const T3D& obj3d, int t, const TrackPredParam& track_pred_param) : _n_obj3d(1), _track_pred_param(track_pred_param) 
+{ 
+    _obj3d_list.push_back(obj3d); 
+    _t_list.push_back(t); 
+}
+
+template<class T3D>
 Track<T3D>::Track(const Track& track) 
-    : _obj3d_list(track._obj3d_list), _t_list(track._t_list), _n_obj3d(track._n_obj3d), _active(track._active) {}
+    : _obj3d_list(track._obj3d_list), _t_list(track._t_list), _n_obj3d(track._n_obj3d), _active(track._active), _track_pred_param(track._track_pred_param), _kf(track._kf), _is_kf_init(track._is_kf_init) {}
 
 
 template<class T3D>
@@ -59,6 +69,9 @@ Track<T3D>& Track<T3D>::operator=(const Track<T3D>& track)
     _t_list = track._t_list;
     _n_obj3d = track._n_obj3d;
     _active = track._active;
+    _track_pred_param = track._track_pred_param;
+    _kf = track._kf;
+    _is_kf_init = track._is_kf_init;
     return *this;
 }
 
@@ -67,7 +80,18 @@ void Track<T3D>::predictNext(T3D& obj3d)
 {
     if (typeid(T3D) == typeid(Tracer3D))
     {
-        predLMSWiener(obj3d);
+        if (_track_pred_param.type == WIENER)
+        {
+            predLMSWiener(obj3d);
+        }
+        else if (_track_pred_param.type == KALMAN)
+        {
+            predKalman(obj3d);
+        }
+        else
+        {
+            std::cerr << "Error: predictNext not implemented for this type" << std::endl;
+        }
     }
     else
     {
@@ -85,10 +109,10 @@ void Track<T3D>::predLMSWiener(T3D& obj3d)
         std::cerr << "Track<T3D>::predLMSWiener error at line " << __LINE__ << ": no enough points to predict " << _n_obj3d << "<" << 3 << std::endl;
         return;
     }
-    else if (_n_obj3d < 4)
-    {
-        order = 3;
-    }
+    // else if (_n_obj3d < 4)
+    // {
+    //     order = 3;
+    // }
     else if (_n_obj3d < 6)
     {
         order = _n_obj3d - 1;
@@ -173,5 +197,125 @@ void Track<T3D>::predLMSWiener(T3D& obj3d)
     }
 
 }
+
+template<class T3D>
+void Track<T3D>::update()
+{
+    if (_n_obj3d < 2)
+    {
+        std::cerr << "Track<T3D>::update error at line " << __LINE__ << ": no enough points to update " << _n_obj3d << "<" << 2 << std::endl;
+        return;
+    }
+
+    if (typeid(T3D) == typeid(Tracer3D))
+    {
+        _kf.update(_obj3d_list[_n_obj3d-1]._pt_center);
+
+        // // update the tracer position
+        // for (int i = 0; i < 3; i ++)
+        // {
+        //     _obj3d_list[_n_obj3d-1]._pt_center[i] = _kf._x[i];
+        // }
+    }
+    else
+    {
+        std::cerr << "Error: update not implemented for this type" << std::endl;
+    }
+}
+
+template<class T3D>
+void Track<T3D>::predKalman(T3D& obj3d)
+{
+    if (_n_obj3d < 2)
+    {
+        std::cerr << "Track<T3D>::predKalman error at line " << __LINE__ << ": no enough points to predict " << _n_obj3d << "<" << 2 << std::endl;
+        return;
+    }
+
+    // initialize the Kalman filter
+    if (!_is_kf_init)
+    {
+        _kf._F = Matrix<double> (6,6,0);
+        for (int i = 0; i < 3; i ++)
+        {
+            _kf._F(i,i) = 1;
+            _kf._F(i,i+3) = 1;
+        }
+        for (int i = 3; i < 6; i ++)
+        {
+            _kf._F(i,i) = 1;
+        }
+        
+        _kf._H = Matrix<double> (3,6,0);
+        for (int i = 0; i < 3; i ++)
+        {
+            _kf._H(i,i) = 1;
+        }
+
+        int param_id = 0;
+        double sigma = _track_pred_param.param[param_id];
+        _kf._Q = Matrix<double> (6,6,0);
+        for (int i = 0; i < 3; i ++)
+        {
+            _kf._Q(i,i) = 0.25;
+            _kf._Q(i,i+3) = 0.5;
+        }
+        for (int i = 3; i < 6; i ++)
+        {
+            _kf._Q(i,i) = 1;
+            _kf._Q(i,i-3) = 0.5;
+        }
+        _kf._Q *= (sigma*sigma);
+        param_id ++;
+
+        _kf._R = Matrix<double> (3,3,0);
+        for (int i = 0; i < 3; i ++)
+        {
+            sigma = _track_pred_param.param[param_id];
+            _kf._R(i,i) = sigma * sigma;
+            param_id ++;
+        }
+
+        _kf._P = Matrix<double> (6,6,0);
+        for (int i = 0; i < 6; i ++)
+        {
+            sigma = _track_pred_param.param[param_id];
+            _kf._P(i,i) = sigma * sigma;
+            param_id ++;
+        }
+
+        _kf._x = Matrix<double> (6,1,0);
+        for (int i = 0; i < 3; i ++)
+        {
+            _kf._x(i,0) = _obj3d_list[1]._pt_center[i];
+        }
+        for (int i = 3; i < 6; i ++)
+        {
+            _kf._x(i,0) = _obj3d_list[1]._pt_center[i-3] - _obj3d_list[0]._pt_center[i-3];
+        }
+
+        // warm up the filter
+        for (int i = 1; i < _n_obj3d-1; i ++)
+        {
+            _kf.predict();
+            _kf.update(_obj3d_list[i+1]._pt_center);
+        }
+
+        _is_kf_init = true;
+    }
+    else
+    {
+        update();
+    }
+
+    _kf.predict();
+
+    // predict the tracer position
+    for (int i = 0; i < 3; i ++)
+    {
+        obj3d._pt_center[i] = _kf._x[i];
+    }
+}
+
 
 #endif

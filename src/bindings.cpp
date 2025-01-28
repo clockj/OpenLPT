@@ -14,6 +14,7 @@ void init_Matrix(py::module &);
 void init_ImageIO(py::module &);
 void init_Camera(py::module &);
 void init_myMath(py::module &);
+void init_KalmanFilter(py::module &);
 
 // Submodule: object 
 void init_ObjectInfo(py::module &);
@@ -90,6 +91,7 @@ PYBIND11_MODULE(pyOpenLPT, m)
     init_ImageIO(m_math);
     init_myMath(m_math);
     init_Camera(m_math);
+    init_KalmanFilter(m_math);
     
 
     // Submodule: object
