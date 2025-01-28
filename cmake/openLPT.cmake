@@ -46,13 +46,13 @@ target_link_libraries(PredField PUBLIC Matrix myMath ObjectInfo)
 
 add_library(Track SHARED ${CMAKE_HOME_DIRECTORY}/src/srcSTB/Track.hpp)
 set_target_properties(Track PROPERTIES LINKER_LANGUAGE CXX)
-target_link_libraries(Track PUBLIC Matrix myMath ObjectInfo)
+target_link_libraries(Track PUBLIC Matrix myMath ObjectInfo KalmanFilter)
 
 add_library(STB SHARED ${CMAKE_HOME_DIRECTORY}/src/srcSTB/STB.hpp)
 set_target_properties(STB PROPERTIES LINKER_LANGUAGE CXX)
-target_link_libraries(STB PUBLIC Matrix myMath ObjectInfo ObjectFinder StereoMatch OTF Shake IPR PredField Track)
+target_link_libraries(STB PUBLIC Matrix myMath ObjectInfo ObjectFinder StereoMatch OTF Shake IPR PredField Track KalmanFilter)
 
 # exe
 add_executable(OpenLPT src/main.cpp)
-target_link_libraries(OpenLPT PRIVATE ImageIO STB Matrix ObjectInfo ObjectFinder StereoMatch OTF Shake IPR PredField Track)
+target_link_libraries(OpenLPT PRIVATE ImageIO STB Matrix KalmanFilter ObjectInfo ObjectFinder StereoMatch OTF Shake IPR PredField Track)
 

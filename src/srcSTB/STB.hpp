@@ -188,8 +188,8 @@ STB<T3D>::STB(int frame_start, int frame_end, float fps, double vx_to_mm, int n_
         double param_i;
         while (param_ss >> param_i)
         {
-            _track_pred_param.param.push_back(param_i * _vx_to_mm);
-            // std::cout << "param_i: " << param_i * _vx_to_mm << std::endl;
+            param_i *= _vx_to_mm;
+            _track_pred_param.param.push_back(param_i);
             if (param_ss.peek() == ',')
             {
                 param_ss.ignore();
@@ -259,7 +259,7 @@ STB<T3D>::STB(int frame_start, int frame_end, float fps, double vx_to_mm, int n_
 
 template<class T3D>
 STB<T3D>::STB(const STB& stb)
-    : _ipr_matched(stb._ipr_matched), _short_track_active(stb._short_track_active), _long_track_active(stb._long_track_active), _long_track_inactive(stb._long_track_inactive), _exit_track(stb._exit_track), _first(stb._first), _last(stb._last), _fps(stb._fps), _vx_to_mm(stb._vx_to_mm), _n_thread(stb._n_thread), _output_folder(stb._output_folder), _cam_list(stb._cam_list), _n_cam_all(stb._n_cam_all), _axis_limit(stb._axis_limit), _ipr_flag(stb._ipr_flag), _r_objSearch(stb._r_objSearch), _r_trackSearch(stb._r_trackSearch), _n_initPhase(stb._n_initPhase), _r_predSearch(stb._r_predSearch), _shake_width(stb._shake_width), _pf_param(stb._pf_param), _ipr_only(stb._ipr_only), _ipr_param(stb._ipr_param), _n_reduced(stb._n_reduced), _tol_2d_overlap(stb._tol_2d_overlap), _obj_param(stb._obj_param), _otf(stb._otf), _a_sa(stb._a_sa), _a_la(stb._a_la), _s_sa(stb._s_sa), _s_la(stb._s_la), _a_li(stb._a_li)
+    : _ipr_matched(stb._ipr_matched), _short_track_active(stb._short_track_active), _long_track_active(stb._long_track_active), _long_track_inactive(stb._long_track_inactive), _exit_track(stb._exit_track), _first(stb._first), _last(stb._last), _fps(stb._fps), _vx_to_mm(stb._vx_to_mm), _n_thread(stb._n_thread), _output_folder(stb._output_folder), _cam_list(stb._cam_list), _n_cam_all(stb._n_cam_all), _axis_limit(stb._axis_limit), _ipr_flag(stb._ipr_flag), _r_objSearch(stb._r_objSearch), _r_trackSearch(stb._r_trackSearch), _n_initPhase(stb._n_initPhase), _r_predSearch(stb._r_predSearch), _track_pred_param(stb._track_pred_param), _shake_width(stb._shake_width), _pf_param(stb._pf_param), _ipr_only(stb._ipr_only), _ipr_param(stb._ipr_param), _n_reduced(stb._n_reduced), _tol_2d_overlap(stb._tol_2d_overlap), _obj_param(stb._obj_param), _otf(stb._otf), _a_sa(stb._a_sa), _a_la(stb._a_la), _s_sa(stb._s_sa), _s_la(stb._s_la), _a_li(stb._a_li)
 {
     // Create output folder
     createFolder(_output_folder);
@@ -348,7 +348,6 @@ void STB<T3D>::processFrame (int frame_id, std::vector<Image>& img_list, bool is
     {
         // Initial phase
         std::cout << "Initial phase at frame " << frame_id << std::endl;
-
         runInitPhase(frame_id, img_list, is_update_img);
     }
     else
@@ -1020,7 +1019,7 @@ void STB<T3D>::startTrack (int frame, PredField& pf)
         {
             _ipr_matched[m][i]._is_tracked = true;
 
-            // Start a track for the untracked particle            
+            // Start a track for the untracked particle      
             Track<T3D> init_tr(_ipr_matched[m][i], frame, _track_pred_param);
 
             pf.getDisp(vel_curr, _ipr_matched[m][i]._pt_center);
