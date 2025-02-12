@@ -56,6 +56,7 @@ protected:
         {
             char z = c;
             py::module_::import("sys").attr("stderr").attr("write")(std::string(1, z));
+            py::module_::import("sys").attr("stderr").attr("flush")();
             return c;
         }
     }
@@ -64,6 +65,7 @@ protected:
     {
         std::string str(s, n);
         py::module_::import("sys").attr("stderr").attr("write")(str);
+        py::module_::import("sys").attr("stderr").attr("flush")();
         return n;
     }
 
