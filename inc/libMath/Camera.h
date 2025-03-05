@@ -94,7 +94,8 @@ public:
     void loadParameters (std::istream& is);
     void loadParameters (std::string file_name);
 
-    void updatePolyDuDv ();
+    void updatePolyDuDv (); // for polynomial model
+    void updatePt3dClosest (); // for pinplate model
 
     // Transfer from rotation matrix to rotation vector
     Pt3D rmtxTorvec (Matrix<double> const& r_mtx);

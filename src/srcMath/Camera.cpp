@@ -283,14 +283,9 @@ void Camera::loadParameters (std::istream& is)
         _pinplate_param.n_plate = _pinplate_param.w_array.size();
 
         // update closest point to the camera
-        _pinplate_param.pt3d_closest = _pinplate_param.plane.pt;
-        for (int i = 0; i < _pinplate_param.n_plate; i ++)
-        {
-            _pinplate_param.pt3d_closest = _pinplate_param.pt3d_closest - _pinplate_param.plane.norm_vector * _pinplate_param.w_array[i];
-        }
+        updatePt3dClosest ();
 
         // read projection tolerance
-        double tol;
         is >> _pinplate_param.proj_tol;
 
         // read maximum number of iterations for projection
@@ -403,6 +398,18 @@ void Camera::updatePolyDuDv ()
             _poly_param.dv_coeffs(j,derivative_id[1]) = std::max(_poly_param.v_coeffs(i,derivative_id[1]) - 1, 0.0);
         }
     }   
+}
+
+void Camera::updatePt3dClosest ()
+{
+    if (_type == PINPLATE)
+    {
+        _pinplate_param.pt3d_closest = _pinplate_param.plane.pt;
+        for (int i = 0; i < _pinplate_param.n_plate; i ++)
+        {
+            _pinplate_param.pt3d_closest = _pinplate_param.pt3d_closest - _pinplate_param.plane.norm_vector * _pinplate_param.w_array[i];
+        }
+    }
 }
 
 Pt3D Camera::rmtxTorvec (Matrix<double> const& r_mtx)
@@ -1150,6 +1157,7 @@ Line3D Camera::pinplateLine (Pt2D const& pt_img_undist) const
         factor = - refract_ratio * cos_1 + std::sqrt(cos_2);
 
         line.unit_vector = line.unit_vector * refract_ratio + plane.norm_vector * factor;
+        line.unit_vector /= line.unit_vector.norm();
         line.pt = pt_cross;
 
         // update plane location

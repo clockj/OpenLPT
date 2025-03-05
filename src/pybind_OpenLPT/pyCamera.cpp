@@ -84,7 +84,8 @@ void init_Camera(py::module &m)
                 "t_vec"_a=self.t_vec, 
                 "r_mtx_inv"_a=self.r_mtx_inv, 
                 "t_vec_inv"_a=self.t_vec_inv, 
-                "plane"_a=self.plane,  
+                "plane"_a=self.plane, 
+                "pt3d_closest"_a=self.pt3d_closest, 
                 "refract_array"_a=self.refract_array, 
                 "w_array"_a=self.w_array, 
                 "n_plate"_a=self.n_plate, 
@@ -114,6 +115,7 @@ void init_Camera(py::module &m)
             self.loadParameters(filename);
         })
         .def("updatePolyDuDv", &Camera::updatePolyDuDv)
+        .def("updatePt3dClosest", &Camera::updatePt3dClosest)
         .def("saveParameters", &Camera::saveParameters)
         .def("rmtxTorvec", &Camera::rmtxTorvec)
         .def("getNRow", &Camera::getNRow)
