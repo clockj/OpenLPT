@@ -207,10 +207,11 @@ void Shake::calResImg(std::vector<Tracer3D> const& tr3d_list, OTF const& otf, st
 
                     // choose the min residue as the value
                     // TODO: try other ways
-                    if (residue < _imgRes_list[id](row, col))
-                    {
-                        _imgRes_list[id](row, col) = residue;
-                    }
+                    // if (residue < _imgRes_list[id](row, col))
+                    // {
+                    //     _imgRes_list[id](row, col) = residue;
+                    // }
+                    _imgRes_list[id](row, col) = residue;
                 }
             }
         }

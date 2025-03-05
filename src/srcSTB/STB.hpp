@@ -1291,30 +1291,30 @@ bool STB<T3D>::checkLinearFit(Track<T3D> const& track)
     {
         return false;
     }
-    else if (res > err_min)
-    {
-        // For those tracks that are at the edge of being deleted (res>0.6*err), check the whole track to see whether its error is large also
-        double res_tot = res;
-        for (int i = 0; i < n_pts-1; i ++)
-        {
-            est[0] = coeff(0,0) + coeff(0,1) * i;
-            est[1] = coeff(1,0) + coeff(1,1) * i;
-            est[2] = coeff(2,0) + coeff(2,1) * i;
+    // else if (res > err_min)
+    // {
+    //     // For those tracks that are at the edge of being deleted (res>0.6*err), check the whole track to see whether its error is large also
+    //     double res_tot = res;
+    //     for (int i = 0; i < n_pts-1; i ++)
+    //     {
+    //         est[0] = coeff(0,0) + coeff(0,1) * i;
+    //         est[1] = coeff(1,0) + coeff(1,1) * i;
+    //         est[2] = coeff(2,0) + coeff(2,1) * i;
 
-            res = myMATH::dist(track._obj3d_list[len-n_pts+i]._pt_center, est); 
+    //         res = myMATH::dist(track._obj3d_list[len-n_pts+i]._pt_center, est); 
 
-            if (res > err_min)
-            {
-                return false;
-            }
+    //         if (res > err_min)
+    //         {
+    //             return false;
+    //         }
 
-            res_tot += res;
-        }
-        if (res_tot > n_pts * err_min)
-        {
-            return false;
-        }
-    }
+    //         res_tot += res;
+    //     }
+    //     if (res_tot > n_pts * err_min)
+    //     {
+    //         return false;
+    //     }
+    // }
 
     return true;
 }
